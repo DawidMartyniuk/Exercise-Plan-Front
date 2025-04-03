@@ -1,5 +1,32 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+import 'package:work_plan_front/startScreen.dart';
+
+final colorScheme = ColorScheme.fromSeed(
+  brightness: Brightness.dark,
+  seedColor: const Color.fromARGB(240, 0, 0, 0),
+  surface: const Color.fromARGB(239, 65, 61, 61),
+  );
+
+final theme =ThemeData().copyWith(
+
+  scaffoldBackgroundColor: colorScheme.surface,
+  colorScheme: colorScheme,
+  textTheme: GoogleFonts.ubuntuCondensedTextTheme().copyWith(
+    titleSmall: GoogleFonts.ubuntuCondensed(
+      fontWeight: FontWeight.bold,
+    ),
+    titleMedium: GoogleFonts.ubuntuCondensed(
+      fontWeight: FontWeight.bold,
+    ),
+    titleLarge: GoogleFonts.ubuntuCondensed(
+      fontWeight: FontWeight.bold,
+    ),
+  ),
+);
+
+
 void main() {
   runApp(MyApp());
 }
@@ -10,7 +37,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Text("Helo Word"),
+      title: 'App demo',
+      theme: theme,
+      home: Startscreen(),
       );
   }
 }
