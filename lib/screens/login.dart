@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/start.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -29,7 +30,7 @@ class LoginScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 20),
                   Text(
-                    "Login Acount",
+                    "Login ",
                     style: Theme.of(
                       context,
                     ).textTheme.titleLarge!.copyWith(
@@ -53,7 +54,7 @@ class LoginScreen extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 30),
                   TextField(
                     keyboardType: TextInputType.visiblePassword,
                     decoration: InputDecoration(
@@ -140,7 +141,7 @@ class LoginScreen extends StatelessWidget {
                         ),
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (ctx) => Startscreen()),
+                            MaterialPageRoute(builder: (ctx) => RegisterScreen()),
                           );
                         },
                         child: Ink(
