@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:work_plan_front/startScreen.dart';
+import 'package:work_plan_front/screens/start.dart';
 
-final colorScheme = ColorScheme.fromSeed(
-  brightness: Brightness.dark,
-  seedColor: const Color.fromARGB(240, 0, 0, 0),
-  surface: const Color.fromARGB(239, 65, 61, 61),
-  );
+final colorScheme = const ColorScheme.dark(
+  primary: Colors.black,
+  surface: Color.fromARGB(239, 65, 61, 61),
+  secondary: Color.fromARGB(239, 65, 61, 61),
+  onPrimary: Colors.white,
+  onSurface: Colors.white,
+);
 
 final theme =ThemeData().copyWith(
-
   scaffoldBackgroundColor: colorScheme.surface,
   colorScheme: colorScheme,
   textTheme: GoogleFonts.ubuntuCondensedTextTheme().copyWith(
@@ -23,6 +24,7 @@ final theme =ThemeData().copyWith(
     titleLarge: GoogleFonts.ubuntuCondensed(
       fontWeight: FontWeight.bold,
     ),
+    
   ),
 );
 
