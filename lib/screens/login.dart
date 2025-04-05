@@ -2,8 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/start.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+
+ @override
+  _LoginScreenState createState() => _LoginScreenState(); 
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   void login(BuildContext context) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => Startscreen()));
@@ -25,157 +40,185 @@ class LoginScreen extends StatelessWidget {
                 horizontal: 20.0,
                 vertical: 16.0,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(height: 20),
-                  Text(
-                    "Login ",
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  TextField(
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
-                      labelText: "Email",
-                      labelStyle: TextStyle(
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(height: 20),
+                    Text(
+                      "Login ",
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleLarge!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                  SizedBox(height: 30),
-                  TextField(
-                    keyboardType: TextInputType.visiblePassword,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
-                      labelText: "Password",
-                      labelStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    obscureText: true,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-
-                    children: [
-                      Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Forgot Password ",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                    SizedBox(height: 20),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
+                        labelText: "Email",
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      validator: (value) {
+                        if(value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                        if(!emailRegex.hasMatch(value)) {
+                          return 'Please enter a valid email address';
+                        }
+                        return null;
+                      },
+                
+                    ),
+                    SizedBox(height: 30),
+                    TextFormField(
+                      keyboardType: TextInputType.visiblePassword,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock),
+                        labelText: "Password",
+                        labelStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      validator: (value) {
+                        if(value == null){
+                          return "Please enter your password";
+                        }
+                        if(value.length < 4) {
+                          return "Password must be at least 6 characters long";
+                        } 
+                        final containsUpperCase = value.contains(RegExp(r'[A-Z]'));
+                        if(!containsUpperCase) {
+                          return "Password must contain at least one uppercase letter";
+                        }
+                      },
+                      obscureText: true,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
+                        TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            "Forgot Password ",
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ),
-                        onPressed: () {
-                          login(context);
-                        },
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color.fromARGB(255, 239, 64, 64),
-                                Color.fromARGB(255, 247, 87, 75),
-                              ],
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            borderRadius: BorderRadius.circular(25),
                           ),
-                          child: Container(
-                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                          onPressed: () {
+                
+                            login(context);
+                          },
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color.fromARGB(255, 239, 64, 64),
+                                  Color.fromARGB(255, 247, 87, 75),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(25),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              "Login Account",
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
+                            child: Container(
+                               padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Login Account",
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 30),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(builder: (ctx) => RegisterScreen()),
-                          );
-                        },
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color.fromARGB(255, 239, 64, 64),
-                                Color.fromARGB(255, 247, 87, 75),
-                              ],
+                        SizedBox(width: 30),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            borderRadius: BorderRadius.circular(25),
                           ),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (ctx) => RegisterScreen()),
+                            );
+                          },
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color.fromARGB(255, 239, 64, 64),
+                                  Color.fromARGB(255, 247, 87, 75),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(25),
                             ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              "Create Account",
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleMedium!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Create Account",
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.titleMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

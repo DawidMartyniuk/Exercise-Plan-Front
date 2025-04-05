@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class RegisterScreen extends StatefulWidget {
+  
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -52,6 +53,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  SizedBox(height: 20),
                   GestureDetector(
                     onTap: _pickImage,
                     child: CircleAvatar(
