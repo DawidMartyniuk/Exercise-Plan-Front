@@ -130,8 +130,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ],
                     ),
                     SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      spacing: 20, 
+                      runSpacing: 10, 
+                      alignment: WrapAlignment.center,
+
                       children: [
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
