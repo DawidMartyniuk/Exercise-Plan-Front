@@ -10,6 +10,10 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+ final _globalKey = GlobalKey<FormState>();
+ final _nameController = TextEditingController();
+ final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   File? _profileImage;
 
   Future<void> _pickImage() async {
@@ -30,198 +34,222 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
             child: SingleChildScrollView(
-            child: Container(
-              decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 16.0,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                SizedBox(height: 30),
-                Text(
-                  "Create Account",
-                  style: Theme.of(
-                  context,
-                  ).textTheme.titleLarge!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  ),
+            child: Form(
+              key: _globalKey,
+              child: Container(
+                decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
                 ),
-                SizedBox(height: 20),
-                GestureDetector(
-                  onTap: _pickImage,
-                  child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: _profileImage != null
-                    ? FileImage(_profileImage!)
-                    : null,
-                  child: _profileImage == null
-                    ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
-                    : null,
-                  ),
+                child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
                 ),
-                SizedBox(height: 20),
-                TextField(
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: "Name",
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  ),
-                  style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 30),
-                TextField(
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.email),
-                  labelText: "Email",
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  ),
-                  style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                SizedBox(height: 30),
-                TextField(
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  labelText: "Password",
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  ),
-                  style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  obscureText: true,
-                ),
-                SizedBox(height: 30),
-                TextField(
-                  keyboardType: TextInputType.visiblePassword,
-                  decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.lock),
-                  labelText: "Repead Password",
-                  labelStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  ),
-                  style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  obscureText: true,
-                ),
-                SizedBox(height: 30),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    ),
-                    onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (ctx) => LoginScreen()),
-                    );
-                    },
-                    child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.fromARGB(255, 239, 64, 64),
-                        Color.fromARGB(255, 247, 87, 75),
-                      ],
-                      ),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                      "cancel",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      ),
-                    ),
+                  SizedBox(height: 30),
+                  Text(
+                    "Create Account",
+                    style: Theme.of(
+                    context,
+                    ).textTheme.titleLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(width: 20),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: _pickImage,
+                    child: CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: _profileImage != null
+                      ? FileImage(_profileImage!)
+                      : null,
+                    child: _profileImage == null
+                      ? Icon(Icons.camera_alt, size: 40, color: Colors.white)
+                      : null,
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: _nameController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: "Name",
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     ),
-                    onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                      builder: (ctx) => RegisterScreen(),
-                      ),
-                    );
-                    },
-                    child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color.fromARGB(255, 239, 64, 64),
-                        Color.fromARGB(255, 247, 87, 75),
-                      ],
-                      ),
-                      borderRadius: BorderRadius.circular(25),
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                      "Create Account",
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      ),
+                    validator: (value) {
+                      if(value ==null  ){
+                        return 'Please enter your name';
+                      }
+                      if(value.length < 3) {
+                        return 'Name must be at least 3 characters long';
+                      }
+                    }, 
+                  ),
+                  SizedBox(height: 30),
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.email),
+                    labelText: "Email",
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     ),
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                       validator: (value) {
+                        if(value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                        if(!emailRegex.hasMatch(value)) {
+                          return 'Please enter a valid email address';
+                        }
+                        return null;
+                      },
+                  ),
+                  SizedBox(height: 30),
+                  TextFormField(
+                    controller: _passwordController,
+                    keyboardType: TextInputType.visiblePassword,
+                    decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock),
+                    labelText: "Password",
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    ),
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    obscureText: true,
+                  ),
+                  SizedBox(height: 30),
+                  TextFormField(
+                    keyboardType: TextInputType.visiblePassword,
+                    decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.lock),
+                    labelText: "Repead Password",
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    ),
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    obscureText: true,
+                  ),
+                  SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      ),
+                      onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (ctx) => LoginScreen()),
+                      );
+                      },
+                      child: Ink(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.fromARGB(255, 239, 64, 64),
+                          Color.fromARGB(255, 247, 87, 75),
+                        ],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                        "cancel",
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        ),
+                      ),
+                      ),
+                    ),
+                    SizedBox(width: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      ),
+                      onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                        builder: (ctx) => RegisterScreen(),
+                        ),
+                      );
+                      },
+                      child: Ink(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color.fromARGB(255, 239, 64, 64),
+                          Color.fromARGB(255, 247, 87, 75),
+                        ],
+                        ),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                        "Create Account",
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        ),
+                      ),
+                      ),
+                    ),
+                    ],
                   ),
                   ],
                 ),
-                ],
-              ),
+                ),
               ),
             ),
             ),

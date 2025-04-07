@@ -19,9 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    else {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => Startscreen()));
+    }
   }
 
   @override
