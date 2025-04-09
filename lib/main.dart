@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:work_plan_front/screens/start.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final colorScheme = const ColorScheme.dark(
   primary: Colors.black,
@@ -30,7 +31,7 @@ final theme =ThemeData().copyWith(
 
 
 void main() {
-  runApp(MyApp());
+  runApp( const ProviderScope(child:MyApp() ) );
 }
 
 class MyApp extends StatelessWidget {

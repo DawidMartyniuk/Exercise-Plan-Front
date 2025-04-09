@@ -12,9 +12,10 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
  final _globalKey = GlobalKey<FormState>();
  final _nameController = TextEditingController();
- final _emailController = TextEditingController();
+  final  _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  File? _profileImage;
+  final _confirmPasswordController = TextEditingController();
+  File? _profileImage ;
 
   Future<void> _pickImage() async {
     final ImagePicker _picker = ImagePicker();
@@ -24,6 +25,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         _profileImage = File(image.path);
       });
+    }
+  }
+  void register(BuildContext context) {
+    if (!_globalKey.currentState!.validate()) {
+      return;
+    } else {
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (context) => LoginScreen()));
     }
   }
 
@@ -138,10 +148,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     ),
+                    validator: (value){
+                      if(value == null){
+                        return 'Please enter your password';
+                      }
+                      if(value.length < 6) {
+                        return 'Password must be at least 6 characters long';
+                      }
+                      final containsUpperCase = value.contains(RegExp(r'[A-Z]'));
+                      if(!containsUpperCase) {
+                        return 'Password must contain at least one uppercase latter';
+                      }
+                      if(_passwordController.text != _confirmPasswordController.text) {
+                        return 'Passwords is not the same';
+                      }
+                    },
                     obscureText: true,
                   ),
                   SizedBox(height: 30),
                   TextFormField(
+                    controller: _confirmPasswordController,
                     keyboardType: TextInputType.visiblePassword,
                     decoration: InputDecoration(
                     border: OutlineInputBorder(),
@@ -154,6 +180,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
                     ),
+                      validator: (value){
+                      if(value == null){
+                        return 'Please enter your password';
+                      }
+                      if(value.length < 6) {
+                        return 'Password must be at least 6 characters long';
+                      }
+                      final containsUpperCase = value.contains(RegExp(r'[A-Z]'));
+                      if(!containsUpperCase) {
+                        return 'Password must contain at least one uppercase latter';
+                      }
+                      if(_passwordController.text != _confirmPasswordController.text) {
+                        return 'Passwords is not the same';
+                      }
+                    },
                     obscureText: true,
                   ),
                   SizedBox(height: 30),
@@ -210,11 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       ),
                       onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                        builder: (ctx) => RegisterScreen(),
-                        ),
-                      );
+                        register(context);
                       },
                       child: Ink(
                       decoration: BoxDecoration(

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/authResponse.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/start.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
 
@@ -10,16 +13,20 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState(); 
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  void login(BuildContext context) {
+  Future<void> _login(BuildContext context)async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
     if (!_formKey.currentState!.validate()) {
-      return;
+      return; 
     }
     else {
+     await ref.read(authProvider.notifier).login(email, password);
+    print("zalogowano na $email i $password");
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => Startscreen()));
@@ -28,6 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authResponse = ref.watch(authProvider);
+
     return Scaffold(
       body: Center(
         child: Padding(
@@ -147,7 +156,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           onPressed: () {
                 
-                            login(context);
+                            _login(context);
                           },
                           child: Ink(
                             decoration: BoxDecoration(
@@ -175,6 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
+                              
                             ),
                           ),
                         ),
