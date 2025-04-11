@@ -29,6 +29,12 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
    
   }
+  Future<void> logout() async {
+    final authService = Authservice();
+     await authService.logout();
+    state = null; 
+  }
+
 }
 
 final authProviderLogin = StateNotifierProvider<AuthNotifier, AuthResponse?>(

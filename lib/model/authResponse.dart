@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'user.dart'; 
 
-class AuthResponse{
+class AuthResponse {
+  static String? currentToken; 
   final String token;
   final User user;
 
   AuthResponse({
     required this.token,
     required this.user,
-  });
+  }) {
+    currentToken = token; 
+  }
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
@@ -16,5 +19,4 @@ class AuthResponse{
       user: User.fromJson(json['user']),
     );
   }
-
 }
