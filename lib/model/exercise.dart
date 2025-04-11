@@ -1,0 +1,40 @@
+class Exercise{
+  final int id;
+  final String name;
+  final String bodyPart;
+  final String equipment;
+  final String gifUrl;
+  final String target;
+  final List<String> secondaryMuscles;
+  final List<String> instructions;
+
+  Exercise({
+    required this.id,
+    required this.name,
+    required this.bodyPart,
+    required this.equipment,
+    required this.gifUrl,
+    required this.target,
+    required this.secondaryMuscles,
+    required this.instructions,
+  });
+  
+}
+
+
+//         "bodyPart": "waist",
+//         "equipment": "assisted",
+//         "gifUrl": "https://v2.exercisedb.io/image/s9yGyEahYZaQQF",
+//         "id": "0010",
+//         "name": "assisted hanging knee raise with throw down",
+//         "target": "abs",
+//         "secondaryMuscles": [
+//             "hip flexors",
+//             "lower back"
+//         ],
+//         "instructions": [
+//             "Hang from a pull-up bar with your arms fully extended and your palms facing away from you.",
+//             "Engage your core and lift your knees towards your chest, keeping your legs together.",
+//             "Once your knees are at chest level, explosively throw your legs down towards the ground, extending them fully.",
+//             "Allow your legs to swing back up and repeat the movement for the desired number of repetitions."
+//         ]
