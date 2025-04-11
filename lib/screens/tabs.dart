@@ -21,10 +21,6 @@ class _TabsScreenState extends ConsumerState<TabsScreen>{
     ProfilScreen(),
   ];
 
-  void _setScreen(String screen) {
-
-  }
-
   void _selectPage(int indexPage){
     setState(() {
     _selectedPageIndex = indexPage;
@@ -36,9 +32,9 @@ class _TabsScreenState extends ConsumerState<TabsScreen>{
       return Scaffold(
         body: _pages[_selectedPageIndex],
         bottomNavigationBar: BottomNavigationBar(
-         backgroundColor: Theme.of(context).colorScheme.surface.withAlpha((0.95 *255 ).toInt()), // odcień tła
-        selectedItemColor: Theme.of(context).colorScheme.onSurface, // wyróżniony kolor
-        unselectedItemColor: Theme.of(context).colorScheme.secondary.withAlpha((0.95 * 255).toInt()), // mniej kontrastowy dla niewybranych
+         backgroundColor: Theme.of(context).colorScheme.surface.withAlpha((0.95 *255 ).toInt()),
+        selectedItemColor: Theme.of(context).colorScheme.onSurface, 
+        unselectedItemColor: Theme.of(context).colorScheme.secondary.withAlpha((0.95 * 255).toInt()), 
        
         currentIndex: _selectedPageIndex,
         type: BottomNavigationBarType.fixed,

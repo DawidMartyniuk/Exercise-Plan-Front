@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:work_plan_front/screens/start.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/widget/tabs.dart';
+import 'package:work_plan_front/screens/tabs.dart';
 
 final colorScheme = const ColorScheme.dark(
   primary: Colors.black,
