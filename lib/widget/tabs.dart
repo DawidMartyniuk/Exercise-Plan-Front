@@ -1,25 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/screens/exercises.dart';
+import 'package:work_plan_front/screens/start.dart';
+import 'package:work_plan_front/screens/profil.dart';
+import 'package:work_plan_front/screens/plan.dart';
 
-class Tabs extends ConsumerStatefulWidget{
-  const Tabs({Key? key}) : super(key: key);
+class TabsScreen extends ConsumerStatefulWidget{
+  const TabsScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<Tabs> createState() => _TabsState();
+  ConsumerState<TabsScreen> createState() => _TabsScreenState();
 }
-class _TabsState extends ConsumerState<Tabs>{
+class _TabsScreenState extends ConsumerState<TabsScreen>{
+  int _selectedPageIndex = 0;
+
+  final List<Widget> _pages = [
+    Startscreen(),
+    ExercisesScreen(),
+    PlanScreen(),
+    ProfilScreen(),
+  ];
+
+  void _setScreen(String screen) {
+
+  }
+
+  void _selectPage(int indexPage){
+    setState(() {
+    _selectedPageIndex = indexPage;
+  });
+  }
 
   @override
   Widget build(BuildContext context) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Tabs'),
-        ),
-        body: const Center(
-          child: Text('Tabs'),
-        ),
+        body: _pages[_selectedPageIndex],
         bottomNavigationBar: BottomNavigationBar(
-          items: [BottomNavigationBarItem(
+         backgroundColor: Theme.of(context).colorScheme.surface.withAlpha((0.95 *255 ).toInt()), // odcień tła
+        selectedItemColor: Theme.of(context).colorScheme.onSurface, // wyróżniony kolor
+        unselectedItemColor: Theme.of(context).colorScheme.secondary.withAlpha((0.95 * 255).toInt()), // mniej kontrastowy dla niewybranych
+       
+        currentIndex: _selectedPageIndex,
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+        
+          onTap: _selectPage, 
+          items: [
+            BottomNavigationBarItem(
             icon: const Icon(Icons.home),
             label: 'Home'
             ),
@@ -39,5 +66,4 @@ class _TabsState extends ConsumerState<Tabs>{
           ),
       );
   }
-
 }
