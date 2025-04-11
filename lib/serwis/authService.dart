@@ -51,9 +51,17 @@ class Authservice {
       }),
     );
 
-    if (response.statusCode == 200) {
-      return AuthResponse.fromJson(jsonDecode(response.body));
+     if (response.statusCode == 200) {
+      print(response.body);
+      final responseBody = json.decode(response.body);
+      if (responseBody.containsKey('token') && responseBody.containsKey('user')) {
+        return AuthResponse.fromJson(responseBody); 
+      } else {
+        print("Brak tokenu lub użytkownika w odpowiedzi");
+        return null;
+      }
     } else {
+      print('Błąd logowania: ${response.statusCode}');
       return null;
     }
   }

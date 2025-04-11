@@ -17,8 +17,23 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
       state = null;
     }
   }
+
+  Future<void> register(String name, String email, String password, String repeatPassword) async {
+    final authService = Authservice();
+    final response = await authService.register(name, email, password, repeatPassword);
+
+   if(response != null){
+    state =response;
+    }else{
+      state = null;
+    }
+   
+  }
 }
 
-final authProvider = StateNotifierProvider<AuthNotifier, AuthResponse?>(
+final authProviderLogin = StateNotifierProvider<AuthNotifier, AuthResponse?>(
+  (ref) => AuthNotifier(),
+);
+final authProviderRegister = StateNotifierProvider<AuthNotifier, AuthResponse?>(
   (ref) => AuthNotifier(),
 );

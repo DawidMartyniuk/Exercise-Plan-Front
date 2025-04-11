@@ -21,21 +21,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login(BuildContext context)async {
     final email = _emailController.text;
     final password = _passwordController.text;
+
     if (!_formKey.currentState!.validate()) {
       return; 
     }
     else {
-     await ref.read(authProvider.notifier).login(email, password);
-    print("zalogowano na $email i $password");
+        try {
+     await ref.read(authProviderLogin.notifier).login(email, password);
+      print("zalogowano na $email i $password");
+
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => Startscreen()));
+        }catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Login failed: $e"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authResponse = ref.watch(authProvider);
+    final authResponse = ref.watch(authProviderLogin);
 
     return Scaffold(
       body: Center(
@@ -155,7 +166,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           onPressed: () {
-                
                             _login(context);
                           },
                           child: Ink(
