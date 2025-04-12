@@ -32,7 +32,8 @@ class _TabsScreenState extends ConsumerState<TabsScreen>{
       return Scaffold(
         body: _pages[_selectedPageIndex],
         bottomNavigationBar: BottomNavigationBar(
-         backgroundColor: Theme.of(context).colorScheme.surface.withAlpha((0.95 *255 ).toInt()),
+          selectedLabelStyle: TextStyle(),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withAlpha((0.01 *255 ).toInt()),
         selectedItemColor: Theme.of(context).colorScheme.onSurface, 
         unselectedItemColor: Theme.of(context).colorScheme.secondary.withAlpha((0.95 * 255).toInt()), 
        

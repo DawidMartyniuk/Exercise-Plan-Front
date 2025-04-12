@@ -1,45 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/widget/body_part_grid_item.dart';
 
-class BodyPartGridItem extends StatelessWidget {
-  const BodyPartGridItem({
+class BodyPartSelected extends StatefulWidget {
+  const BodyPartSelected({
     super.key,
-    required this.bodyPart,
-    required this.onTap,
+    required this.onBodyPartSelected,
   });
 
-  final BodyPart bodyPart;
-  final void Function() onTap;
+  final void Function(BodyPart) onBodyPartSelected;
 
   @override
+  State<BodyPartSelected> createState() => _BodyPartSelectedState();
+}
+
+class _BodyPartSelectedState extends State<BodyPartSelected> {
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      splashColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.7),
-              Theme.of(context).colorScheme.primary.withOpacity(0.4),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(15),
-        ),
-        child: Center(
-          child: Text(
-            bodyPart.name,
-            style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: Theme.of(context).colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
+    return Container(
+      height: 400,
+      child: Column(
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Select Body Part',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: BodyPart.values.length,
+              itemBuilder: (context, index) {
+                final bodyPart = BodyPart.values[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: ListTile(
+                    title: Text(
+                      bodyPart.name, // Wyświetl nazwę BodyPart
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    trailing: const Icon(Icons.arrow_forward),
+                    onTap: () {
+                      widget.onBodyPartSelected(bodyPart); // Wywołaj callback
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
