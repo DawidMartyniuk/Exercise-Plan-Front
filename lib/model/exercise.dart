@@ -1,5 +1,5 @@
 class Exercise{
-  final int id;
+  final String id;
   final String name;
   final String bodyPart;
   final String equipment;
@@ -18,7 +18,21 @@ class Exercise{
     required this.secondaryMuscles,
     required this.instructions,
   });
+
+  factory Exercise.fromJson(Map<String, dynamic> json) {
+    return Exercise(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      bodyPart: json['bodyPart'] as String,
+      equipment: json['equipment'] as String,
+      gifUrl: json['gifUrl'] as String,
+      target: json['target'] as String,
+      secondaryMuscles: List<String>.from(json['secondaryMuscles']),
+      instructions: List<String>.from(json['instructions']),
+    );
+  }
 }
+
 
 enum BodyPart {
     back,
@@ -32,6 +46,35 @@ enum BodyPart {
     upper_legs,
     waist
 }
+extension EquipmentBodyPart on BodyPart {
+  String displayNameBodyPart() {
+    switch(this) {
+      case BodyPart.back:
+        return "back";
+      case BodyPart.cardio:
+        return "cardio";
+      case BodyPart.chest:
+        return "chest";
+      case BodyPart.lower_arms:
+        return "lower arms";
+      case BodyPart.lower_legs:
+        return "lower legs";
+      case BodyPart.neck:
+        return "neck";
+      case BodyPart.shoulders:
+        return "shoulders";
+      case BodyPart.upper_arms:
+        return "upper arms";
+      case BodyPart.upper_legs:
+        return "upper legs";
+      case BodyPart.waist:
+        return "waist";
+    }
+    }
+  }
+ 
+
+
 enum TargetList {
     abductors,
     abs,

@@ -36,8 +36,13 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
+                    leading: Image.asset(
+                      'assets/muscles/${bodyPart.name}.png', 
+                      width: 40,
+                      height: 40,
+                    ),
                     title: Text(
-                      bodyPart.name, // Wyświetl nazwę BodyPart
+                      bodyPart.displayNameBodyPart(), // Wyświetl nazwę BodyPart
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     trailing: const Icon(Icons.arrow_forward),

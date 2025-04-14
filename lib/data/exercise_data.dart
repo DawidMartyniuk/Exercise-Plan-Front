@@ -1,11 +1,10 @@
 
 const ExerciseData = [
-
   [
     {
         "bodyPart": "waist",
         "equipment": "body weight",
-        "gifUrl": "https://v2.exercisedb.io/image/Qk8uR1Con3ZrsY",
+        "gifUrl": "https://v2.exercisedb.io/image/yzyIGSKT3t8gqB",
         "id": "0001",
         "name": "3/4 sit-up",
         "target": "abs",

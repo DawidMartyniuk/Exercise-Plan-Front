@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/widget/body_part_grid_item.dart';
-import 'package:work_plan_front/widget/body_part_selected.dart' as selected;
+import 'package:work_plan_front/widget/exercise_list.dart' as selected;
+import 'package:work_plan_front/data/exercise_data.dart';
+import 'package:work_plan_front/widget/exercise_list.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
@@ -15,6 +17,18 @@ class ExercisesScreen extends ConsumerStatefulWidget {
 
 class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   BodyPart? selectedBodyPart;
+  late List<Exercise> exercise;
+
+  @override
+  void initState() {
+    super.initState();
+    exercise =
+        ExerciseData.expand((nestedList) => nestedList)
+            .map((data) => Exercise.fromJson(data as Map<String, dynamic>))
+            .toList(); // Initialize the exercise list
+  }
+
+  //List<Exercise> filteredExercises =  ExerciseData.map()
 
   void _onBodyPartSelected(BuildContext context, BodyPart bodyPart) {
     print('Selected body part: ${bodyPart.name}');
@@ -22,7 +36,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     // Możesz tutaj np. nawigować do innego ekranu
     // Navigator.of(context).push(...);
   }
-  
+
   void _bodyPartSelected(BodyPart bodyPart) {
     setState(() {
       selectedBodyPart = bodyPart; // Zapisz wybraną część ciała
@@ -35,10 +49,16 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (ctx) => BodyPartSelected(
-        onBodyPartSelected: _bodyPartSelected
-        ),
+      builder: (ctx) => BodyPartSelected(onBodyPartSelected: _bodyPartSelected),
     );
+  }
+
+  List<Exercise> get _filteredEexercise {
+    return selectedBodyPart == null
+        ? exercise
+        : exercise
+            .where((exercise) => exercise.bodyPart == selectedBodyPart!.name)
+            .toList();
   }
 
   @override
@@ -83,7 +103,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 Expanded(
                   child: TextButton(
                     onPressed: _openSelectBodyPart,
-                    child: const Text('Body Part'),
+                    child: Text(
+                      selectedBodyPart == null
+                          ? 'Body part'
+                          : '${selectedBodyPart?.displayNameBodyPart()}',
+                      style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                    ),
                     style: TextButton.styleFrom(
                       backgroundColor: Theme.of(
                         context,
@@ -121,6 +149,10 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: ExerciseList(exercise: _filteredEexercise),
             ),
           ],
         ),
