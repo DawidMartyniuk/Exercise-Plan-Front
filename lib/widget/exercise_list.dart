@@ -28,7 +28,7 @@ class __ExerciseListState extends State<ExerciseList> {
           child: ListTile(
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),
             title: Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
-           // subtitle: Text(exercise.bodyPart, style: Theme.of(context).textTheme.titleSmall),
+          
             trailing: const Icon(Icons.arrow_forward),
           ),
         );
