@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/widget/body_part_grid_item.dart';
 
 class BodyPartSelected extends StatefulWidget {
   const BodyPartSelected({
@@ -8,7 +7,7 @@ class BodyPartSelected extends StatefulWidget {
     required this.onBodyPartSelected,
   });
 
-  final void Function(BodyPart) onBodyPartSelected;
+  final void Function(BodyPart?) onBodyPartSelected;
 
   @override
   State<BodyPartSelected> createState() => _BodyPartSelectedState();
@@ -32,6 +31,27 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
             child: ListView.builder(
               itemCount: BodyPart.values.length,
               itemBuilder: (context, index) {
+                  if (index == 0) {
+                  // Opcja "All"
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: ListTile(
+                      leading: Image.asset(
+                      'assets/muscles/all.png', 
+                      width: 40,
+                      height: 40,
+                    ),
+                      title: const Text(
+                        'All',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      trailing: const Icon(Icons.arrow_forward),
+                      onTap: () {
+                        widget.onBodyPartSelected(null); // Ustawienie na null
+                      },
+                    ),
+                  );
+                }
                 final bodyPart = BodyPart.values[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),

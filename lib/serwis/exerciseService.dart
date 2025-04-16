@@ -16,12 +16,15 @@ class ExerciseService {
     },
     );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> responseBody = json.decode(response.body);
-      return responseBody.map((data) => Exercise.fromJson(data)).toList();
-    } else {
-      print('Błąd pobierania danych: ${response.statusCode}');
-      return null;
-    }
+ print('Response status: ${response.statusCode}'); // Debugowanie
+  print('Response body: ${response.body}'); // Debugowanie
+
+  if (response.statusCode == 200) {
+    final List<dynamic> responseBody = json.decode(response.body);
+    return responseBody.map((data) => Exercise.fromJson(data)).toList();
+  } else {
+    print('Error fetching exercises: ${response.statusCode}');
+    return null;
   }
-  }
+}
+}

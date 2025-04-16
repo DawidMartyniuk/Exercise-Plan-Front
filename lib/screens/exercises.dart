@@ -14,19 +14,31 @@ class ExercisesScreen extends ConsumerStatefulWidget {
 
 class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   BodyPart? selectedBodyPart;
+  String _searchQuery = '';
 
-  // Filtrowanie ćwiczeń na podstawie wybranej części ciała
+
+  @override
+  void initState() {
+  super.initState();
+  ref.read(exerciseProvider.notifier).fetchExercises(); // Pobierz dane przy załadowaniu ekranu
+}
+
   List<Exercise> _filteredExercises(List<Exercise> exercises) {
-    return selectedBodyPart == null
-        ? exercises
-        : exercises
-            .where((exercise) => exercise.bodyPart == selectedBodyPart!.name)
-            .toList();
+      return exercises.where((exercises) {
+          final matchesBodyPart = selectedBodyPart == null || exercises.bodyPart == selectedBodyPart!.name;
+          final matchesSearch = _searchQuery.isEmpty || exercises.name.toLowerCase().contains(_searchQuery.toLowerCase());
+        return matchesSearch && matchesBodyPart;
+      }).toList();
   }
 
-  void _bodyPartSelected(BodyPart bodyPart) {
+  void _bodyPartSelected(BodyPart? bodyPart) {
     setState(() {
-      selectedBodyPart = bodyPart; // Zapisz wybraną część ciała
+      if (selectedBodyPart == bodyPart) {
+        selectedBodyPart = null; 
+      } else {
+        selectedBodyPart = bodyPart; 
+        }
+// Zapisz wybraną część ciała
     });
     Navigator.of(context).pop(); // Zamknij BottomSheet
   }
@@ -43,6 +55,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   @override
   Widget build(BuildContext context) {
     final exercises = ref.watch(exerciseProvider); // Automatyczne pobieranie danych jako AsyncValue
+
+     print('Exercises in build: $exercises');
 
     return Scaffold(
       appBar: AppBar(
@@ -73,6 +87,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                           hintText: 'Search',
                           prefixIcon: const Icon(Icons.search),
                         ),
+                        onChanged: (value){
+                          setState(() {
+                           _searchQuery = value;
+
+                          });
+                        },
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),

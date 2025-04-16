@@ -26,10 +26,11 @@ class __ExerciseListState extends State<ExerciseList> {
         final exercise = widget.exercise[index];
         return Card(
           child: ListTile(
+
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),
             title: Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
           
-            trailing: const Icon(Icons.arrow_forward),
+            trailing: IconButton(onPressed: ()  {}, icon: const Icon(Icons.info_outline),),
           ),
         );
       },
