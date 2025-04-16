@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/data/exercise_data.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/screens/exercise_info.dart';
 
 class ExerciseList  extends StatefulWidget{
  const ExerciseList({
@@ -17,7 +18,14 @@ class ExerciseList  extends StatefulWidget{
 }
 class __ExerciseListState extends State<ExerciseList> {
 
-  
+  void openInfoExercise(Exercise exercise) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ExerciseInfoScreen(exercise: exercise),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
@@ -26,15 +34,15 @@ class __ExerciseListState extends State<ExerciseList> {
         final exercise = widget.exercise[index];
         return Card(
           child: ListTile(
-
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),
             title: Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
-          
-            trailing: IconButton(onPressed: ()  {}, icon: const Icon(Icons.info_outline),),
+            trailing: IconButton(
+              onPressed: () {openInfoExercise(exercise);},
+              icon: const Icon(Icons.info_outline),
+            ),
           ),
         );
       },
     );
   }
- 
 }

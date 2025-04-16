@@ -38,7 +38,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       } else {
         selectedBodyPart = bodyPart; 
         }
-// Zapisz wybraną część ciała
+
     });
     Navigator.of(context).pop(); // Zamknij BottomSheet
   }
