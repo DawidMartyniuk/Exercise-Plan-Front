@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/data/exercise_data.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 
@@ -17,14 +16,6 @@ class ExerciseList  extends StatefulWidget{
 
 }
 class __ExerciseListState extends State<ExerciseList> {
-
-  // void openInfoExercise(Exercise exercise) {
-  //   Navigator.of(context).push(
-  //     MaterialPageRoute(
-  //       builder: (context) => ExerciseInfoScreen(exercise: exercise),
-  //     ),
-  //   );
-  // }
 
   void _openInfoExercise(Exercise exercise) {
     showModalBottomSheet(

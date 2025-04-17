@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/start.dart';
@@ -46,7 +45,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authResponse = ref.watch(authProviderLogin);
 
     return Scaffold(
       body: Center(

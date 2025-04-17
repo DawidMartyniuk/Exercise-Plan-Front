@@ -1,12 +1,13 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/login.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
+
+  
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -53,7 +54,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authResponse = ref.watch(authProviderRegister);
 
     return Scaffold(
       body: Center(

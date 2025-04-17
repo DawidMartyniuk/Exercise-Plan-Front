@@ -2,8 +2,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/authResponse.dart';
-import 'package:work_plan_front/model/user.dart';
-import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
 class Authservice {
