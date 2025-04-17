@@ -16,29 +16,33 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   BodyPart? selectedBodyPart;
   String _searchQuery = '';
 
-
   @override
   void initState() {
-  super.initState();
-  ref.read(exerciseProvider.notifier).fetchExercises(); // Pobierz dane przy załadowaniu ekranu
-}
+    super.initState();
+    ref
+        .read(exerciseProvider.notifier)
+        .fetchExercises(); // Pobierz dane przy załadowaniu ekranu
+  }
 
   List<Exercise> _filteredExercises(List<Exercise> exercises) {
-      return exercises.where((exercises) {
-          final matchesBodyPart = selectedBodyPart == null || exercises.bodyPart == selectedBodyPart!.name;
-          final matchesSearch = _searchQuery.isEmpty || exercises.name.toLowerCase().contains(_searchQuery.toLowerCase());
-        return matchesSearch && matchesBodyPart;
-      }).toList();
+    return exercises.where((exercises) {
+      final matchesBodyPart =
+          selectedBodyPart == null ||
+          exercises.bodyPart == selectedBodyPart!.name;
+      final matchesSearch =
+          _searchQuery.isEmpty ||
+          exercises.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesSearch && matchesBodyPart;
+    }).toList();
   }
 
   void _bodyPartSelected(BodyPart? bodyPart) {
     setState(() {
       if (selectedBodyPart == bodyPart) {
-        selectedBodyPart = null; 
+        selectedBodyPart = null;
       } else {
-        selectedBodyPart = bodyPart; 
-        }
-
+        selectedBodyPart = bodyPart;
+      }
     });
     Navigator.of(context).pop(); // Zamknij BottomSheet
   }
@@ -54,98 +58,112 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercises = ref.watch(exerciseProvider); // Automatyczne pobieranie danych jako AsyncValue
+    final exercises = ref.watch(
+      exerciseProvider,
+    ); // Automatyczne pobieranie danych jako AsyncValue
 
-     print('Exercises in build: $exercises');
+    print('Exercises in build: $exercises');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Exercises'),
-      ),
-      body: exercises == null
-          ? const Center(child: CircularProgressIndicator()) // Ładowanie
-          : exercises.isEmpty
-              ? const Center(child: Text('No exercises available.')) // Brak danych
+      appBar: AppBar(title: const Text('Exercises')),
+      body:
+          exercises == null
+              ? const Center(child: CircularProgressIndicator()) // Ładowanie
+              : exercises.isEmpty
+              ? const Center(
+                child: Text('No exercises available.'),
+              ) // Brak danych
               : Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   children: [
-                    Expanded(
-                      child: TextField(
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Theme.of(context).colorScheme.primary.withAlpha(
-                                (0.2 * 255).toInt(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            keyboardType: TextInputType.text,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Theme.of(context).colorScheme.primary
+                                  .withAlpha((0.2 * 255).toInt()),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(25.0),
+                                borderSide: BorderSide.none,
                               ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(25.0),
-                            borderSide: BorderSide.none,
+                              hintText: 'Search',
+                              prefixIcon: const Icon(Icons.search),
+                            ),
+                            onChanged: (value) {
+                              setState(() {
+                                _searchQuery = value;
+                              });
+                            },
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
-                          hintText: 'Search',
-                          prefixIcon: const Icon(Icons.search),
                         ),
-                        onChanged: (value){
-                          setState(() {
-                           _searchQuery = value;
-
-                          });
-                        },
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _openSelectBodyPart,
-                        child: Text(
-                          selectedBodyPart == null
-                              ? 'Body part'
-                              : '${selectedBodyPart?.displayNameBodyPart()}',
-                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: _openSelectBodyPart,
+                            child: Text(
+                              selectedBodyPart == null
+                                  ? 'Body part'
+                                  : '${selectedBodyPart?.displayNameBodyPart()}',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall!.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                               ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withAlpha((0.2 * 255).toInt()),
+                            ),
+                          ),
                         ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(
-                                (0.2 * 255).toInt(),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              'Target',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.titleSmall!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontSize: 16,
                               ),
+                            ),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withAlpha((0.2 * 255).toInt()),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(height: 10),
                     Expanded(
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text('Target'),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(
-                                (0.2 * 255).toInt(),
-                              ),
-                        ),
+                      child: ExerciseList(
+                        exercise: _filteredExercises(exercises),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ExerciseList(exercise: _filteredExercises(exercises)),
-                          ),
-                    ],
-                  ),
-                ),
+              ),
     );
-  
-}
   }
+}

@@ -18,11 +18,20 @@ class ExerciseList  extends StatefulWidget{
 }
 class __ExerciseListState extends State<ExerciseList> {
 
-  void openInfoExercise(Exercise exercise) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => ExerciseInfoScreen(exercise: exercise),
-      ),
+  // void openInfoExercise(Exercise exercise) {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder: (context) => ExerciseInfoScreen(exercise: exercise),
+  //     ),
+  //   );
+  // }
+
+  void _openInfoExercise(Exercise exercise) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) => (ExerciseInfoScreen(exercise:exercise,) ),
     );
   }
 
@@ -37,7 +46,7 @@ class __ExerciseListState extends State<ExerciseList> {
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),
             title: Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
             trailing: IconButton(
-              onPressed: () {openInfoExercise(exercise);},
+              onPressed: () {_openInfoExercise(exercise);},
               icon: const Icon(Icons.info_outline),
             ),
           ),
