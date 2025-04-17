@@ -2,27 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 
-class ExerciseList  extends StatefulWidget{
- const ExerciseList({
-    super.key,
-    required this.exercise,
-  });
+class ExerciseList extends StatefulWidget {
+  const ExerciseList({super.key, required this.exercise});
   final List<Exercise> exercise;
-  
+
   @override
   State<StatefulWidget> createState() {
     return __ExerciseListState();
   }
-
 }
-class __ExerciseListState extends State<ExerciseList> {
 
+class __ExerciseListState extends State<ExerciseList> {
   void _openInfoExercise(Exercise exercise) {
     showModalBottomSheet(
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (ctx) => (ExerciseInfoScreen(exercise:exercise,) ),
+      builder: (ctx) => (ExerciseInfoScreen(exercise: exercise)),
     );
   }
 
@@ -34,10 +30,19 @@ class __ExerciseListState extends State<ExerciseList> {
         final exercise = widget.exercise[index];
         return Card(
           child: ListTile(
+            onTap: () {
+              print('Selected exercise: ${exercise.name}');
+              Navigator.of(context).pop(exercise);
+            },
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),
-            title: Text(exercise.name, style: Theme.of(context).textTheme.titleMedium),
+            title: Text(
+              exercise.name,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             trailing: IconButton(
-              onPressed: () {_openInfoExercise(exercise);},
+              onPressed: () {
+                _openInfoExercise(exercise);
+              },
               icon: const Icon(Icons.info_outline),
             ),
           ),

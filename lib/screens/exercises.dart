@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/widget/body_part_grid_item.dart';
-import 'package:work_plan_front/widget/exercise_list.dart';
+import 'package:work_plan_front/widget/exercises_list.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
