@@ -45,11 +45,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation>{
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-              Expanded(child: selectedExercise.isEmpty 
-              ? Text( "No exercises added yet.", 
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith( 
-                color: Theme.of(context).colorScheme.onSurface
-                ),)
+              Expanded(
+                child: selectedExercise.isEmpty 
+              ? Center(
+                child: Text( "No exercises added yet.", 
+                style: Theme.of(context).textTheme.titleLarge!.copyWith( 
+                  color: Theme.of(context).colorScheme.onSurface
+                  ),),
+              )
               : SelectedExerciseList(
                 exercises: selectedExercise,
                 onDelete: (exercise) {

@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'App demo',
+      debugShowCheckedModeBanner: false,
       theme: theme,
       home: TabsScreen(),
       );
