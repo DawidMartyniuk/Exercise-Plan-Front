@@ -9,32 +9,62 @@ class SelectedExerciseList extends StatefulWidget {
     Key? key,
     required this.exercises,
     required this.onDelete,
+    required this.onGetTableData,
   }) : super(key: key);
+
+  final void Function(Map<String, List<Map<String, String>>> Function()) onGetTableData;
 
   @override
   _SelectedExerciseListState createState() => _SelectedExerciseListState();
 }
 
 class _SelectedExerciseListState extends State<SelectedExerciseList> {
-
   Map<String, List<Map<String, String>>> exerciseRows = {};
 
+  // void _addRow(String exerciseId) {
+  //   setState(() {
 
-  void _addRow(String exerciseId) {
+
+  //     if(!exerciseRows.containsKey(exerciseId)) {
+  //       exerciseRows[exerciseId] = [];
+  //     }
+  //     final currentRowCount = exerciseRows[exerciseId]!.length;
+  //     final currentReps = exerciseRows[exerciseId]!.length > 0 ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] : "0";
+  //      final currentKg = exerciseRows[exerciseId]!.length > 0 ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] : "0";
+  //     exerciseRows[exerciseId]!.add({
+  //       "colStep": "${currentRowCount + 1}",
+  //       "colKg": "$currentKg",
+  //       "colRep": "$currentReps",
+  //     });
+  //     // if (!exerciseRows.containsKey(exerciseId)) {
+  //     //   exerciseRows[exerciseId] = [
+  //     //     {"colStep": "Step", "colKg": "KG", "colRep": "Reps"},
+  //     //     {"colStep": "", "colKg": "", "colRep": ""}
+  //     //   ];
+  //     // }
+  //     // exerciseRows[exerciseId]!.add({"colStep": "", "colKg": "", "colRep": ""});
+  //   });
+  // }
+   void _addRow(String exerciseId) {
     setState(() {
       if (!exerciseRows.containsKey(exerciseId)) {
-        // Jeśli tabela dla ćwiczenia nie istnieje, inicjalizuj ją z jednym wierszem
-        exerciseRows[exerciseId] = [
-          {"column1": "Step", "column2": "KG", "column3": "Reps"},
-          {"column1": "", "column2": "", "column3": ""}
-        ];
+        exerciseRows[exerciseId] = [];
       }
-      // Dodaj nowy wiersz
-      exerciseRows[exerciseId]!.add({"column1": "", "column2": "", "column3": ""});
+      final currentRowCount = exerciseRows[exerciseId]!.length;
+      final currentReps = exerciseRows[exerciseId]!.isNotEmpty
+          ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] ?? "0"
+          : "0";
+      final currentKg = exerciseRows[exerciseId]!.isNotEmpty
+          ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] ?? "0"
+          : "0";
+      exerciseRows[exerciseId]!.add({
+        "colStep": "${currentRowCount + 1}",
+        "colKg": currentKg,
+        "colRep": currentReps,
+      });
     });
   }
 
-  // Usuń wiersz z tabeli dla konkretnego ćwiczenia
   void _removeRow(String exerciseId, int index) {
     setState(() {
       if (exerciseRows.containsKey(exerciseId) && exerciseRows[exerciseId]!.length > 1) {
@@ -43,9 +73,18 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
     });
   }
 
-  // Pobierz dane tabeli dla konkretnego ćwiczenia
   List<Map<String, String>> _getTableData(String exerciseId) {
     return exerciseRows[exerciseId] ?? [];
+  }
+
+  Map<String, List<Map<String, String>>> getTableData() {
+    return exerciseRows;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    widget.onGetTableData(getTableData);
   }
 
   @override
@@ -57,11 +96,11 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
         final exerciseId = exercise.id;
 
         if (!exerciseRows.containsKey(exerciseId)) {
-              exerciseRows[exerciseId] = [
-                {"column1": "Step", "column2": "KG", "column3": "Reps"}, // Wiersz tytułowy
-                {"column1": "", "column2": "", "column3": ""} // Pusty wiersz do edycji
-              ];
-            }
+          exerciseRows[exerciseId] = [
+           // {"colStep": "Step", "colKg": "KG", "colRep": "Reps"},
+            {"colStep": " 1 ", "colKg": " - ", "colRep": " - "}
+          ];
+        }
 
         return Card(
           color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
@@ -101,9 +140,9 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                   decoration: InputDecoration(
                     label: const Text("Notes"),
                     border: const UnderlineInputBorder(),
-                    labelStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    labelStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                   ),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface,
@@ -111,68 +150,93 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                 ),
                 const SizedBox(height: 10),
                 Table(
-                    border: TableBorder.symmetric(
+                  border: TableBorder.symmetric(
                     inside: BorderSide.none,
                     outside: BorderSide.none,
-                    ),
+                  ),
                   columnWidths: const {
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(1),
                     2: FlexColumnWidth(1),
                   },
                   children: [
+                    // Wiersz nagłówkowy na sztywno
                     TableRow(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      ),
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                          "Column 1 Step",
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                          "Column 2 KG",
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          textAlign: TextAlign.center,
+                            "Step",
+                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                          "Column 3 Reps",
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Funkcja zmiany wartości dla "KG" (do dodania w przyszłości)
+                            },
+                            child: Text("KG", style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            )),
                           ),
-                          textAlign: TextAlign.center,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Funkcja zmiany wartości dla "Reps" (do dodania w przyszłości)
+                            },
+                            child: Text("Reps", style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    ..._getTableData(exercise.id).map((row) {
+                    // Dynamiczne wiersze z exerciseRows
+                    ..._getTableData(exerciseId).asMap().entries.map((entry) {
+                      final row = entry.value;
+                      final rowId = entry.key + 1;
+                       final currentRowCount = exerciseRows[exerciseId]!.length;
+                      final currentReps = exerciseRows[exerciseId]!.isNotEmpty
+                          ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] ?? "0"
+                          : "0";
+                      final currentKg = exerciseRows[exerciseId]!.isNotEmpty
+                          ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] ?? "0"
+                          : "0";
                       return TableRow(
                         children: [
                           Padding(
                             padding: const EdgeInsets.all(8.0),
+                            child: Text(
+                              "$rowId",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
                             child: TextField(
                               onChanged: (value) {
                                 setState(() {
-                                  row["column1"] = value;
+                                  row["colKg"] = value;
                                 });
                               },
-                              decoration: const InputDecoration(
-                                hintText: "Enter value",
+                              decoration:  InputDecoration(
+                                hintText: " $currentKg",
                                 border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(vertical: 0),
                               ),
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
@@ -183,30 +247,15 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                             child: TextField(
                               onChanged: (value) {
                                 setState(() {
-                                  row["column2"] = value;
+                                  row["colRep"] = value;
                                 });
                               },
-                              decoration: const InputDecoration(
-                                hintText: "Enter value",
+                              decoration:  InputDecoration(
+                              hintText: " $currentReps",
                                 border: InputBorder.none,
+                                contentPadding: EdgeInsets.symmetric(vertical: 0),
                               ),
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                              onChanged: (value) {
-                                setState(() {
-                                  row["column3"] = value;
-                                });
-                              },
-                              decoration: const InputDecoration(
-                                hintText: "Enter value",
-                                border: InputBorder.none,
-                              ),
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
@@ -229,12 +278,12 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                         child: Text(
                           "Add Row",
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                         ),
                       ),
                       const SizedBox(width: 10),
-                       ElevatedButton(
+                      ElevatedButton(
                         onPressed: () {
                           if (_getTableData(exerciseId).length > 1) {
                             _removeRow(exerciseId, _getTableData(exerciseId).length - 1);
@@ -243,8 +292,8 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                         child: Text(
                           "Delete Row",
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                         ),
                       ),
                     ],

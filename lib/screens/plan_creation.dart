@@ -14,14 +14,25 @@ class PlanCreation  extends ConsumerStatefulWidget{
   }
 }
 class _StatePlanCreation extends ConsumerState<PlanCreation>{
-  List<Exercise> selectedExercise = [];
 
+ List<Exercise> selectedExercise = [];
+  Map<String, List<Map<String, String>>> Function()? _getTableData;
+  
   var exerciseLenght = 0;
   late final Widget _exerciseList;  
 
+
   void addExercise() async{
 
+  }
 
+  void _saveTabelData() {
+    if(_getTableData != null) {
+      final tableData = _getTableData!();
+      print("Table data: $tableData");
+    } else {
+      print("No table data available.");
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -30,7 +41,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation>{
         title: Text("log workout"),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: _saveTabelData,
             icon: const Icon(Icons.save),
           ),
         ],
@@ -54,6 +65,9 @@ class _StatePlanCreation extends ConsumerState<PlanCreation>{
                   ),),
               )
               : SelectedExerciseList(
+                onGetTableData: (getterFunction) {
+                  _getTableData = getterFunction;
+                },
                 exercises: selectedExercise,
                 onDelete: (exercise) {
                   setState(() {
