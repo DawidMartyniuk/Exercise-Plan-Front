@@ -163,37 +163,48 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                     // Wiersz nagłówkowy na sztywno
                     TableRow(
                       children: [
-                        Padding(
+                        Container(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1), // Kolor tła
                           padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Step",
-                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
+                         child: TextButton(
                             onPressed: () {
                               // Funkcja zmiany wartości dla "KG" (do dodania w przyszłości)
                             },
-                            child: Text("KG", style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            )),
+                            child: Text(
+                              "Step",
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                            ),
                           ),
                         ),
-                        Padding(
+                        Container(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1), // Kolor tła
                           padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
+                          child: TextButton(
+                            onPressed: () {
+                              // Funkcja zmiany wartości dla "KG" (do dodania w przyszłości)
+                            },
+                            child: Text(
+                              "KG",
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1), // Kolor tła
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextButton(
                             onPressed: () {
                               // Funkcja zmiany wartości dla "Reps" (do dodania w przyszłości)
                             },
-                            child: Text("Reps", style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                            child: Text(
+                              "Reps",
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
                             ),
                           ),
                         ),
@@ -302,8 +313,11 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
               ],
             ),
           ),
+        
         );
+        
       },
+      
     );
   }
 }
