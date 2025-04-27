@@ -13,7 +13,7 @@ class User {
     required this.updatedAt,
   });
 
-  // Factory method do tworzenia instancji User z mapy JSON
+ 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as int,

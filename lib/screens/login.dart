@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/start.dart';
+import 'package:work_plan_front/screens/tabs.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +32,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (context) => Startscreen()));
+    ).push(MaterialPageRoute(builder: (context) => TabsScreen()));
         }catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -45,16 +46,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(20),
-            ),
+  return Scaffold(
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 20.0,
@@ -65,7 +66,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Text(
                       "Login ",
                       style: Theme.of(
@@ -76,13 +77,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.email),
                         labelText: "Email",
                         labelStyle: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -92,24 +93,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       validator: (value) {
-                        if(value == null || value.isEmpty) {
+                        if (value == null || value.isEmpty) {
                           return 'Please enter your email';
                         }
                         final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-                        if(!emailRegex.hasMatch(value)) {
+                        if (!emailRegex.hasMatch(value)) {
                           return 'Please enter a valid email address';
                         }
                         return null;
                       },
-                
                     ),
-                    SizedBox(height: 30),
+                    const SizedBox(height: 30),
                     TextFormField(
                       keyboardType: TextInputType.visiblePassword,
                       controller: _passwordController,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.lock),
                         labelText: "Password",
                         labelStyle: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -119,23 +119,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                       validator: (value) {
-                        if(value == null){
+                        if (value == null) {
                           return "Please enter your password";
                         }
-                        if(value.length < 4) {
+                        if (value.length < 4) {
                           return "Password must be at least 6 characters long";
-                        } 
+                        }
                         final containsUpperCase = value.contains(RegExp(r'[A-Z]'));
-                        if(!containsUpperCase) {
+                        if (!containsUpperCase) {
                           return "Password must contain at least one uppercase letter";
                         }
+                        return null;
                       },
                       obscureText: true,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
+                        const Padding(padding: EdgeInsets.symmetric(horizontal: 10)),
                         TextButton(
                           onPressed: () {},
                           child: Text(
@@ -149,12 +150,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Wrap(
-                      spacing: 20, 
-                      runSpacing: 10, 
+                      spacing: 20,
+                      runSpacing: 10,
                       alignment: WrapAlignment.center,
-
                       children: [
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -168,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           },
                           child: Ink(
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
@@ -179,7 +179,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               borderRadius: BorderRadius.circular(25),
                             ),
                             child: Container(
-                               padding: const EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 6,
                               ),
@@ -192,11 +192,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
-                              
                             ),
                           ),
                         ),
-                        SizedBox(width: 30),
+                        const SizedBox(width: 30),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.zero,
@@ -206,12 +205,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           onPressed: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (ctx) => RegisterScreen()),
+                              MaterialPageRoute(builder: (ctx) => const RegisterScreen()),
                             );
                           },
                           child: Ink(
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
+                              gradient: const LinearGradient(
                                 begin: Alignment.topLeft,
                                 end: Alignment.bottomRight,
                                 colors: [
@@ -247,6 +246,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

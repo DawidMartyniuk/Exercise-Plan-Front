@@ -7,15 +7,15 @@ class ExerciseNotifier extends StateNotifier<List<Exercise>?> {
 
   final ExerciseService _exerciseService = ExerciseService();
 
-  // Pobieranie listy ćwiczeń z API
+
 Future<void> fetchExercises() async {
   final exercises = await _exerciseService.exerciseList();
   if (exercises != null) {
-    print('Fetched exercises: ${exercises.length}'); // Debugowanie
-    state = exercises; // Ustawienie stanu na listę ćwiczeń
+    print('Fetched exercises: ${exercises.length}');
+    state = exercises; 
   } else {
-    print('No exercises fetched'); // Debugowanie
-    state = []; // Ustawienie pustej listy w przypadku błędu
+    print('No exercises fetched'); 
+    state = [];
   }
 }
 
@@ -26,7 +26,7 @@ Future<void> fetchExercises() async {
 }
 
 
-// Provider dla ExerciseNotifier
+
 final exerciseProvider = StateNotifierProvider<ExerciseNotifier, List<Exercise>?>(
   (ref) => ExerciseNotifier(),
 );

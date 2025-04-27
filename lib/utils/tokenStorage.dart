@@ -1,4 +1,4 @@
-// filepath: c:\Praca_inzynierska\exercise_plan_front\lib\utils\token_storage.dart
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> saveToken(String token) async {

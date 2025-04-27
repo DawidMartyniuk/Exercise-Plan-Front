@@ -40,7 +40,7 @@ class _StartscreenState extends ConsumerState<Startscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Start Screen'),
+        title: Text('Start Screen , $userName'),
         actions: [
           IconButton(
             padding: EdgeInsets.symmetric(horizontal: 30),

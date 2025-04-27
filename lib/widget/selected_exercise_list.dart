@@ -19,67 +19,63 @@ class SelectedExerciseList extends StatefulWidget {
 }
 
 class _SelectedExerciseListState extends State<SelectedExerciseList> {
-  Map<String, List<Map<String, String>>> exerciseRows = {};
+  Map<String, Map<String, dynamic>> exerciseRows = {};
 
-  // void _addRow(String exerciseId) {
-  //   setState(() {
-
-
-  //     if(!exerciseRows.containsKey(exerciseId)) {
-  //       exerciseRows[exerciseId] = [];
-  //     }
-  //     final currentRowCount = exerciseRows[exerciseId]!.length;
-  //     final currentReps = exerciseRows[exerciseId]!.length > 0 ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] : "0";
-  //      final currentKg = exerciseRows[exerciseId]!.length > 0 ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] : "0";
-  //     exerciseRows[exerciseId]!.add({
-  //       "colStep": "${currentRowCount + 1}",
-  //       "colKg": "$currentKg",
-  //       "colRep": "$currentReps",
-  //     });
-  //     // if (!exerciseRows.containsKey(exerciseId)) {
-  //     //   exerciseRows[exerciseId] = [
-  //     //     {"colStep": "Step", "colKg": "KG", "colRep": "Reps"},
-  //     //     {"colStep": "", "colKg": "", "colRep": ""}
-  //     //   ];
-  //     // }
-  //     // exerciseRows[exerciseId]!.add({"colStep": "", "colKg": "", "colRep": ""});
-  //   });
-  // }
-   void _addRow(String exerciseId) {
-    setState(() {
-      if (!exerciseRows.containsKey(exerciseId)) {
-        exerciseRows[exerciseId] = [];
-      }
-      final currentRowCount = exerciseRows[exerciseId]!.length;
-      final currentReps = exerciseRows[exerciseId]!.isNotEmpty
-          ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] ?? "0"
-          : "0";
-      final currentKg = exerciseRows[exerciseId]!.isNotEmpty
-          ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] ?? "0"
-          : "0";
-      exerciseRows[exerciseId]!.add({
-        "colStep": "${currentRowCount + 1}",
-        "colKg": currentKg,
-        "colRep": currentReps,
-      });
+  void _addRow(String exerciseId, String exerciseName) {
+  setState(() {
+    if (!exerciseRows.containsKey(exerciseId)) {
+       print("Initializing exerciseRows for $exerciseId");
+      exerciseRows[exerciseId] = {
+        "exerciseName": exerciseName,
+        "notes": "",
+        "rows": [
+          {"colStep": "1", "colKg": "0", "colRep": "0"} 
+        ]
+      };
+    }
+    final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+    final currentRowCount = rows.length;
+    final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
+    final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
+    rows.add({
+      "colStep": "${currentRowCount + 1}",
+      "colKg": currentKg,
+      "colRep": currentReps,
     });
-  }
+  });
+}
 
-  void _removeRow(String exerciseId, int index) {
+ void _removeRow(String exerciseId, int index) {
     setState(() {
-      if (exerciseRows.containsKey(exerciseId) && exerciseRows[exerciseId]!.length > 1) {
-        exerciseRows[exerciseId]!.removeAt(index);
+      if (exerciseRows.containsKey(exerciseId)) {
+        final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+        if (rows.length > 1) {
+          rows.removeAt(index);
+        }
       }
     });
   }
+ List<Map<String, String>> _getTableData(String exerciseId) {
+  return exerciseRows[exerciseId]?["rows"] ?? [];
+}
 
-  List<Map<String, String>> _getTableData(String exerciseId) {
-    return exerciseRows[exerciseId] ?? [];
-  }
+Map<String, List<Map<String, String>>> getTableData() {
+  return exerciseRows.map((exerciseId, data) {
+     print("Processing exerciseId: $exerciseId, data: $data");
+    final rows = data["rows"] as List<Map<String, String>>? ?? [];
+    final exerciseName = data["exerciseName"] as String? ?? "Unknown Exercise";
+    final notes = data["notes"] as String? ?? "";
 
-  Map<String, List<Map<String, String>>> getTableData() {
-    return exerciseRows;
-  }
+   
+    final rowsWithTitleAndNotes = [
+      {"exerciseName": exerciseName}, // Tytuł ćwiczenia
+      {"notes": notes},               // Notatki
+      ...rows,                        
+    ];
+
+    return MapEntry(exerciseId, rowsWithTitleAndNotes);
+  });
+}
 
   @override
   void initState() {
@@ -95,12 +91,16 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
         final exercise = widget.exercises[index];
         final exerciseId = exercise.id;
 
-        if (!exerciseRows.containsKey(exerciseId)) {
-          exerciseRows[exerciseId] = [
-           // {"colStep": "Step", "colKg": "KG", "colRep": "Reps"},
-            {"colStep": " 1 ", "colKg": " - ", "colRep": " - "}
-          ];
-        }
+         if (!exerciseRows.containsKey(exerciseId)) {
+        exerciseRows[exerciseId] = {
+          "exerciseName": exercise.name,
+          "rows": [
+            {"colStep": "1", "colKg": "0", "colRep": "0"}
+          ]
+        };
+      }
+       final exerciseName = exerciseRows[exerciseId]!["exerciseName"] as String;
+      final rows = _getTableData(exerciseId);
 
         return Card(
           color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
@@ -109,34 +109,42 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
             child: Column(
               children: [
                 Row(
-                  children: [
-                    ClipOval(
-                      child: Image.network(
-                        exercise.gifUrl,
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                      ),
+                   children: [
+                  ClipOval(
+                    child: Image.network(
+                      exercise.gifUrl,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        exercise.name,
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                      ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      exerciseName,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: () {
+                      setState(() {
+                        exerciseRows.remove(exerciseId);
                         widget.onDelete(exercise);
-                      },
-                    ),
-                  ],
-                ),
+                      });
+                    },
+                  ),
+                ],
+              ),
                 const SizedBox(height: 10),
                 TextField(
+                    onChanged: (value) {
+                      setState(() {
+                        exerciseRows[exerciseId]!["notes"] = value; // Aktualizuj notatki
+                      });
+                    },
                   decoration: InputDecoration(
                     label: const Text("Notes"),
                     border: const UnderlineInputBorder(),
@@ -160,7 +168,7 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                     2: FlexColumnWidth(1),
                   },
                   children: [
-                    // Wiersz nagłówkowy na sztywno
+                   
                     TableRow(
                       children: [
                         Container(
@@ -194,11 +202,11 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                           ),
                         ),
                         Container(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1), // Kolor tła
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1), 
                           padding: const EdgeInsets.all(8.0),
                           child: TextButton(
                             onPressed: () {
-                              // Funkcja zmiany wartości dla "Reps" (do dodania w przyszłości)
+                           
                             },
                             child: Text(
                               "Reps",
@@ -210,17 +218,14 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                         ),
                       ],
                     ),
-                    // Dynamiczne wiersze z exerciseRows
-                    ..._getTableData(exerciseId).asMap().entries.map((entry) {
-                      final row = entry.value;
-                      final rowId = entry.key + 1;
-                       final currentRowCount = exerciseRows[exerciseId]!.length;
-                      final currentReps = exerciseRows[exerciseId]!.isNotEmpty
-                          ? exerciseRows[exerciseId]![currentRowCount - 1]["colRep"] ?? "0"
-                          : "0";
-                      final currentKg = exerciseRows[exerciseId]!.isNotEmpty
-                          ? exerciseRows[exerciseId]![currentRowCount - 1]["colKg"] ?? "0"
-                          : "0";
+                   
+                   ..._getTableData(exerciseId).asMap().entries.map((entry) {
+                        final row = entry.value;
+                        final rowId = entry.key + 1;
+                        final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+                        final currentRowCount = rows.length;
+                        final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
+                        final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
                       return TableRow(
                         children: [
                           Padding(
@@ -243,7 +248,8 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                                 });
                               },
                               decoration:  InputDecoration(
-                                hintText: " $currentKg",
+                                //hintText: " $currentKg",
+                                hintText: row["colKg"] ?? "0",
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.symmetric(vertical: 0),
                               ),
@@ -262,7 +268,8 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                                 });
                               },
                               decoration:  InputDecoration(
-                              hintText: " $currentReps",
+                              //hintText: " $currentReps",
+                              hintText: row["colRep"] ?? "0",
                                 border: InputBorder.none,
                                 contentPadding: EdgeInsets.symmetric(vertical: 0),
                               ),
@@ -285,7 +292,7 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       ElevatedButton(
-                        onPressed: () => _addRow(exerciseId),
+                        onPressed: () => _addRow(exerciseId, exercise.name),
                         child: Text(
                           "Add Row",
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
