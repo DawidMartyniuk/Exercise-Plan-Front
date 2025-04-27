@@ -1,55 +1,86 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/model/User.dart';
+import 'package:work_plan_front/serwis/saveExercisePlan.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
 class ExercisePlanNotifier extends StateNotifier<ExercisePlan?> {
   ExercisePlanNotifier() : super(null);
 
-  // Pobierz identyfikator zalogowanego użytkownika
-  Future<int?> _getLoggedInUserId() async {
-    final token = await getToken();
-    if (token == null) {
-      print("No token found. User is not logged in.");
-      return null;
+  final ExerciseService _exerciseService = ExerciseService();
+
+  // Pobierz wszystkie plany ćwiczeń z bazy danych
+  Future<void> fetchExercisePlans() async {
+    try {
+      final exercisePlans = await _exerciseService.fetchExercises();
+      if (exercisePlans.isNotEmpty) {
+        state = exercisePlans.first; // Ustaw pierwszy plan jako aktywny (lub dostosuj logikę)
+      }
+      print("Fetched exercise plans: $exercisePlans");
+    } catch (e) {
+      print("Failed to fetch exercise plans: $e");
     }
-
-    // Przykład: Pobierz dane użytkownika z tokena lub API
-    // W tym miejscu możesz dodać logikę do pobrania użytkownika na podstawie tokena
-    // Na razie zakładamy, że token przechowuje identyfikator użytkownika
-    final userId = int.tryParse(token); // Przykład: token to ID użytkownika
-    return userId;
   }
-
-  // Inicjalizuj plan ćwiczeń dla zalogowanego użytkownika
-  Future<void> initializeExercisePlan(Map<String, List<Map<String, String>>> exercises) async {
+   Future<void> initializeExercisePlan(Map<String, List<Map<String, String>>> exercises) async {
     final userId = await _getLoggedInUserId();
     if (userId == null) {
-      print("Cannot initialize exercise plan. User is not logged in.");
+      print("User is not logged in.");
       return;
     }
 
     state = ExercisePlan(
-      userId: userId.toString(),
+      userId: userId,
       exercises: exercises,
     );
 
     print("Exercise plan initialized for user $userId.");
   }
 
-  // Zapisz plan ćwiczeń
   Future<void> saveExercisePlan() async {
     if (state == null) {
       print("No exercise plan to save.");
       return;
     }
 
-    // Przykład: Wyślij dane do API lub zapisz lokalnie
-    print("Saving exercise plan: ${state!.toJson()}");
-    // TODO: Dodaj logikę zapisu do API lub bazy danych
+    try {
+      await _exerciseService.saveExercisePlan(state!);
+      print("Exercise plan saved successfully!");
+    } catch (e) {
+      print("Failed to save exercise plan: $e");
+    }
   }
 
-  // Wyczyść plan ćwiczeń
+  // Zapisz nowy plan ćwiczeń do bazy danych
+  // Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
+  //   try {
+  //     await _exerciseService.saveExercisePlan(exercisePlan);
+  //     state = exercisePlan; // Ustaw zapisany plan jako aktywny
+  //     print("Exercise plan saved successfully!");
+  //   } catch (e) {
+  //     print("Failed to save exercise plan: $e");
+  //   }
+  // }
+
+  // Usuń plan ćwiczeń z bazy danych
+  Future<void> deleteExercisePlan(String id) async {
+    try {
+      await _exerciseService.deleteExercise(id);
+      state = null; // Wyczyść stan po usunięciu
+      print("Exercise plan deleted successfully!");
+    } catch (e) {
+      print("Failed to delete exercise plan: $e");
+    }
+  }
+   Future<String?> _getLoggedInUserId() async {
+    final token = await getToken();
+    if (token == null) {
+      return null;
+    }
+
+    // Zakładamy, że token zawiera identyfikator użytkownika
+    return token; // Możesz dostosować logikę, jeśli token zawiera inne dane
+  }
+
+  // Wyczyść bieżący plan ćwiczeń
   void clearExercisePlan() {
     state = null;
     print("Exercise plan cleared.");
