@@ -23,7 +23,8 @@ class _StatePlanCreation extends ConsumerState<PlanCreation>{
   Map<String, List<Map<String, String>>> Function()? _getTableData;
   
   var exerciseLenght = 0;
-  late final Widget _exerciseList;  
+  late final Widget _exerciseList;
+  String exerciseTableTitle = ""; // Zmienna do przechowywania tytułu planu
 
 
   void addExercise() async{
@@ -33,11 +34,35 @@ void _saveTabelData() async {
   if (_getTableData != null) {
     final tableData = _getTableData!();
 
+    // Przekształć dane na format oczekiwany przez backend
+    final exercises = tableData.entries.map((entry) {
+      final exerciseId = entry.key;
+      final rows = entry.value;
+
+      return {
+        "exercise_table": exerciseTableTitle.isNotEmpty ? exerciseTableTitle : "Default Title", // Tytuł planu
+       "rows": rows
+          .where((row) => int.tryParse(row["colStep"] ?? "0") != 0)
+          .map((row) => {
+            "exercise_name": row["exercise_name"] ?? "Unknown Exercise",
+            "notes": row["notes"] ?? "",
+            "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+            "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
+            "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
+          })
+          .toList(),
+      };
+    }).toList();
+
+    print("Dane wysyłane do backendu: $exercises"); // Debugowanie
+
     // Pobierz ExercisePlanNotifier
     final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
 
     // Zainicjalizuj plan ćwiczeń
-    await exercisePlanNotifier.initializeExercisePlan(tableData);
+    await exercisePlanNotifier.initializeExercisePlan({
+      "exercises": exercises,
+    });
 
     // Zapisz plan ćwiczeń
     await exercisePlanNotifier.saveExercisePlan();
@@ -48,6 +73,8 @@ void _saveTabelData() async {
 
 @override
 Widget build(BuildContext context) {
+  
+
   return Scaffold(
     appBar: AppBar(
       title: Text("log workout"),
@@ -67,6 +94,19 @@ Widget build(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          
+        TextField(
+            onChanged: (value) {
+              setState(() {
+                exerciseTableTitle = value; // Aktualizuj zmienną klasy
+                print("Updated exerciseTableTitle: $exerciseTableTitle");
+              });
+            },
+            decoration: InputDecoration(
+              labelText: "Plan Title",
+              border: OutlineInputBorder(),
+            ),
+          ),
           const SizedBox(height: 20),
           Expanded(
             child: selectedExercise.isEmpty
@@ -80,7 +120,16 @@ Widget build(BuildContext context) {
                   )
                 : SelectedExerciseList(
                     onGetTableData: (getterFunction) {
-                      _getTableData = getterFunction;
+                      _getTableData = () {
+                        final tableData = getterFunction();
+                        // Dodaj exercise_table do każdego ćwiczenia
+                        return tableData.map((exerciseId, rows) {
+                          return MapEntry(exerciseId, [
+                            {"exercise_table": exerciseTableTitle}, // Dodaj tytuł planu
+                            ...rows,
+                          ]);
+                        });
+                      };
                     },
                     exercises: selectedExercise,
                     onDelete: (exercise) {

@@ -61,21 +61,23 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
 
 Map<String, List<Map<String, String>>> getTableData() {
   return exerciseRows.map((exerciseId, data) {
-     print("Processing exerciseId: $exerciseId, data: $data");
-    final rows = data["rows"] as List<Map<String, String>>? ?? [];
-    final exerciseName = data["exerciseName"] as String? ?? "Unknown Exercise";
-    final notes = data["notes"] as String? ?? "";
-
-   
-    final rowsWithTitleAndNotes = [
-      {"exerciseName": exerciseName}, // Tytuł ćwiczenia
-      {"notes": notes},               // Notatki
-      ...rows,                        
-    ];
-
-    return MapEntry(exerciseId, rowsWithTitleAndNotes);
+    final rawRows = data["rows"] as List<dynamic>? ?? [];
+    final exerciseName = data["exerciseName"]?.toString() ?? "Unknown Exercise";
+    final notes = data["notes"]?.toString() ?? "";
+    final rows = rawRows.map((row) {
+      final rowMap = Map<String, dynamic>.from(row);
+      return {
+        "exercise_name": exerciseName,
+        "notes": notes,
+        "colStep": rowMap["colStep"]?.toString() ?? "0",
+        "colKg": rowMap["colKg"]?.toString() ?? "0",
+        "colRep": rowMap["colRep"]?.toString() ?? "0",
+      };
+    }).toList();
+    return MapEntry(exerciseId, rows);
   });
 }
+
 
   @override
   void initState() {
@@ -99,7 +101,7 @@ Map<String, List<Map<String, String>>> getTableData() {
           ]
         };
       }
-       final exerciseName = exerciseRows[exerciseId]!["exerciseName"] as String;
+      final exerciseName = exerciseRows[exerciseId]!["exerciseName"] as String;
       final rows = _getTableData(exerciseId);
 
         return Card(

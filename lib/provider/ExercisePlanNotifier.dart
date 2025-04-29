@@ -20,20 +20,37 @@ class ExercisePlanNotifier extends StateNotifier<ExercisePlan?> {
       print("Failed to fetch exercise plans: $e");
     }
   }
-   Future<void> initializeExercisePlan(Map<String, List<Map<String, String>>> exercises) async {
-    final userId = await _getLoggedInUserId();
-    if (userId == null) {
-      print("User is not logged in.");
-      return;
-    }
-
-    state = ExercisePlan(
-      userId: userId,
-      exercises: exercises,
-    );
-
-    print("Exercise plan initialized for user $userId.");
+Future<void> initializeExercisePlan(Map<String, dynamic> exercisesData) async {
+  final userId = await _getLoggedInUserId();
+  if (userId == null) {
+    print("User is not logged in.");
+    return;
   }
+
+ state = ExercisePlan(
+  userId: userId,
+  exercises: Map<String, List<Map<String, String>>>.fromEntries(
+    (exercisesData["exercises"] as List<dynamic>).map((exercise) {
+      final exerciseTable = exercise["exercise_table"] ?? "Unknown Exercise";
+      final rawRows = exercise["rows"] as List<dynamic>;
+
+      final rows = rawRows.map<Map<String, String>>((row) {
+        return {
+          "exercise_name": row["exercise_name"]?.toString() ?? "Unknown Exercise",
+          "notes": row["notes"]?.toString() ?? "",
+          "colStep": row["colStep"]?.toString() ?? "0",
+          "colKg": row["colKg"]?.toString() ?? "0",
+          "colRep": row["colRep"]?.toString() ?? "0",
+        };
+      }).toList();
+
+      return MapEntry(exerciseTable, rows);
+    }),
+  ),
+);
+
+  print("Exercise plan initialized for user $userId.");
+}
 
   Future<void> saveExercisePlan() async {
     if (state == null) {

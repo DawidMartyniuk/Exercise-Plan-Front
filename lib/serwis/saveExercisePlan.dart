@@ -39,7 +39,20 @@ Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
     headers: await _getHeaders(),
     body: jsonEncode({
       "user_id": userId,
-      "exercises": exercisePlan.exercises,
+      "exercises": exercisePlan.exercises.entries.map((entry) {
+              return {
+                "exercise_table": entry.key,
+                "rows": entry.value.map((row) {
+                  return {
+                    "exercise_name": row["exercise_name"],
+                    "notes": row["notes"],
+                    "colStep": row["colStep"],
+                    "colKg": row["colKg"],
+                    "colRep": row["colRep"],
+                  };
+                }).toList(),
+              };
+            }).toList(),
     }),
   );
 
@@ -87,6 +100,7 @@ Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
     }
     return {
       "Content-Type": "application/json",
+      "Accept": "application/json",
       "Authorization": "Bearer $token",
     };
   }
