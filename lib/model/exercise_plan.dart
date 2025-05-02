@@ -1,13 +1,13 @@
 class ExercisePlan {
   final userId;
-  final Map<String, List<Map<String, String>>> exercises;
+  final Map<String, List<Map<String, dynamic>>> exercises;
 
   ExercisePlan({
     required this.userId,
     required this.exercises,
   });
 
-  Map<String,dynamic> toJson(){
+  Map<String,dynamic> toJson(){ 
     return {
       'user_id': userId,
       'exercises': exercises,

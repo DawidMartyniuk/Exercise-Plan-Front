@@ -27,30 +27,33 @@ Future<void> initializeExercisePlan(Map<String, dynamic> exercisesData) async {
     return;
   }
 
- state = ExercisePlan(
-  userId: userId,
-  exercises: Map<String, List<Map<String, String>>>.fromEntries(
-    (exercisesData["exercises"] as List<dynamic>).map((exercise) {
-      final exerciseTable = exercise["exercise_table"] ?? "Unknown Exercise";
-      final rawRows = exercise["rows"] as List<dynamic>;
-
-      final rows = rawRows.map<Map<String, String>>((row) {
-        return {
-          "exercise_name": row["exercise_name"]?.toString() ?? "Unknown Exercise",
-          "notes": row["notes"]?.toString() ?? "",
-          "colStep": row["colStep"]?.toString() ?? "0",
-          "colKg": row["colKg"]?.toString() ?? "0",
-          "colRep": row["colRep"]?.toString() ?? "0",
-        };
-      }).toList();
-
-      return MapEntry(exerciseTable, rows);
-    }),
-  ),
-);
+  state = ExercisePlan(
+    userId: userId,
+    exercises: Map<String, List<Map<String, dynamic>>>.fromEntries(
+      (exercisesData["exercises"] as List<dynamic>).map((exercise) {
+        final exerciseTable = exercise["exercise_table"]?.toString() ?? "Unknown Exercise";
+        final rawRows = exercise["rows"] as List<dynamic>;
+    
+        final rows = rawRows.map<Map<String, dynamic>>((row) {
+          return {
+            "exercise_name": row["exercise_name"]?.toString() ?? "Unknown Exercise",
+            "notes": row["notes"]?.toString() ?? "",
+            "data": (row["data"] as List).map<Map<String,dynamic>>((entry) => {
+              "colStep": entry["colStep"] ?? "0",
+              "colKg": entry["colKg"] ?? "0",
+              "colRep": entry["colRep"] ?? "0",
+            }).toList(),
+          };
+        }).toList();
+    
+        return MapEntry(exerciseTable, rows);
+      }),
+    ),
+  );
 
   print("Exercise plan initialized for user $userId.");
 }
+
 
   Future<void> saveExercisePlan() async {
     if (state == null) {

@@ -7,6 +7,9 @@ import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/serwis/saveExercisePlan.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 import 'package:work_plan_front/widget/selected_exercise_list.dart';
+import 'package:collection/collection.dart';
+
+
 
 class PlanCreation  extends ConsumerStatefulWidget{
   const PlanCreation({super.key});
@@ -30,46 +33,57 @@ class _StatePlanCreation extends ConsumerState<PlanCreation>{
   void addExercise() async{
 
   }
+ 
 void _saveTabelData() async {
   if (_getTableData != null) {
     final tableData = _getTableData!();
 
-    // Przekształć dane na format oczekiwany przez backend
-    final exercises = tableData.entries.map((entry) {
-      final exerciseId = entry.key;
-      final rows = entry.value;
+    // Rozwiń dane i zgrupuj wg exercise_name i notes
+    final allRows = tableData.entries
+      .expand((entry) => entry.value)
+      .where((row) => row["exercise_name"] != null && row["exercise_name"]!.trim().isNotEmpty)
+      .toList();
 
+
+      final grouped = groupBy<Map<String, String>, String>(
+      allRows,
+      (row) => "${row["exercise_name"]}|||${row["notes"]}",
+    );
+
+    final groupedList = grouped.entries.map((entry) {
+      final keyParts = entry.key.split("|||");
       return {
-        "exercise_table": exerciseTableTitle.isNotEmpty ? exerciseTableTitle : "Default Title", // Tytuł planu
-       "rows": rows
-          .where((row) => int.tryParse(row["colStep"] ?? "0") != 0)
-          .map((row) => {
-            "exercise_name": row["exercise_name"] ?? "Unknown Exercise",
-            "notes": row["notes"] ?? "",
-            "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
-            "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
-            "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
-          })
-          .toList(),
+        "exercise_name": keyParts[0],
+        "notes": keyParts[1],
+        "data": entry.value.map((row) => {
+          "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+          "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
+          "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
+        }).toList(),
       };
     }).toList();
 
-    print("Dane wysyłane do backendu: $exercises"); // Debugowanie
+    final payload = [
+      {
+        "exercise_table": exerciseTableTitle.isNotEmpty ? exerciseTableTitle : "Default Title",
+        "rows": groupedList,
+      }
+    ];
 
-    // Pobierz ExercisePlanNotifier
+    print("Dane wysyłane do backendu: $payload"); // Debugowanie
+
     final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
-
-    // Zainicjalizuj plan ćwiczeń
     await exercisePlanNotifier.initializeExercisePlan({
-      "exercises": exercises,
+      "exercises": payload,
     });
-
-    // Zapisz plan ćwiczeń
     await exercisePlanNotifier.saveExercisePlan();
   } else {
     print("No table data available.");
   }
 }
+
+
+ 
 
 @override
 Widget build(BuildContext context) {
@@ -122,15 +136,16 @@ Widget build(BuildContext context) {
                     onGetTableData: (getterFunction) {
                       _getTableData = () {
                         final tableData = getterFunction();
-                        // Dodaj exercise_table do każdego ćwiczenia
+                        final updatedTitle = exerciseTableTitle; // upewniamy się, że pobieramy aktualny tytuł
                         return tableData.map((exerciseId, rows) {
                           return MapEntry(exerciseId, [
-                            {"exercise_table": exerciseTableTitle}, // Dodaj tytuł planu
+                            {"exercise_table": updatedTitle},
                             ...rows,
                           ]);
                         });
                       };
                     },
+
                     exercises: selectedExercise,
                     onDelete: (exercise) {
                       setState(() {
@@ -175,4 +190,14 @@ Widget build(BuildContext context) {
     ),
   );
 }
+}
+  extension GroupByExtension<E> on List<E> {
+  Map<K, List<E>> groupFoldBy<K>(K Function(E) keyFn) {
+    final map = <K, List<E>>{};
+    for (var element in this) {
+      final key = keyFn(element);
+      map.putIfAbsent(key, () => []).add(element);
+    }
+    return map;
+  }
 }

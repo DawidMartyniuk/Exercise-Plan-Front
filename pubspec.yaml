@@ -39,6 +39,7 @@ dependencies:
   flutter_riverpod: ^2.6.1
   shared_preferences: ^2.5.3
   jwt_decoder: ^2.0.1
+  collection: ^1.19.1
 
 dev_dependencies:
   flutter_test:

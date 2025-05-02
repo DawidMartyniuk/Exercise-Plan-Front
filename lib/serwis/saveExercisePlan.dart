@@ -26,7 +26,7 @@ class ExerciseService {
     }
   }
 
-  // Zapisz nowy plan ćwiczeń
+// Zapisz nowy plan ćwiczeń
 Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
   final userId = await _getUserIdFromToken();
   if (userId == null) {
@@ -40,28 +40,35 @@ Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
     body: jsonEncode({
       "user_id": userId,
       "exercises": exercisePlan.exercises.entries.map((entry) {
-              return {
-                "exercise_table": entry.key,
-                "rows": entry.value.map((row) {
-                  return {
-                    "exercise_name": row["exercise_name"],
-                    "notes": row["notes"],
-                    "colStep": row["colStep"],
-                    "colKg": row["colKg"],
-                    "colRep": row["colRep"],
-                  };
-                }).toList(),
-              };
-            }).toList(),
+        return {
+          "exercise_table": entry.key,
+          "rows": entry.value.map((row) {
+            return {
+              "exercise_name": row["exercise_name"],
+              "notes": row["notes"],
+              
+              "data": (row["data"] is List ? row["data"] : jsonDecode(row["data"] ?? '[]')).map((dataRow) {
+                return {
+                  "colStep": dataRow["colStep"] ?? 0, // Jeżeli brak, ustawiamy domyślnie na 0
+                  "colKg": dataRow["colKg"] ?? 0,     // Jeżeli brak, ustawiamy domyślnie na 0
+                  "colRep": dataRow["colRep"] ?? 0,    // Jeżeli brak, ustawiamy domyślnie na 0
+                };
+              }).toList() ?? [], // Jeżeli 'data' jest null, ustawiamy pustą listę
+            };
+          }).toList(),
+        };
+      }).toList(),
     }),
   );
 
-  if (response.statusCode == 201) { // 201 Created
+  if (response.statusCode == 201) {
     print("Exercise plan saved successfully!");
   } else {
     throw Exception("Failed to save exercise plan: ${response.body}");
   }
 }
+
+
 
   // Usuń plan ćwiczeń
   Future<void> deleteExercise(String id) async {

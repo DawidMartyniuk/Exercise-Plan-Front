@@ -226,8 +226,8 @@ Map<String, List<Map<String, String>>> getTableData() {
                         final rowId = entry.key + 1;
                         final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
                         final currentRowCount = rows.length;
-                        final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
-                        final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
+                        // final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
+                        // final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
                       return TableRow(
                         children: [
                           Padding(
