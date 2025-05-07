@@ -3,9 +3,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io' show Platform;
+
 
 class Authservice {
-  final String _baseUrl = "http://127.0.0.1:8000/api";
+  final String _baseUrl = () {
+  if (kIsWeb) {
+    return "http://127.0.0.1:8000/api"; // dla przeglądarki
+  } else if (Platform.isAndroid) {
+    return "http://10.0.2.2:8000/api"; // dla emulatora Androida
+  } else {
+    return "http://127.0.0.1:8000/api"; // dla iOS lub innych
+  }
+}();
   final String _loginUrl = "/login";
   final String _registerUrl = "/register";
   final String _logoutUrl = "/logout";
