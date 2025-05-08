@@ -43,7 +43,9 @@ class MyApp extends StatelessWidget {
       title: 'App demo',
       debugShowCheckedModeBanner: false,
       theme: theme,
-      home: TabsScreen(),
+      home: TabsScreen(
+        selectedPageIndex: 0,
+      ),
       );
   }
 }

@@ -4,6 +4,7 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/plan.dart';
+import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/widget/selected_exercise_list.dart';
 import 'package:collection/collection.dart';
 
@@ -90,7 +91,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           );
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => PlanScreen()),
+            MaterialPageRoute(builder: (context) => TabsScreen( selectedPageIndex: 2)),
           );
         }
       } catch (e) {

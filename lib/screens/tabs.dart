@@ -6,7 +6,12 @@ import 'package:work_plan_front/screens/profil.dart';
 import 'package:work_plan_front/screens/plan.dart';
 
 class TabsScreen extends ConsumerStatefulWidget{
-  const TabsScreen({Key? key}) : super(key: key);
+  final int selectedPageIndex;
+
+  const TabsScreen({
+    super.key,
+    this.selectedPageIndex = 0 ,
+    });
 
   @override
   ConsumerState<TabsScreen> createState() => _TabsScreenState();
@@ -20,6 +25,12 @@ class _TabsScreenState extends ConsumerState<TabsScreen>{
     PlanScreen(),
     ProfilScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedPageIndex = widget.selectedPageIndex;
+  }
 
   void _selectPage(int indexPage){
     setState(() {

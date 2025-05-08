@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
 
 class PlanScreen extends ConsumerStatefulWidget {
@@ -13,10 +14,20 @@ class PlanScreen extends ConsumerStatefulWidget {
   void openPlanCreation(BuildContext context){
     Navigator.of(context).push(MaterialPageRoute(builder: (ctx) =>PlanCreation() ),);
   } 
+ 
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
+
+   @override
+  void initState() {
+    super.initState();
+    // Pobierz plany ćwiczeń przy inicjalizacji ekranu
+    Future.microtask(() => ref.read(exercisePlanProvider.notifier).fetchExercisePlans());
+  }
+  
   @override
   Widget build(BuildContext context) {
+    final exerecisePlans = ref.watch(exercisePlanProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Plan')),
       body: Padding(
@@ -82,6 +93,31 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                 ),
               ),
             ),
+            SizedBox(height: 20),
+            Center(
+              child: Text(
+                textAlign: TextAlign.left,
+                "Your plans",
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+            Expanded(child:exerecisePlans == null 
+            ? Center(child: CircularProgressIndicator()) 
+            : ListView.builder(
+              itemCount: exerecisePlans.exercises.length,
+              itemBuilder: (context, index) {
+                final exerciseTable = exerecisePlans.exercises[index];
+                  return Card(child: 
+                  Text(exerciseTable.exercise_table,) 
+                  );
+                
+                
+              },
+            )),
+           
+
           ],
         ),
       ),
