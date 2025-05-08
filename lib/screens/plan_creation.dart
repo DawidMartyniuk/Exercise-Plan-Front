@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/plan.dart';
-import 'package:work_plan_front/serwis/saveExercisePlan.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
 import 'package:work_plan_front/widget/selected_exercise_list.dart';
 import 'package:collection/collection.dart';
 
@@ -24,7 +21,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   Map<String, List<Map<String, String>>> Function()? _getTableData;
 
   var exerciseLenght = 0;
-  late final Widget _exerciseList;
   String exerciseTableTitle = ""; // Zmienna do przechowywania tytułu planu
 
   void addExercise() async {}

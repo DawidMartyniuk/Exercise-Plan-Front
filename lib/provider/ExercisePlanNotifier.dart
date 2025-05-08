@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/serwis/saveExercisePlan.dart';
+import 'package:work_plan_front/serwis/exercisePlan.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
 class ExercisePlanNotifier extends StateNotifier<ExercisePlan?> {
@@ -13,13 +13,15 @@ class ExercisePlanNotifier extends StateNotifier<ExercisePlan?> {
     try {
       final exercisePlans = await _exerciseService.fetchExercises();
       if (exercisePlans.isNotEmpty) {
-        state = exercisePlans.first; // Ustaw pierwszy plan jako aktywny (lub dostosuj logikę)
+        state = exercisePlans.first; 
       }
       print("Fetched exercise plans: $exercisePlans");
     } catch (e) {
       print("Failed to fetch exercise plans: $e");
     }
-  }
+  } 
+
+  //zapis 
 Future<void> initializeExercisePlan(Map<String, dynamic> exercisesData) async {
   final userId = await _getLoggedInUserId();
   if (userId == null) {
@@ -27,28 +29,13 @@ Future<void> initializeExercisePlan(Map<String, dynamic> exercisesData) async {
     return;
   }
 
+  final exercises = (exercisesData["exercises"] as List<dynamic>)
+      .map((exercise) => ExerciseTable.fromJson(exercise as Map<String, dynamic>))
+      .toList();
+
   state = ExercisePlan(
     userId: userId,
-    exercises: Map<String, List<Map<String, dynamic>>>.fromEntries(
-      (exercisesData["exercises"] as List<dynamic>).map((exercise) {
-        final exerciseTable = exercise["exercise_table"]?.toString() ?? "Unknown Exercise";
-        final rawRows = exercise["rows"] as List<dynamic>;
-    
-        final rows = rawRows.map<Map<String, dynamic>>((row) {
-          return {
-            "exercise_name": row["exercise_name"]?.toString() ?? "Unknown Exercise",
-            "notes": row["notes"]?.toString() ?? "",
-            "data": (row["data"] as List).map<Map<String,dynamic>>((entry) => {
-              "colStep": entry["colStep"] ?? "0",
-              "colKg": entry["colKg"] ?? "0",
-              "colRep": entry["colRep"] ?? "0",
-            }).toList(),
-          };
-        }).toList();
-    
-        return MapEntry(exerciseTable, rows);
-      }),
-    ),
+    exercises: exercises,
   );
 
   print("Exercise plan initialized for user $userId.");
@@ -68,17 +55,6 @@ Future<void> initializeExercisePlan(Map<String, dynamic> exercisesData) async {
       print("Failed to save exercise plan: $e");
     }
   }
-
-  // Zapisz nowy plan ćwiczeń do bazy danych
-  // Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
-  //   try {
-  //     await _exerciseService.saveExercisePlan(exercisePlan);
-  //     state = exercisePlan; // Ustaw zapisany plan jako aktywny
-  //     print("Exercise plan saved successfully!");
-  //   } catch (e) {
-  //     print("Failed to save exercise plan: $e");
-  //   }
-  // }
 
   // Usuń plan ćwiczeń z bazy danych
   Future<void> deleteExercisePlan(String id) async {

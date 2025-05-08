@@ -10,17 +10,15 @@ import 'dart:io' show Platform;
 class ExerciseService {
   final String _baseUrl = () {
   if (kIsWeb) {
-    return "http://127.0.0.1:8000/api"; // dla przeglądarki
+    return "http://127.0.0.1:8000/api"; 
   } else if (Platform.isAndroid) {
-    return "http://10.0.2.2:8000/api"; // dla emulatora Androida
+    return "http://10.0.2.2:8000/api";
   } else {
-    return "http://127.0.0.1:8000/api"; // dla iOS lub innych
+    return "http://127.0.0.1:8000/api"; 
   }
 }();
   final String _exerciseUrl = "/exercises";
-  //http://127.0.0.1:8000/api/exercises
-
-  // Pobierz wszystkie ćwiczenia
+ 
     Future<List<ExercisePlan>> fetchExercises() async {
     final url = Uri.parse("$_baseUrl$_exerciseUrl");
     final response = await http.get(
@@ -36,39 +34,18 @@ class ExerciseService {
     }
   }
 
-// Zapisz nowy plan ćwiczeń
 Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
   final userId = await _getUserIdFromToken();
   if (userId == null) {
     throw Exception("User ID not found.");
   }
+  
 
   final url = Uri.parse("$_baseUrl$_exerciseUrl");
   final response = await http.post(
     url,
     headers: await _getHeaders(),
-    body: jsonEncode({
-      "user_id": userId,
-      "exercises": exercisePlan.exercises.entries.map((entry) {
-        return {
-          "exercise_table": entry.key,
-          "rows": entry.value.map((row) {
-            return {
-              "exercise_name": row["exercise_name"],
-              "notes": row["notes"],
-              
-              "data": (row["data"] is List ? row["data"] : jsonDecode(row["data"] ?? '[]')).map((dataRow) {
-                return {
-                  "colStep": dataRow["colStep"] ?? 0, // Jeżeli brak, ustawiamy domyślnie na 0
-                  "colKg": dataRow["colKg"] ?? 0,     // Jeżeli brak, ustawiamy domyślnie na 0
-                  "colRep": dataRow["colRep"] ?? 0,    // Jeżeli brak, ustawiamy domyślnie na 0
-                };
-              }).toList() ?? [], // Jeżeli 'data' jest null, ustawiamy pustą listę
-            };
-          }).toList(),
-        };
-      }).toList(),
-    }),
+    body: jsonEncode(exercisePlan.toJson()),
   );
 
   if (response.statusCode == 201) {
