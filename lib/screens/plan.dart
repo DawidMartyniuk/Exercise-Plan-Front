@@ -11,23 +11,27 @@ class PlanScreen extends ConsumerStatefulWidget {
     return _PlanScreenState();
   }
 }
-  void openPlanCreation(BuildContext context){
-    Navigator.of(context).push(MaterialPageRoute(builder: (ctx) =>PlanCreation() ),);
-  } 
- 
+
+void openPlanCreation(BuildContext context) {
+  Navigator.of(
+    context,
+  ).push(MaterialPageRoute(builder: (ctx) => PlanCreation()));
+}
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
 
-   @override
+  @override
   void initState() {
     super.initState();
-    // Pobierz plany ćwiczeń przy inicjalizacji ekranu
-    Future.microtask(() => ref.read(exercisePlanProvider.notifier).fetchExercisePlans());
+    Future.microtask(() {
+      ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+    });
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    final exerecisePlans = ref.watch(exercisePlanProvider);
+    final exercisePlans = ref.watch(exercisePlanProvider);
+  
     return Scaffold(
       appBar: AppBar(title: const Text('Plan')),
       body: Padding(
@@ -48,9 +52,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               child: TextButton.icon(
                 onPressed: () {},
                 icon: Icon(Icons.add),
-                style:
-                 TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25.0),
                   ),
@@ -63,8 +68,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 20,),
-              Text(
+            SizedBox(height: 20),
+            Text(
               textAlign: TextAlign.left,
               "Create plan",
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -72,15 +77,16 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               ),
             ),
             SizedBox(height: 20),
-             SizedBox(
+            SizedBox(
               width: double.infinity,
               child: TextButton.icon(
                 onPressed: () => openPlanCreation(context),
-              
+
                 icon: Icon(Icons.add),
-                style:
-                 TextButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                style: TextButton.styleFrom(
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25.0),
                   ),
@@ -103,21 +109,26 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                 ),
               ),
             ),
-            Expanded(child:exerecisePlans == null 
-            ? Center(child: CircularProgressIndicator()) 
-            : ListView.builder(
-              itemCount: exerecisePlans.exercises.length,
+            Expanded(
+              child:
+                  exercisePlans.isEmpty
+          ? Center(child: Text("No plans available."))
+          : ListView.builder(
+              itemCount: exercisePlans.length,
               itemBuilder: (context, index) {
-                final exerciseTable = exerecisePlans.exercises[index];
-                  return Card(child: 
-                  Text(exerciseTable.exercise_table,) 
-                  );
-                
-                
+                final exercise = exercisePlans[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(exercise.exercise_table),
+                    subtitle: Text("Plan ID: ${exercise.id}"),
+                    onTap: () {
+                      print("Selected plan ID: ${exercise.id}");
+                    },
+                  ),
+                );
               },
-            )),
-           
-
+            ),
+            ),
           ],
         ),
       ),

@@ -30,86 +30,92 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     if (_getTableData != null) {
       final tableData = _getTableData!();
 
-      // Rozwiń dane i zgrupuj wg exercise_name i notes
-      final allRows =
-          tableData.entries
-              .expand((entry) => entry.value)
-              .where(
-                (row) =>
-                    row["exercise_name"] != null &&
-                    row["exercise_name"]!.trim().isNotEmpty,
-              )
-              .toList();
+      // Rozwiń i zgrupuj dane
+      final allRows = tableData.entries
+          .expand((entry) => entry.value)
+          .where((row) => row["exercise_name"] != null && row["exercise_name"]!.trim().isNotEmpty)
+          .toList();
 
       final grouped = groupBy<Map<String, String>, String>(
         allRows,
         (row) => "${row["exercise_name"]}|||${row["notes"]}",
       );
 
-      final groupedList =
-          grouped.entries.map((entry) {
-            final keyParts = entry.key.split("|||");
+      final groupedList = grouped.entries.map((entry) {
+        final keyParts = entry.key.split("|||");
+        return {
+          "exercise_name": keyParts[0],
+          "notes": keyParts[1],
+          "data": entry.value.map((row) {
             return {
-              "exercise_name": keyParts[0],
-              "notes": keyParts[1],
-              "data":
-                  entry.value
-                      .map(
-                        (row) => {
-                          "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
-                          "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
-                          "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
-                        },
-                      )
-                      .toList(),
+              "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+              "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
+              "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
             };
-          }).toList();
+          }).toList(),
+        };
+      }).toList();
 
-      final payload = [
-        {
-          "exercise_table":
-              exerciseTableTitle.isNotEmpty
-                  ? exerciseTableTitle
-                  : "Default Title",
-          "rows": groupedList,
-        },
-      ];
+      // Poprawna konstrukcja payloadu
+      final payload = {
+        "exercises": [
+          {
+            "exercise_table": exerciseTableTitle.isNotEmpty ? exerciseTableTitle : "Default Title",
+            "rows": groupedList,
+          },
+        ],
+      };
 
-      print("Dane wysyłane do backendu: $payload"); // Debugowanie
+      print("Payload wysyłany do backendu: $payload");
 
       final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
-      await exercisePlanNotifier.initializeExercisePlan({"exercises": payload});
+   //  print("Initializing exercise plan with payload: $payload");
+      await exercisePlanNotifier.initializeExercisePlan(payload);
+     // print("State after initialization: ${ref.read(exercisePlanProvider)}");
 
       try {
-        await exercisePlanNotifier.saveExercisePlan();
-        if (mounted) {
+        final statusCode = await exercisePlanNotifier.saveExercisePlan();
+        if (statusCode == 200 || statusCode == 201) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Plan zapisany pomyślnie!"),
+                backgroundColor: Colors.green,
+              ),
+            );
+             await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+             
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TabsScreen(selectedPageIndex: 2),
+              ),
+            );
+          }
+        } else {
+          print("Nie udało się zapisać planu ćwiczeń: Status $statusCode");
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text("Plan saved successfully!"),
-              backgroundColor: Colors.green,
+              content: Text("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie."),
             ),
-          );
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TabsScreen( selectedPageIndex: 2)),
           );
         }
       } catch (e) {
-        print("Failed to save exercise plan: $e");
+        print("Nie udało się zapisać planu ćwiczeń: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Failed to save exercise plan. Please try again."),
+            content: Text("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie."),
           ),
         );
       }
     } else {
-     print("No table data available.");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("No table data available."),
-        backgroundColor: Colors.orange,
-      ),
-    );
+      print("Brak dostępnych danych tabeli.");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Brak dostępnych danych tabeli."),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -142,40 +148,38 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             ),
             const SizedBox(height: 20),
             Expanded(
-              child:
-                  selectedExercise.isEmpty
-                      ? Center(
-                        child: Text(
-                          "No exercises added yet.",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      )
-                      : SelectedExerciseList(
-                        onGetTableData: (getterFunction) {
-                          _getTableData = () {
-                            final tableData = getterFunction();
-                            final updatedTitle =
-                                exerciseTableTitle; // upewniamy się, że pobieramy aktualny tytuł
-                            return tableData.map((exerciseId, rows) {
-                              return MapEntry(exerciseId, [
-                                {"exercise_table": updatedTitle},
-                                ...rows,
-                              ]);
-                            });
-                          };
-                        },
-
-                        exercises: selectedExercise,
-                        onDelete: (exercise) {
-                          setState(() {
-                            selectedExercise.remove(exercise);
-                          });
-                        },
+              child: selectedExercise.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No exercises added yet.",
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleLarge!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                       ),
+                    )
+                  : SelectedExerciseList(
+                      onGetTableData: (getterFunction) {
+                        _getTableData = () {
+                          final tableData = getterFunction();
+                          final updatedTitle =
+                              exerciseTableTitle; // upewniamy się, że pobieramy aktualny tytuł
+                          return tableData.map((exerciseId, rows) {
+                            return MapEntry(exerciseId, [
+                              {"exercise_table": updatedTitle},
+                              ...rows,
+                            ]);
+                          });
+                        };
+                      },
+                      exercises: selectedExercise,
+                      onDelete: (exercise) {
+                        setState(() {
+                          selectedExercise.remove(exercise);
+                        });
+                      },
+                    ),
             ),
             Center(
               child: SizedBox(

@@ -18,42 +18,70 @@ class ExerciseService {
   }
 }();
   final String _exerciseUrl = "/exercises";
- 
-    Future<List<ExercisePlan>> fetchExercises() async {
-    final url = Uri.parse("$_baseUrl$_exerciseUrl");
-    final response = await http.get(
-      url,
-      headers: await _getHeaders(),
-    );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => ExercisePlan.fromJson(json)).toList();
-    } else {
-      throw Exception("Failed to fetch exercises: ${response.body}");
-    }
-  }
-
-Future<void> saveExercisePlan(ExercisePlan exercisePlan) async {
-  final userId = await _getUserIdFromToken();
-  if (userId == null) {
-    throw Exception("User ID not found.");
-  }
-  
-
+Future<List<ExerciseTable>> fetchExercises() async {
   final url = Uri.parse("$_baseUrl$_exerciseUrl");
-  final response = await http.post(
+  print("Fetching data from URL: $url");
+
+  final response = await http.get(
     url,
     headers: await _getHeaders(),
-    body: jsonEncode(exercisePlan.toJson()),
   );
 
-  if (response.statusCode == 201) {
-    print("Exercise plan saved successfully!");
+  print("Response status: ${response.statusCode}");
+  print("Response body: ${response.body}");
+
+  if (response.statusCode == 200) {
+    final List<dynamic> data = json.decode(response.body);
+   // print("Decoded JSON data: $data");
+   // print("Decoded JSON data type: ${data.runtimeType}");
+
+    final mappedData = data
+        .map((json) => ExerciseTable.fromJson(json as Map<String, dynamic>))
+        .toList();
+
+   // print("Mapped data to ExerciseTable: $mappedData");
+  //  print("Mapped data type: ${mappedData.runtimeType}");
+
+    return mappedData;
   } else {
-    throw Exception("Failed to save exercise plan: ${response.body}");
+    throw Exception("Failed to fetch exercises: ${response.body}");
   }
 }
+
+Future<int> saveExercisePlan(List<ExerciseTable> exercises) async {
+  try {
+    final userId = await _getUserIdFromToken();
+    if (userId == null) {
+      throw Exception("User ID not found.");
+    }
+
+    final payload = {
+      "exercises": exercises.map((e) => e.toJson()).toList(),
+    };
+
+    final url = Uri.parse("$_baseUrl$_exerciseUrl");
+    final response = await http.post(
+      url,
+      headers: await _getHeaders(),
+      body: jsonEncode(payload),
+    );
+     print("Response status: ${response.statusCode}");
+    print("Response body: ${response.body}");
+
+    if (response.statusCode == 201 || response.statusCode == 200)  {
+      print("Exercise plan saved successfully!");
+    } else {
+      throw Exception("Failed to save exercise plan: ${response.body}");
+    }
+    return response.statusCode;
+  } catch (e) {
+    print("Failed to save exercise plan: $e");
+    rethrow;
+  }
+}
+
+
 
 
 
