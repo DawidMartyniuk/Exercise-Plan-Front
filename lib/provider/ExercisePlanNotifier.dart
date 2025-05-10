@@ -47,9 +47,10 @@ Future<void> fetchExercisePlans() async {
   }
 
   // Zapisz cały planr
- Future<int> saveExercisePlan() async {
+Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
   try {
-    final statusCode = await _exerciseService.saveExercisePlan(state);
+    final toSave = onlyThis != null ? [onlyThis] : state;
+    final statusCode = await _exerciseService.saveExercisePlan(toSave);
     print("Exercise plan saved successfully!");
     return statusCode;
   } catch (e) {

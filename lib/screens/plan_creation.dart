@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/exercises.dart';
-import 'package:work_plan_front/screens/plan.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/widget/selected_exercise_list.dart';
+import 'package:work_plan_front/widget/plac_creation_list.dart';
 import 'package:collection/collection.dart';
 
 class PlanCreation extends ConsumerStatefulWidget {
@@ -69,12 +68,11 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       print("Payload wysyłany do backendu: $payload");
 
       final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
-   //  print("Initializing exercise plan with payload: $payload");
       await exercisePlanNotifier.initializeExercisePlan(payload);
-     // print("State after initialization: ${ref.read(exercisePlanProvider)}");
+    
 
       try {
-        final statusCode = await exercisePlanNotifier.saveExercisePlan();
+        final statusCode = await exercisePlanNotifier.saveExercisePlan(onlyThis: exercisePlanNotifier.state.last);
         if (statusCode == 200 || statusCode == 201) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

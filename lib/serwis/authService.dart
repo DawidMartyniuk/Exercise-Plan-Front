@@ -27,6 +27,7 @@ class Authservice {
       print("Brak tokena. Użytkownik nie jest zalogowany.");
       return null;
     }
+    
     final response = await http.post(
       Uri.parse("$_baseUrl$_logoutUrl"),
       headers: {
