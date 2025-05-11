@@ -63,11 +63,13 @@ Map<String, List<Map<String, String>>> getTableData() {
   return exerciseRows.map((exerciseId, data) {
     final rawRows = data["rows"] as List<dynamic>? ?? [];
     final exerciseName = data["exerciseName"]?.toString() ?? "Unknown Exercise";
+    final execiseNumber = exerciseId;
     final notes = data["notes"]?.toString() ?? "";
     final rows = rawRows.map((row) {
       final rowMap = Map<String, dynamic>.from(row);
       return {
         "exercise_name": exerciseName,
+        "exercise_number": execiseNumber, 
         "notes": notes,
         "colStep": rowMap["colStep"]?.toString() ?? "0",
         "colKg": rowMap["colKg"]?.toString() ?? "0",

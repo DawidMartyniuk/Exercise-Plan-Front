@@ -42,8 +42,13 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
       final groupedList = grouped.entries.map((entry) {
         final keyParts = entry.key.split("|||");
+        final firstRow = entry.value.first;
+        print("Raw exercise_number: ${firstRow["exercise_number"]}");
+
         return {
           "exercise_name": keyParts[0],
+          
+         "exercise_number": int.tryParse(firstRow["exercise_number"] ?? "0") ?? 0,
           "notes": keyParts[1],
           "data": entry.value.map((row) {
             return {

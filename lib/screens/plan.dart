@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
 import 'package:work_plan_front/widget/plan_card_item.dart';
 
@@ -27,14 +29,49 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     super.initState();
     Future.microtask(() {
       ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+      ref.read(exerciseProvider.notifier).fetchExercises(); 
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final exercisePlans = ref.watch(exercisePlanProvider);
+    final allExercises = ref.watch(exerciseProvider) ?? [];
 
-    void showPlanBottomSheet(BuildContext context, ExerciseTable plan) {
+    print("Zaladowane plany: ${exercisePlans.length}");
+    print("Zaladowane ćwiczenia: ${allExercises.length}");
+    
+
+    void showPlanBottomSheet(BuildContext context, ExerciseTable plan, List<Exercise> allExercises) {
+     
+
+      final planExerciseIds = plan.rows
+      .map((row) => row.exercise_number)
+      .toSet(); // zbieramy unikalne ID ćwiczeń
+
+    // final filteredExercises = allExercises
+    //   .where((ex) => planExerciseIds.contains(ex.id))
+    //   .toList();
+
+     final planExerciseIdStrings = plan.rows
+    .map((row) => row.exercise_number.toString())
+    .toSet();
+
+    final filteredExercises = allExercises.where((ex) {
+      return planExerciseIdStrings.contains(int.tryParse(ex.id)?.toString());
+    }).toList();
+
+      print("Znalezione ćwiczenia: ${filteredExercises.length}");
+      for (var ex in filteredExercises){
+        print("znalezione ćwiczenie:${ex.id}  ${ex.name} oraz ${ex.gifUrl}");
+      }
+      print("planExerciseIds: $planExerciseIds"); // np. [1, 2, 3]
+      print("allExercises ids: ${allExercises.map((e) => e.id).toList()}"); // np. ['001', '002', '003']
+
+    print("Zmapowane ID planu (jako String): $planExerciseIdStrings");
+    print("allExercises ids (int): ${allExercises.map((e) => int.tryParse(e.id)?.toString()).toList()}");
+
+
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -42,6 +79,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         builder: (ctx) => SizedBox(
           height: MediaQuery.of(ctx).size.height * 0.98, // prawie cały ekran
           child: PlanCardItem(
+            exercises: filteredExercises,
             plan: plan,
             onStartWorkout: () {
               Navigator.of(ctx).pop();
@@ -185,7 +223,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                               ),
                               ),
                               onPressed: () {
-                                showPlanBottomSheet(context, exercise);
+                                  print("Kliknięto plan: ${exercise.exercise_table}");
+                                  showPlanBottomSheet(context, exercise, allExercises!);
+                             
                                 }, 
                               child: Text(
                                 "Start workout",

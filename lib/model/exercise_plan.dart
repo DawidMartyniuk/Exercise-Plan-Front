@@ -18,30 +18,35 @@ class ExerciseTable {
   }
 
   factory ExerciseTable.fromJson(Map<String, dynamic> json) {
- final rowsJson = (json['rows'] ?? json['rows_data']) as List<dynamic>? ?? [];
+    final rowsJson =
+        (json['rows'] ?? json['rows_data']) as List<dynamic>? ?? [];
     return ExerciseTable(
       id: json['id'] ?? 0,
       exercise_table: json['exercise_table'] ?? "Unknown Table",
-      rows: rowsJson
-          .map((row) => ExerciseRowsData.fromJson(row as Map<String, dynamic>))
-          .toList(),
+      rows:
+          rowsJson
+              .map(
+                (row) => ExerciseRowsData.fromJson(row as Map<String, dynamic>),
+              )
+              .toList(),
     );
   }
 
   @override
-String toString() {
-  return 'ExerciseTable(id: $id, exercise_table: $exercise_table, rows: $rows)';
-}
-
+  String toString() {
+    return 'ExerciseTable(id: $id, exercise_table: $exercise_table, rows: $rows)';
+  }
 }
 
 class ExerciseRowsData {
   final String exercise_name;
+  final String exercise_number;
   final String notes;
   final List<ExerciseRow> data;
 
   ExerciseRowsData({
     required this.exercise_name,
+    required this.exercise_number,
     required this.notes,
     required this.data,
   });
@@ -49,26 +54,29 @@ class ExerciseRowsData {
   Map<String, dynamic> toJson() {
     return {
       'exercise_name': exercise_name,
+      'exercise_number': exercise_number,
       'notes': notes,
       'data': data.map((row) => row.toJson()).toList(),
     };
   }
 
   factory ExerciseRowsData.fromJson(Map<String, dynamic> json) {
+     print("Parsing exercise_number from backend: ${json['exercise_number']}");
     final dataJson = json['data'] as List<dynamic>? ?? [];
     return ExerciseRowsData(
+      exercise_number: json['exercise_number']?.toString() ?? "Unknown Number",
       exercise_name: json['exercise_name'] ?? "Unknown Exercise",
       notes: json['notes'] ?? "",
-      data: dataJson
-          .map((row) => ExerciseRow.fromJson(row as Map<String, dynamic>))
-          .toList(),
+      data:
+          dataJson
+              .map((row) => ExerciseRow.fromJson(row as Map<String, dynamic>))
+              .toList(),
     );
   }
   @override
-String toString() {
-  return 'ExerciseRowsData(exercise_name: $exercise_name, notes: $notes, data: $data)';
-}
-
+  String toString() {
+    return 'ExerciseRowsData(exercise_name: $exercise_name, exercise_number: $exercise_number, notes: $notes, data: $data)';
+  }
 }
 
 class ExerciseRow {
@@ -83,11 +91,7 @@ class ExerciseRow {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'colStep': colStep,
-      'colKg': colKg,
-      'colRep': colRep,
-    };
+    return {'colStep': colStep, 'colKg': colKg, 'colRep': colRep};
   }
 
   factory ExerciseRow.fromJson(Map<String, dynamic> json) {
@@ -98,8 +102,7 @@ class ExerciseRow {
     );
   }
   @override
-String toString() {
-  return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep)';
-}
-
+  String toString() {
+    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep)';
+  }
 }

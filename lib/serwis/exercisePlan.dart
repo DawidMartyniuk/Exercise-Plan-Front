@@ -28,8 +28,8 @@ Future<List<ExerciseTable>> fetchExercises() async {
     headers: await _getHeaders(),
   );
 
-  print("Response status: ${response.statusCode}");
-  print("Response body: ${response.body}");
+ // print("Response status: ${response.statusCode}");
+ // print("Response body: ${response.body}");
 
   if (response.statusCode == 200) {
     final List<dynamic> data = json.decode(response.body);
@@ -66,8 +66,8 @@ Future<int> saveExercisePlan(List<ExerciseTable> exercises) async {
       headers: await _getHeaders(),
       body: jsonEncode(payload),
     );
-     print("Response status: ${response.statusCode}");
-    print("Response body: ${response.body}");
+     //print("Response status: ${response.statusCode}");
+   // print("Response body: ${response.body}");
 
     if (response.statusCode == 201 || response.statusCode == 200)  {
       print("Exercise plan saved successfully!");

@@ -21,7 +21,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     super.initState();
     ref
         .read(exerciseProvider.notifier)
-        .fetchExercises(); // Pobierz dane przy załadowaniu ekranu
+        .fetchExercises(); 
   }
 
   List<Exercise> _filteredExercises(List<Exercise> exercises) {
