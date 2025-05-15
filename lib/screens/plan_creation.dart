@@ -144,11 +144,17 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                   print("Updated exerciseTableTitle: $exerciseTableTitle");
                 });
               },
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               decoration: InputDecoration(
                 labelText: "Plan Title",
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 border: OutlineInputBorder(),
               ),
-            ),
+            ),      
             const SizedBox(height: 20),
             Expanded(
               child: selectedExercise.isEmpty
@@ -202,7 +208,10 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                       });
                     }
                   },
-                  child: Text("Add Exercise"),
+                  child: Text("Add Exercise", style:
+                   Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface),
+                    ),
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(
                       context,

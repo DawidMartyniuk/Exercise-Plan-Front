@@ -1,6 +1,7 @@
 //  odpowiada za komunikację z backendem.
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:work_plan_front/model/LoginResult.dart';
 import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 import 'package:flutter/foundation.dart';
@@ -44,28 +45,28 @@ class Authservice {
   }
   }
 
-  Future<AuthResponse?> login(String email, String password) async {
+  Future<LoginResult?> login(String email, String password) async {
     final response = await http.post(
       Uri.parse("$_baseUrl$_loginUrl"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       print(response.body);
       final responseBody = json.decode(response.body);
       if (responseBody.containsKey('token') && responseBody.containsKey('user')) 
       {
         final  authResponse = AuthResponse.fromJson(responseBody);
         await saveToken(authResponse.token); 
-        return authResponse;
+        return LoginResult(authResponse: authResponse, statusCode: response.statusCode);
       } else {
         print("Brak tokenu lub użytkownika w odpowiedzi");
-        return null;
+        return LoginResult(authResponse: null, statusCode: response.statusCode);;
       }
     } else {
       print('Błąd logowania: ${response.statusCode}');
-      return null;
+      return LoginResult(authResponse: null, statusCode: response.statusCode);;
     }
   }
 

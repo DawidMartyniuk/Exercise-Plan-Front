@@ -49,10 +49,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       .map((row) => row.exercise_number)
       .toSet(); // zbieramy unikalne ID ćwiczeń
 
-    // final filteredExercises = allExercises
-    //   .where((ex) => planExerciseIds.contains(ex.id))
-    //   .toList();
-
+    
      final planExerciseIdStrings = plan.rows
     .map((row) => row.exercise_number.toString())
     .toSet();
@@ -89,163 +86,156 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       );
     }
   
-    return Scaffold(
-      appBar: AppBar(title: const Text('Plan')),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              textAlign: TextAlign.left,
-              "Start Now",
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+   return Scaffold(
+  appBar: AppBar(title: const Text('Plan')),
+  body: SingleChildScrollView(
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Start Now",
+          textAlign: TextAlign.left,
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: TextButton.icon(
+            onPressed: () {},
+            icon: Icon(Icons.add),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.0),
+              ),
+            ),
+            label: Text(
+              "Start Empty Workout",
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () {},
-                icon: Icon(Icons.add),
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.0),
-                  ),
-                ),
-                label: Text(
-                  "Start Empty Workout",
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
+          ),
+        ),
+        SizedBox(height: 20),
+        Text(
+          "Create plan",
+          textAlign: TextAlign.left,
+          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: TextButton.icon(
+            onPressed: () => openPlanCreation(context),
+            icon: Icon(Icons.add),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.0),
               ),
             ),
-            SizedBox(height: 20),
-            Text(
-              textAlign: TextAlign.left,
-              "Create plan",
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+            label: Text(
+              "Create exercise plann",
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton.icon(
-                onPressed: () => openPlanCreation(context),
+          ),
+        ),
+        SizedBox(height: 20),
+        Center(
+          child: Text(
+            "Your plans",
+            textAlign: TextAlign.left,
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        ),
+        SizedBox(height: 20),
 
-                icon: Icon(Icons.add),
-                style: TextButton.styleFrom(
-                  backgroundColor: Theme.of(
-                    context,
-                  ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.0),
-                  ),
-                ),
-                label: Text(
-                  "Create exercise plann",
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: Text(
-                textAlign: TextAlign.left,
-                "Your plans",
-                style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-            Expanded(
-              child:
-                  exercisePlans.isEmpty
-          ? Center(child: Text("No plans available."))
-          : ListView.builder(
-              itemCount: exercisePlans.length,
-              itemBuilder: (context, index) {
-                final exercise = exercisePlans[index];
-                return Card(
-                  color: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()), // Dodaje kolor tła
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
-                    child: Column( 
-                      //
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                exercise.exercise_table,
-                                style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                                textAlign: TextAlign.left,
+        // Wyświetlanie listy planów
+        if (exercisePlans.isEmpty)
+          Center(child: Text("No plans available."))
+        else
+          ListView.builder(
+            itemCount: exercisePlans.length,
+            shrinkWrap: true, // ← KLUCZOWE
+            physics: NeverScrollableScrollPhysics(), // ← KLUCZOWE
+            itemBuilder: (context, index) {
+              final exercise = exercisePlans[index];
+              return Card(
+                color: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              exercise.exercise_table,
+                              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
+                              textAlign: TextAlign.left,
                             ),
-                            IconButton(
-                              onPressed: () {}, 
-                              icon: Icon(
-                                Icons.more_horiz,
-                                color: Theme.of(context).colorScheme.onSurface,size: 20,),
-                              alignment: Alignment.centerRight,
-                            ),
-                          ],
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
+                          ),
+                          IconButton(
+                            onPressed: () {},
+                            icon: Icon(Icons.more_horiz, color: Theme.of(context).colorScheme.onSurface, size: 20),
+                            alignment: Alignment.centerRight,
+                          ),
+                        ],
+                      ),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
                           exercise.rows.map((row) => row.exercise_name).join(", "),
                           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withAlpha((0.5 * 255).toInt()),
                           ),
                           textAlign: TextAlign.left,
-                          ),
-                      
                         ),
-                        SizedBox(height: 12),                
-                          SizedBox(
-                            width: double.infinity,
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                              ),
-                              onPressed: () {
-                                  print("Kliknięto plan: ${exercise.exercise_table}");
-                                  showPlanBottomSheet(context, exercise, allExercises!);
-                             
-                                }, 
-                              child: Text(
-                                "Start workout",
-                                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
+                      ),
+                      SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(25.0),
                             ),
                           ),
-                      ],
-                    ),
-                  )
+                          onPressed: () {
+                            print("Kliknięto plan: ${exercise.exercise_table}");
+                            showPlanBottomSheet(context, exercise, allExercises!);
+                          },
+                          child: Text(
+                            "Start workout",
+                            style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+      ],
+    ),
+  ),
+);
 
-                );
-              },
-            ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/LoginResult.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/tabs.dart';
@@ -24,23 +25,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!_formKey.currentState!.validate()) {
       return; 
     }
-    else {
-        try {
-     await ref.read(authProviderLogin.notifier).login(email, password);
+   
+      try {
+
+     final loginResult =  await ref.read(authProviderLogin.notifier).login(email, password);
       print("zalogowano na $email i $password");
 
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => TabsScreen()));
-        }catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Login failed: $e"),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+     if(loginResult?.statusCode ==200 || loginResult?.statusCode == 201 ){
+
+      print("zalogowano na $email i $password");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login successful"),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => TabsScreen(selectedPageIndex: 0)),
+        );
+     } else if (loginResult?.statusCode == 400) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Invalid email or password"),
+          backgroundColor: Colors.red,
+        ),
+      );
+     } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login failed"),
+          backgroundColor: Colors.red,
+        ),
+      );
+     }
+  }
+    catch (e) {
+      print("Login error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Login error"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+    
   }
 
   @override

@@ -11,6 +11,7 @@ class Startscreen extends ConsumerStatefulWidget {
 
 class _StartscreenState extends ConsumerState<Startscreen> {
   String? userName;
+  String? loginStatus;
 
   @override
   void initState() {
@@ -31,7 +32,11 @@ class _StartscreenState extends ConsumerState<Startscreen> {
     if (isLoggedIn) {
       final authResponse = ref.read(authProviderLogin);
       setState(() {
-        userName = authResponse?.user.name; 
+        loginStatus = authResponse?.user.name ?? "user not found"; 
+      });
+    } else {
+      setState(() {
+        loginStatus = "not logged in";
       });
     }
   }
@@ -40,7 +45,7 @@ class _StartscreenState extends ConsumerState<Startscreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Start Screen , $userName'),
+        title: Text(loginStatus ?? "Start Screen"),
         actions: [
           IconButton(
             padding: EdgeInsets.symmetric(horizontal: 30),
