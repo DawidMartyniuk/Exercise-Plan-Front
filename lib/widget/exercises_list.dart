@@ -31,7 +31,6 @@ class __ExerciseListState extends State<ExerciseList> {
         return Card(
           child: ListTile(
             onTap: () {
-              //print('Selected exercise: ${exercise.name}');
               Navigator.of(context).pop(exercise);
             },
             leading: Image.network(exercise.gifUrl, width: 50, height: 50),

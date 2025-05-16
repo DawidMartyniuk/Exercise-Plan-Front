@@ -78,7 +78,7 @@ class PlanCardItem extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                //Jeśli masz gifUrl w modelu, możesz dodać obrazek tutaj                               
+                                                           
                               ClipOval(                                
                                 child: matchingExercise.gifUrl.isNotEmpty                                
                                     ? Image.network(
@@ -236,7 +236,9 @@ class PlanCardItem extends StatelessWidget {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: onStartWorkout,
-                child: const Text("Zwin plan"),
+                child: Text("Zwin plan", style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                )),
               ),
             ],
           ),

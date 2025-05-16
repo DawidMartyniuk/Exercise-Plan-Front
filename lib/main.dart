@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 
 final colorScheme = const ColorScheme.dark(
@@ -30,8 +34,13 @@ final theme =ThemeData().copyWith(
 );
 
 
-void main() {
-  runApp( const ProviderScope(child:MyApp() ) );
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final appDocumentDir = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(appDocumentDir.path);
+  Hive.registerAdapter(ExerciseAdapter()); // automatycznie wygenerowany adapter
+  await Hive.openBox('exerciseBox');
+  runApp( ProviderScope(child:MyApp() ) );
 }
 
 class MyApp extends StatelessWidget {
@@ -43,6 +52,7 @@ class MyApp extends StatelessWidget {
       title: 'App demo',
       debugShowCheckedModeBanner: false,
       theme: theme,
+
       home: TabsScreen(
         selectedPageIndex: 0,
       ),

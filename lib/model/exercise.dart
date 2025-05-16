@@ -1,12 +1,32 @@
-class Exercise{
-  final String id;
-  final String name;
-  final String bodyPart;
-  final String equipment;
-  final String gifUrl;
-  final String target;
-  final List<String> secondaryMuscles;
-  final List<String> instructions;
+import 'package:hive/hive.dart';
+
+part 'exercise.g.dart'; // do wygenerowania
+
+@HiveType(typeId: 0)
+class Exercise extends HiveObject {
+  @HiveField(0)
+  String id;
+
+  @HiveField(1)
+  String name;
+
+  @HiveField(2)
+  String bodyPart;
+
+  @HiveField(3)
+  String equipment;
+
+  @HiveField(4)
+  String gifUrl;
+
+  @HiveField(5)
+  String target;
+
+  @HiveField(6)
+  List<String> secondaryMuscles;
+
+  @HiveField(7)
+  List<String> instructions;
 
   Exercise({
     required this.id,
@@ -21,18 +41,29 @@ class Exercise{
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      bodyPart: json['bodyPart'] as String,
-      equipment: json['equipment'] as String,
-      gifUrl: json['gifUrl'] as String,
-      target: json['target'] as String,
+      id: json['id'],
+      name: json['name'],
+      bodyPart: json['bodyPart'],
+      equipment: json['equipment'],
+      gifUrl: json['gifUrl'],
+      target: json['target'],
       secondaryMuscles: List<String>.from(json['secondaryMuscles']),
       instructions: List<String>.from(json['instructions']),
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'bodyPart': bodyPart,
+      'equipment': equipment,
+      'gifUrl': gifUrl,
+      'target': target,
+      'secondaryMuscles': secondaryMuscles,
+      'instructions': instructions,
+    };
+  }
 }
-
 
 enum BodyPart {
     back,
@@ -190,50 +221,3 @@ extension EquipmentListExtension on EquipmentList {
   }
 }
 
-// extension TargetListExtension on TargetList {
-//   String get name {
-//     switch (this) {
-//       case TargetList.abductors:
-//         return "abductors";
-//       case TargetList.abs:
-//         return "abs";
-//       case TargetList.adductors:
-//         return "adductors";
-//       case TargetList.biceps:
-//         return "biceps";
-//       case TargetList.calves:
-//         return "calves";
-//       case TargetList.cardiovascularSystem:
-//         return "cardiovascular system";
-//       case TargetList.delts:
-//         return "delts";
-//       case TargetList.forearms:
-//         return "forearms";
-//       case TargetList.glutes:
-//         return "glutes";
-//       case TargetList.hamstrings:
-//         return "hamstrings";
-//       case TargetList.lats:
-//         return "lats";
-//       case TargetList.levatorScapulae:
-//         return "levator scapulae";
-//       case TargetList.pectorals:
-//         return "pectorals";
-//       case TargetList.quads:
-//         return "quads";
-//       case TargetList.serratusAnterior:
-//         return "serratus anterior";
-//       case TargetList.spine:
-//         return "spine";
-//       case TargetList.traps:
-//         return "traps";
-//       case TargetList.triceps:
-//         return "triceps";
-//       case TargetList.upperBack:
-//         return "upper back";
-//     }
-//   }
-// }
-
-
-       

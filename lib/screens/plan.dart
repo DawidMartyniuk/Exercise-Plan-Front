@@ -62,8 +62,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       for (var ex in filteredExercises){
         print("znalezione ćwiczenie:${ex.id}  ${ex.name} oraz ${ex.gifUrl}");
       }
-      print("planExerciseIds: $planExerciseIds"); // np. [1, 2, 3]
-      print("allExercises ids: ${allExercises.map((e) => e.id).toList()}"); // np. ['001', '002', '003']
+      print("planExerciseIds: $planExerciseIds"); 
+      print("allExercises ids: ${allExercises.map((e) => e.id).toList()}"); 
 
     print("Zmapowane ID planu (jako String): $planExerciseIdStrings");
     print("allExercises ids (int): ${allExercises.map((e) => int.tryParse(e.id)?.toString()).toList()}");
@@ -74,7 +74,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
         builder: (ctx) => SizedBox(
-          height: MediaQuery.of(ctx).size.height * 0.98, // prawie cały ekran
+          height: MediaQuery.of(ctx).size.height * 0.98, 
           child: PlanCardItem(
             exercises: filteredExercises,
             plan: plan,

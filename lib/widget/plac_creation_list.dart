@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/screens/exercise_info.dart';
 
 class SelectedExerciseList extends StatefulWidget {
   final List<Exercise> exercises;
@@ -20,6 +21,8 @@ class SelectedExerciseList extends StatefulWidget {
 
 class _SelectedExerciseListState extends State<SelectedExerciseList> {
   Map<String, Map<String, dynamic>> exerciseRows = {};
+ final Map<String, TextEditingController> _notesControllers = {};
+
 
   void _addRow(String exerciseId, String exerciseName) {
   setState(() {
@@ -55,6 +58,14 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
       }
     });
   }
+ void _openInfoExercise(Exercise exercise) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) => (ExerciseInfoScreen(exercise: exercise)),
+    );
+  }
  List<Map<String, String>> _getTableData(String exerciseId) {
   return exerciseRows[exerciseId]?["rows"] ?? [];
 }
@@ -79,6 +90,14 @@ Map<String, List<Map<String, String>>> getTableData() {
     return MapEntry(exerciseId, rows);
   });
 }
+_deleteExerciseForPlan(String exerciseId) {
+  var exerciseForDelete =  widget.exercises.firstWhere((exerciseId) => exerciseId.id == exerciseId);
+   setState(() {
+      exerciseRows.remove(exerciseId);
+     widget.onDelete(exerciseForDelete);
+     _notesControllers.remove(exerciseId)?.dispose();
+    });
+  }
 
 
   @override
@@ -103,6 +122,11 @@ Map<String, List<Map<String, String>>> getTableData() {
           ]
         };
       }
+      _notesControllers.putIfAbsent(
+    exerciseId,
+    () => TextEditingController(text: exerciseRows[exerciseId]!["notes"] ?? ""),
+    );
+
       final exerciseName = exerciseRows[exerciseId]!["exerciseName"] as String;
       final rows = _getTableData(exerciseId);
 
@@ -114,12 +138,17 @@ Map<String, List<Map<String, String>>> getTableData() {
               children: [
                 Row(
                    children: [
-                  ClipOval(
-                    child: Image.network(
-                      exercise.gifUrl,
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+                  GestureDetector(
+                    onTap: () {
+                      _openInfoExercise(exercise);
+                    },
+                    child: ClipOval(
+                      child: Image.network(
+                        exercise.gifUrl,
+                        width: 50,
+                        height: 50,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -134,23 +163,21 @@ Map<String, List<Map<String, String>>> getTableData() {
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
-                      setState(() {
-                        exerciseRows.remove(exerciseId);
-                        widget.onDelete(exercise);
-                      });
+                      _deleteExerciseForPlan(exerciseId);
                     },
                   ),
                 ],
               ),
                 const SizedBox(height: 10),
                 TextField(
+                  controller: _notesControllers[exerciseId],   
                     onChanged: (value) {
                       setState(() {
-                        exerciseRows[exerciseId]!["notes"] = value; // Aktualizuj notatki
+                        exerciseRows[exerciseId]!["notes"] = value; 
                       });
                     },
                   decoration: InputDecoration(
-                    label: const Text("Notes"),
+                    label: Text("Notes"),
                     border: const UnderlineInputBorder(),
                     labelStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -180,7 +207,6 @@ Map<String, List<Map<String, String>>> getTableData() {
                           padding: const EdgeInsets.all(8.0),
                          child: TextButton(
                             onPressed: () {
-                              // Funkcja zmiany wartości dla "KG" (do dodania w przyszłości)
                             },
                             child: Text(
                               "Step",
@@ -195,7 +221,7 @@ Map<String, List<Map<String, String>>> getTableData() {
                           padding: const EdgeInsets.all(8.0),
                           child: TextButton(
                             onPressed: () {
-                              // Funkcja zmiany wartości dla "KG" (do dodania w przyszłości)
+                         
                             },
                             child: Text(
                               "KG",
@@ -228,8 +254,7 @@ Map<String, List<Map<String, String>>> getTableData() {
                         final rowId = entry.key + 1;
                         final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
                         final currentRowCount = rows.length;
-                        // final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
-                        // final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
+                       
                       return TableRow(
                         children: [
                           Padding(
@@ -251,6 +276,7 @@ Map<String, List<Map<String, String>>> getTableData() {
                                   row["colKg"] = value;
                                 });
                               },
+                              keyboardType: TextInputType.number,
                               decoration:  InputDecoration(
                                 //hintText: " $currentKg",
                                 hintText: row["colKg"] ?? "0",
@@ -271,6 +297,7 @@ Map<String, List<Map<String, String>>> getTableData() {
                                   row["colRep"] = value;
                                 });
                               },
+                              keyboardType: TextInputType.number,
                               decoration:  InputDecoration(
                               //hintText: " $currentReps",
                               hintText: row["colRep"] ?? "0",
@@ -307,6 +334,7 @@ Map<String, List<Map<String, String>>> getTableData() {
                       const SizedBox(width: 10),
                       ElevatedButton(
                         onPressed: () {
+                          _notesControllers.remove(exerciseId)?.dispose();
                           if (_getTableData(exerciseId).length > 1) {
                             _removeRow(exerciseId, _getTableData(exerciseId).length - 1);
                           }

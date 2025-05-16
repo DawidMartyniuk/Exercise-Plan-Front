@@ -21,7 +21,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   Map<String, List<Map<String, String>>> Function()? _getTableData;
 
   var exerciseLenght = 0;
-  String exerciseTableTitle = ""; // Zmienna do przechowywania tytułu planu
+  String exerciseTableTitle = ""; 
 
   void addExercise() async {}
 
@@ -29,7 +29,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     if (_getTableData != null) {
       final tableData = _getTableData!();
 
-      // Rozwiń i zgrupuj dane
       final allRows = tableData.entries
           .expand((entry) => entry.value)
           .where((row) => row["exercise_name"] != null && row["exercise_name"]!.trim().isNotEmpty)
@@ -97,35 +96,87 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           }
         } else {
           print("Nie udało się zapisać planu ćwiczeń: Status $statusCode");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie."),
-            ),
-          );
+          errorScaffoldMessage("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie.", Colors.red);
         }
       } catch (e) {
+        errorScaffoldMessage("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie", Colors.red);
         print("Nie udało się zapisać planu ćwiczeń: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie."),
-          ),
-        );
       }
     } else {
-      print("Brak dostępnych danych tabeli.");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Brak dostępnych danych tabeli."),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      errorScaffoldMessage("Brak dostępnych dancyh tabeli", Colors.red);
     }
   }
+  void errorScaffoldMessage(String message, Color color) {
+    print(message);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+      ),
+    );
+  }
+  void _backScreen() {
+  if (selectedExercise.isNotEmpty || exerciseTableTitle.isNotEmpty || selectedExercise.isEmpty) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.surface, 
+        title: Text(
+          "Czy na pewno chcesz wrócić?",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        content: Text(
+          "Nie zapisano zmian.",
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              "Anuluj",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+            child: Text(
+              "Tak",
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  } else {
+    Navigator.of(context).pop();
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            _backScreen();
+          
+          },
+        ),
         title: Text("log workout"),
         actions: [
           IconButton(onPressed: _saveTabelData, icon: const Icon(Icons.save)),

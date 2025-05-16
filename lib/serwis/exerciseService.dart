@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:hive/hive.dart';
 
 class ExerciseService {
   final String _baseUrl = "https://exercisedb.p.rapidapi.com/exercises";
@@ -16,8 +17,7 @@ class ExerciseService {
     },
     );
 
-//  print('Response status: ${response.statusCode}'); // Debugowanie
-//   print('Response body: ${response.body}'); // Debugowanie
+
 
   if (response.statusCode == 200) {
     final List<dynamic> responseBody = json.decode(response.body);
