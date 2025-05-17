@@ -8,17 +8,15 @@ class ExerciseNotifier extends StateNotifier<List<Exercise>?> {
 
   final ExerciseService _exerciseService = ExerciseService();
 
-
-Future<void> fetchExercises() async {
-  final exercises = await _exerciseService.exerciseList();
+Future<void> fetchExercises({bool forceRefresh = false}) async {
+  final exercises = await _exerciseService.exerciseList(forceRefresh: forceRefresh);
   if (exercises != null) {
-    print('Fetched exercises: ${exercises.length}');
-    state = exercises; 
+    state = exercises;
   } else {
-    print('No exercises fetched'); 
     state = [];
   }
 }
+
 
 
   void clearExercises() {

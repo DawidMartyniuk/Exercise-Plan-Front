@@ -5,7 +5,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
-import 'package:work_plan_front/widget/plan_card_item.dart';
+import 'package:work_plan_front/widget/plan_selected_list.dart';
 
 class PlanScreen extends ConsumerStatefulWidget {
   const PlanScreen({super.key});
@@ -27,9 +27,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
-      ref.read(exerciseProvider.notifier).fetchExercises(); 
+    Future.microtask(() async {
+     await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+     await ref.read(exerciseProvider.notifier).fetchExercises(); 
     });
   }
 
@@ -37,6 +37,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   Widget build(BuildContext context) {
     final exercisePlans = ref.watch(exercisePlanProvider);
     final allExercises = ref.watch(exerciseProvider) ?? [];
+
+    if (allExercises == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     print("Zaladowane plany: ${exercisePlans.length}");
     print("Zaladowane ćwiczenia: ${allExercises.length}");
@@ -75,7 +79,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         backgroundColor: Colors.transparent,
         builder: (ctx) => SizedBox(
           height: MediaQuery.of(ctx).size.height * 0.98, 
-          child: PlanCardItem(
+          child: PlanSelectedList(
             exercises: filteredExercises,
             plan: plan,
             onStartWorkout: () {

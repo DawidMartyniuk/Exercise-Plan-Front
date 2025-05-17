@@ -1,18 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/screens/exercise_info.dart';
 
-class PlanCardItem extends StatelessWidget {
-   final ExerciseTable plan;
- final List<Exercise> exercises;
+class PlanSelectedList extends StatefulWidget {
+  final ExerciseTable plan;
+  final List<Exercise> exercises;
   final VoidCallback? onStartWorkout;
 
-  const PlanCardItem({
-    super.key,
+  const PlanSelectedList({
+     super.key,
     required this.plan,
     required this.exercises,
     this.onStartWorkout,
-  });
+    });
+
+  @override
+  State<StatefulWidget> createState() {
+    return _PlanSelectedListState();
+  }
+}
+class _PlanSelectedListState extends State<PlanSelectedList> {  
+//    final ExerciseTable plan;
+//  final List<Exercise> exercises;
+//   final VoidCallback? onStartWorkout;
+
+  // const PlanCardItem({
+  //   super.key,
+  //   required this.plan,
+  //   required this.exercises,
+  //   this.onStartWorkout,
+
+    void _openInfoExercise(Exercise exercise) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) => (ExerciseInfoScreen(exercise: exercise)),
+    );
+  }
+  
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -24,16 +52,16 @@ class PlanCardItem extends StatelessWidget {
           child: Column(
             children: [
               Text(
-                plan.exercise_table,
+                widget.plan.exercise_table,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
-                itemCount: plan.rows.length, // plan to obiekt ExerciseTable
+                itemCount: widget.plan.rows.length, 
                 itemBuilder: (context, index) {
-                  final exerciseData = plan.rows[index]; // ExerciseRowsData
-                  final matchingExercise = exercises.firstWhere(
+                  final exerciseData = widget.plan.rows[index]; // ExerciseRowsData
+                  final matchingExercise = widget.exercises.firstWhere(
                     (ex) {
                       final match = int.tryParse(ex.id) == int.tryParse(exerciseData.exercise_number);
                       print('Porównuję ex.id=${ex.id} z exerciseData.exercise_number=${exerciseData.exercise_number} → $match');
@@ -50,22 +78,7 @@ class PlanCardItem extends StatelessWidget {
                       instructions: [],
                     ),
                   );
-                    // Szukaj ćwiczenia po nazwie
-
-
-                    // final exercise = allExercises.firstWhere(
-                    //   (ex) => ex.name.toLowerCase() == exerciseRow.exercise_name.toLowerCase(),
-                    //   orElse: () => Exercise(
-                    //     id: '',
-                    //     name: exerciseRow.exercise_name,
-                    //     bodyPart: '',
-                    //     equipment: '',
-                    //     gifUrl: '',
-                    //     target: '',
-                    //     secondaryMuscles: [],
-                    //     instructions: [],
-                    //   ),
-                    // );
+   
                     print("strona z URL gifem ${exerciseData.exercise_name}: ${matchingExercise.gifUrl}");
                     return Card(
                       color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
@@ -79,24 +92,29 @@ class PlanCardItem extends StatelessWidget {
                             Row(
                               children: [
                                                            
-                              ClipOval(                                
-                                child: matchingExercise.gifUrl.isNotEmpty                                
-                                    ? Image.network(
-                                        matchingExercise.gifUrl,
-                                        width: 50,
-                                        height: 50,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        width: 50,
-                                        height: 50,
-                                        color: Colors.grey[300],
-                                        alignment: Alignment.center,
-                                        child: const Text(
-                                          "brak",
-                                          style: TextStyle(fontSize: 12, color: Colors.black54),
+                              GestureDetector(
+                                onTap: () {
+                                  _openInfoExercise(matchingExercise);
+                                },
+                                child: ClipOval(                                
+                                  child: matchingExercise.gifUrl.isNotEmpty                                
+                                      ? Image.network(
+                                          matchingExercise.gifUrl,
+                                          width: 50,
+                                          height: 50,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          width: 50,
+                                          height: 50,
+                                          color: Colors.grey[300],
+                                          alignment: Alignment.center,
+                                          child: const Text(
+                                            "brak",
+                                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                                          ),
                                         ),
-                                      ),
+                                ),
                               ),
                                 const SizedBox(width: 10),
                                 Expanded(
@@ -235,7 +253,7 @@ class PlanCardItem extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: onStartWorkout,
+                onPressed: widget.onStartWorkout,
                 child: Text("Zwin plan", style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 )),

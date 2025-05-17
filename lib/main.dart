@@ -7,6 +7,10 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/tabs.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+ // nie jest potzrebny bo app mam w main 
+
+
 
 final colorScheme = const ColorScheme.dark(
   primary: Colors.black,
@@ -36,12 +40,24 @@ final theme =ThemeData().copyWith(
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final appDocumentDir = await getApplicationDocumentsDirectory();
-  await Hive.initFlutter(appDocumentDir.path);
-  Hive.registerAdapter(ExerciseAdapter()); // automatycznie wygenerowany adapter
+
+  if (kIsWeb) {
+    await Hive.initFlutter(); // Web: wszystko zainicjalizowane bez katalogu
+  } else {
+    final appDocumentDir = await getApplicationDocumentsDirectory();
+    Hive.init(appDocumentDir.path); // Mobile/Desktop: z path_provider
+  }
+
+  Hive.registerAdapter(ExerciseAdapter());
   await Hive.openBox('exerciseBox');
-  runApp( ProviderScope(child:MyApp() ) );
+
+  runApp(
+    ProviderScope(
+      child: MyApp(),
+    ),
+  );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
