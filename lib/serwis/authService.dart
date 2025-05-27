@@ -62,11 +62,11 @@ class Authservice {
         return LoginResult(authResponse: authResponse, statusCode: response.statusCode);
       } else {
         print("Brak tokenu lub użytkownika w odpowiedzi");
-        return LoginResult(authResponse: null, statusCode: response.statusCode);;
+        return LoginResult(authResponse: null, statusCode: response.statusCode);
       }
     } else {
       print('Błąd logowania: ${response.statusCode}');
-      return LoginResult(authResponse: null, statusCode: response.statusCode);;
+      return LoginResult(authResponse: null, statusCode: response.statusCode);
     }
   }
 

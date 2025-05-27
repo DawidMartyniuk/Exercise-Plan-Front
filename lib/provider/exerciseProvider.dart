@@ -17,14 +17,10 @@ Future<void> fetchExercises({bool forceRefresh = false}) async {
   }
 }
 
-
-
   void clearExercises() {
     state = [];
   }
 }
-
-
 
 final exerciseProvider = StateNotifierProvider<ExerciseNotifier, List<Exercise>?>(
   (ref) => ExerciseNotifier(),

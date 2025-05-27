@@ -44,6 +44,7 @@ dependencies:
   hive_flutter: ^1.1.0
   path_provider: ^2.1.5
   workmanager: ^0.5.1
+  expandable: ^5.0.1
 
 
 dev_dependencies:

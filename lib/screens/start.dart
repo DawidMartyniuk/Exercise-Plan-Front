@@ -5,6 +5,8 @@ import 'package:work_plan_front/screens/login.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
 class Startscreen extends ConsumerStatefulWidget {
+  const Startscreen({super.key});
+
   @override
   _StartscreenState createState() => _StartscreenState();
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class ExerciseTable {
   final int id;
   final String exercise_table;
@@ -84,10 +86,15 @@ class ExerciseRow {
   final int colKg;
   final int colRep;
 
+  bool isChecked;
+  Color? rowColor;
+
   ExerciseRow({
     required this.colStep,
     required this.colKg,
     required this.colRep,
+    this.isChecked = false,
+    this.rowColor,
   });
 
   Map<String, dynamic> toJson() {
@@ -101,6 +108,8 @@ class ExerciseRow {
       colRep: json['colRep'] ?? 0,
     );
   }
+
+
   @override
   String toString() {
     return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep)';
