@@ -1,7 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
+import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
@@ -28,6 +32,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   ScrollController? _scrollController;
   Map<int, bool> _expandedCards = {};
   bool _workoutStarted = false;
+  Timer? _timer;
+  
 
   void _openInfoExercise(Exercise exercise) {
     showModalBottomSheet(
@@ -38,46 +44,55 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     );
   }
 
-  void _startWorkout() {
-    setState(() {
-      _workoutStarted = true;
-    });
-  }
+  // void _startWorkout() {
+  //   setState(() {
+  //     _workoutStarted = true;
+  //   });
+  // }
 
-  void _toggleCardExpansion(int index) {
-    setState(() {
-      _expandedCards[index] = !(_expandedCards[index] ?? false);
-    });
-  }
+  // void _toggleCardExpansion(int index) {
+  //   setState(() {
+  //     _expandedCards[index] = !(_expandedCards[index] ?? false);
+  //   });
+  // }
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
+@override
+void initState() {
+  super.initState();
+  _scrollController = ScrollController();
+  final planId = widget.plan.id;
+  final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
 
-    // Przy inicjalizacji pobierz stan z providera i ustaw wartości wierszy
-    final planId = widget.plan.id;
-    final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
-    if (savedRows.isNotEmpty) {
-      for (final rowData in widget.plan.rows) {
-        for (final row in rowData.data) {
-          final match = savedRows.firstWhere(
-            (e) => e.colStep == row.colStep,
-            orElse: () => ExerciseRowState(
-              colStep: row.colStep,
-              colKg: row.colKg,
-              colRep: row.colRep,
-              isChecked: row.isChecked,
-            ),
-          );
-          row.colKg = match.colKg;
-          row.colRep = match.colRep;
-          row.isChecked = match.isChecked;
-          row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
-        }
+  if (savedRows.isNotEmpty) {
+    for (final rowData in widget.plan.rows) {
+      for (final row in rowData.data) {
+        final match = savedRows.firstWhere(
+          (e) => e.colStep == row.colStep,
+          orElse: () => ExerciseRowState(
+            colStep: row.colStep,
+            colKg: row.colKg,
+            colRep: row.colRep,
+            isChecked: row.isChecked,
+          ),
+        );
+        row.colKg = match.colKg;
+        row.colRep = match.colRep;
+        row.isChecked = match.isChecked;
+        row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
+      }
+    }
+  } else {
+    // RESETUJ WSZYSTKIE WIERSZE, GDY BRAK STANU W PROVIDERZE
+    for (final rowData in widget.plan.rows) {
+      for (final row in rowData.data) {
+        row.colKg = 0;
+        row.colRep = 0;
+        row.isChecked = false;
+        row.rowColor = Colors.transparent;
       }
     }
   }
+}
 
   void _toogleRowChecked(ExerciseRow row) {
     setState(() {
@@ -127,7 +142,15 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   }
 
   void _endWorkout(BuildContext context) {
-    // TODO: implementacja zakończenia treningu
+    final timerController = ref.read(workoutProvider.notifier);
+    timerController.stopTimer();
+  
+    ref.read(currentWorkoutPlanProvider.notifier).state = null; 
+    ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
+   // ref.read(workoutPlanStateProvider.notifier).updateRow(widget.plan.id, 
+    //ExerciseRowState(colKg: 0, colRep: 0, colStep: 0, isChecked: false));
+
+    Navigator.of(context).pop();
   }
 
   @override

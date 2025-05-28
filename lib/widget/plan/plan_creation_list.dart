@@ -180,7 +180,7 @@ _deleteExerciseForPlan(String exerciseId) {
                     label: Text("Notes"),
                     border: const UnderlineInputBorder(),
                     labelStyle: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
+                     color: Theme.of(context).colorScheme.onSurface,
                         ),
                   ),
                   style: TextStyle(

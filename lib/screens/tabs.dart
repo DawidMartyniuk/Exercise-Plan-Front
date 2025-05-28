@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
+import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/start.dart';
 import 'package:work_plan_front/screens/profil.dart';
@@ -55,9 +56,10 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
-   final timerValue = ref.watch(workoutProvider); // <- to jest liczba sekund
+   final timerValue = ref.watch(workoutProvider); 
   final timerController = ref.watch(workoutProvider.notifier);
   final isRunning = timerController.isRunning; 
+  final curentWorkout = ref.read(currentWorkoutPlanProvider);
     return Scaffold(
       body: _pages[_selectedPageIndex],
       bottomNavigationBar: Column(
@@ -66,9 +68,10 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
            if (isRunning) 
             BottomButtonAppBar(
               onBack: () {
-                final curentWorkout = ref.read(currentWorkoutPlanProvider);
+               // final curentWorkout = ref.read(currentWorkoutPlanProvider);
                print('Back button pressed');
                if(curentWorkout != null){
+               // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
                 Navigator.of(context).push( MaterialPageRoute(builder: (ctx) => PlanSelectedList(
                   exercises: curentWorkout.exercises,
                   plan: curentWorkout.plan!,
@@ -83,6 +86,11 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
                 print('End button pressed');
                 timerController.stopTimer();
                 ref.read(currentWorkoutPlanProvider.notifier).state = null; 
+                if (curentWorkout != null) {
+                  ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
+                }
+               // ref.read(workoutPlanStateProvider.notifier).clearPlan(  );
+             
               },
             ),
           BottomNavigationBar(
