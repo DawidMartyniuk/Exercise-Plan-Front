@@ -4,6 +4,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
+import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -53,21 +54,80 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+
+    // Przy inicjalizacji pobierz stan z providera i ustaw wartości wierszy
+    final planId = widget.plan.id;
+    final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
+    if (savedRows.isNotEmpty) {
+      for (final rowData in widget.plan.rows) {
+        for (final row in rowData.data) {
+          final match = savedRows.firstWhere(
+            (e) => e.colStep == row.colStep,
+            orElse: () => ExerciseRowState(
+              colStep: row.colStep,
+              colKg: row.colKg,
+              colRep: row.colRep,
+              isChecked: row.isChecked,
+            ),
+          );
+          row.colKg = match.colKg;
+          row.colRep = match.colRep;
+          row.isChecked = match.isChecked;
+          row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
+        }
+      }
+    }
   }
 
-  _toogleRowChecked(ExerciseRow row) {
+  void _toogleRowChecked(ExerciseRow row) {
     setState(() {
       row.isChecked = !row.isChecked;
-      if (row.isChecked) {
-        row.rowColor = Colors.green;
-      } else {
-        row.rowColor = Colors.transparent;
-      }
+      row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
     });
+    ref.read(workoutPlanStateProvider.notifier).updateRow(
+      widget.plan.id,
+      ExerciseRowState(
+        colStep: row.colStep,
+        colKg: row.colKg,
+        colRep: row.colRep,
+        isChecked: row.isChecked,
+      ),
+    );
   }
 
-  _endWorkout(BuildContext context) {
-    // ...implementacja zakończenia treningu...
+  // Dodaj obsługę zmiany wartości kg/reps
+  void _onKgChanged(ExerciseRow row, String value) {
+    setState(() {
+      row.colKg = int.tryParse(value) ?? row.colKg;
+    });
+    ref.read(workoutPlanStateProvider.notifier).updateRow(
+      widget.plan.id,
+      ExerciseRowState(
+        colStep: row.colStep,
+        colKg: row.colKg,
+        colRep: row.colRep,
+        isChecked: row.isChecked,
+      ),
+    );
+  }
+
+  void _onRepChanged(ExerciseRow row, String value) {
+    setState(() {
+      row.colRep = int.tryParse(value) ?? row.colRep;
+    });
+    ref.read(workoutPlanStateProvider.notifier).updateRow(
+      widget.plan.id,
+      ExerciseRowState(
+        colStep: row.colStep,
+        colKg: row.colKg,
+        colRep: row.colRep,
+        isChecked: row.isChecked,
+      ),
+    );
+  }
+
+  void _endWorkout(BuildContext context) {
+    // TODO: implementacja zakończenia treningu
   }
 
   @override
@@ -91,17 +151,38 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
       );
     }
 
-    Widget cellText(BuildContext context, String text, {bool bold = false}) {
+    Widget cellText(BuildContext context, String text, String subject, {bool bold = false, required ExerciseRow row}) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
+        child: subject == "step"
+            ? Text(
+                text,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                    ),
+              )
+            : TextField(
+                controller: TextEditingController(text: text),
+                keyboardType: TextInputType.number,
+                onChanged: (value) {
+                  if (subject == "weight") {
+                    _onKgChanged(row, value);
+                  } else if (subject == "reps") {
+                    _onRepChanged(row, value);
+                  }
+                },
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.zero,
+                ),
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                    ),
+              ),
       );
     }
 
@@ -291,9 +372,9 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                                               color: row.rowColor,
                                             ),
                                             children: [
-                                              cellText(context, "$rowId"),
-                                              cellText(context, "${row.colKg}"),
-                                              cellText(context, "${row.colRep}"),
+                                              cellText(context, "$rowId","step", row: row),
+                                              cellText(context, "${row.colKg}","weight", row: row),
+                                              cellText(context, "${row.colRep}","reps", row: row),
                                               Padding(
                                                 padding:
                                                     const EdgeInsets.all(8.0),

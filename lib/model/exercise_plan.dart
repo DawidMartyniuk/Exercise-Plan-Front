@@ -83,8 +83,8 @@ class ExerciseRowsData {
 
 class ExerciseRow {
   final int colStep;
-  final int colKg;
-  final int colRep;
+  int colKg;
+  int colRep;
 
   bool isChecked;
   Color? rowColor;

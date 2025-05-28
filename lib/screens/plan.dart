@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
@@ -32,7 +34,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() async {
       await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
       await ref.read(exerciseProvider.notifier).fetchExercises();
@@ -52,13 +53,25 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       ),
     );
   }
+    List<Exercise> getFilteredExercise(ExerciseTable plan,List<Exercise> allExercises){
+       final planExerciseIdStrings =
+          plan.rows.map((row) => row.exercise_number.toString()).toSet();
+        
+      return allExercises.where((ex) {
+        return planExerciseIdStrings.contains(
+          int.tryParse(ex.id)?.toString(),
+        );
+      }).toList();
+
+    }
 
   @override
   Widget build(BuildContext context) {
+
     final timer = ref.watch(workoutProvider);
     final timerController = ref.watch(workoutProvider.notifier);
 
-    print("Zmienna timera: $timer");
+   // print("Zmienna timera: $timer");
 
     final exercisePlans = ref.watch(exercisePlanProvider);
     final allExercises = ref.watch(exerciseProvider) ?? [];
@@ -75,26 +88,15 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       ExerciseTable plan,
       List<Exercise> allExercises,
     ) {
-      final planExerciseIds =
-          plan.rows
-              .map((row) => row.exercise_number)
-              .toSet(); // zbieramy unikalne ID ćwiczeń
-
-      final planExerciseIdStrings =
-          plan.rows.map((row) => row.exercise_number.toString()).toSet();
-
-      final filteredExercises =
-          allExercises.where((ex) {
-            return planExerciseIdStrings.contains(
-              int.tryParse(ex.id)?.toString(),
-            );
-          }).toList();
+      final filteredExercises = getFilteredExercise(plan, allExercises);
       OpenShowPlanScreen(
         context,
         plan,
-        filteredExercises,
+        filteredExercises
       );
     }
+  
+    
 
     return Scaffold(
       appBar: AppBar(title: const Text('Plan')),
@@ -247,7 +249,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                                 ),
                               ),
                               onPressed: () {
-                                //  timerController.startTimer();
+                                timerController.startTimer();
+                                  final filteredExercises = getFilteredExercise(exercise, allExercises);
+                                ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+                                  plan: exercise, 
+                                  exercises: filteredExercises
+                                  );
                                 showPlanBottomSheet(
                                   context,
                                   exercise,

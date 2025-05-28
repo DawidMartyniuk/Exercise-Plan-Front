@@ -19,6 +19,7 @@ class WordoutTimenotifer extends StateNotifier<int>{
     if(_isRunning){
       _timer?.cancel();
       _isRunning = false;
+      state = 0; 
     }
   }
   void resetTimer(){
