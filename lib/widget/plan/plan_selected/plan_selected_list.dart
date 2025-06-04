@@ -147,10 +147,32 @@ void initState() {
   
     ref.read(currentWorkoutPlanProvider.notifier).state = null; 
     ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
-   // ref.read(workoutPlanStateProvider.notifier).updateRow(widget.plan.id, 
-    //ExerciseRowState(colKg: 0, colRep: 0, colStep: 0, isChecked: false));
+
 
     Navigator.of(context).pop();
+  }
+  String getTime(BuildContext context) {
+    final timerController = ref.watch(workoutProvider.notifier);
+    final time = timerController.currentTime;
+    final formattedTime = Duration(seconds: time).toString().split('.').first.padLeft(8, "0");
+    return formattedTime;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+  
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _scrollController?.dispose();
+    super.dispose();
   }
 
   @override
@@ -208,7 +230,6 @@ void initState() {
               ),
       );
     }
-
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary,
@@ -227,7 +248,6 @@ void initState() {
                     children: [
                       IconButton(
                         icon: Icon(
-                          
                           Icons.arrow_downward,
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -239,6 +259,14 @@ void initState() {
                         widget.plan.exercise_table,
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
+                      SizedBox(width: 20),
+                      Text(
+                        "time: ${getTime(context)}",style:
+                         Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      SizedBox(width: 20),
                       TextButton(
                         onPressed: () {
                           _endWorkout(context);
@@ -438,3 +466,4 @@ void initState() {
     );
   }
 }
+
