@@ -80,8 +80,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    print("Zaladowane plany: ${exercisePlans.length}");
-    print("Zaladowane ćwiczenia: ${allExercises.length}");
+    // print("Zaladowane plany: ${exercisePlans.length}");
+    // print("Zaladowane ćwiczenia: ${allExercises.length}");
 
     void showPlanBottomSheet(
       BuildContext context,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +34,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   Map<int, bool> _expandedCards = {};
   bool _workoutStarted = false;
   Timer? _timer;
+  int totalSteps = 0;
   
 
   void _openInfoExercise(Exercise exercise) {
@@ -44,22 +46,11 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     );
   }
 
-  // void _startWorkout() {
-  //   setState(() {
-  //     _workoutStarted = true;
-  //   });
-  // }
-
-  // void _toggleCardExpansion(int index) {
-  //   setState(() {
-  //     _expandedCards[index] = !(_expandedCards[index] ?? false);
-  //   });
-  // }
-
 @override
 void initState() {
   super.initState();
   _scrollController = ScrollController();
+ 
   final planId = widget.plan.id;
   final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
 
@@ -82,7 +73,7 @@ void initState() {
       }
     }
   } else {
-    // RESETUJ WSZYSTKIE WIERSZE, GDY BRAK STANU W PROVIDERZE
+
     for (final rowData in widget.plan.rows) {
       for (final row in rowData.data) {
         row.colKg = 0;
@@ -147,21 +138,34 @@ void initState() {
   
     ref.read(currentWorkoutPlanProvider.notifier).state = null; 
     ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
-
-
     Navigator.of(context).pop();
   }
+
   String getTime(BuildContext context) {
     final timerController = ref.watch(workoutProvider.notifier);
     final time = timerController.currentTime;
-    final formattedTime = Duration(seconds: time).toString().split('.').first.padLeft(8, "0");
+    final duration = Duration(seconds: time);
+
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    final minutes = duration.inMinutes % 60;
+    final hours = duration.inHours;
+
+    String formattedMinutes = minutes < 10 ? '$minutes' : minutes.toString().padLeft(2, '0');
+    String formattedTime;
+
+    if (hours == 0 && minutes == 0) {
+      formattedTime = "$seconds";
+    } else if (hours == 0) {
+      formattedTime = "$formattedMinutes:$seconds";
+    } else {
+      formattedTime = "$hours:$formattedMinutes:$seconds";
+    }
     return formattedTime;
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-  
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
@@ -174,9 +178,20 @@ void initState() {
     _scrollController?.dispose();
     super.dispose();
   }
+ 
 
   @override
   Widget build(BuildContext context) {
+  final totalSteps = widget.plan.rows.fold(0, (sum, rowData) => sum + rowData.data.length);
+
+  int getCurrentStep() {
+  // Liczba zaznaczonych checkboxów (isChecked == true) w AKTUALNYCH WIERSZACH PLANU
+  return widget.plan.rows
+      .expand((rowData) => rowData.data)
+      .where((row) => row.isChecked)
+      .length;;
+}
+
     final groupedData = <String, List<ExerciseRowsData>>{};
     for (final row in widget.plan.rows) {
       groupedData.putIfAbsent(row.exercise_name, () => []).add(row);
@@ -260,9 +275,26 @@ void initState() {
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                       SizedBox(width: 20),
+                        Row(
+                        children: [
+                          Icon(
+                          Icons.timelapse,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                          getTime(context),
+                          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                        ),
+                      SizedBox(width: 20),
                       Text(
-                        "time: ${getTime(context)}",style:
-                         Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        getCurrentStep().toString(),
+                         // getCurrentStep().toString() / totalSteps.toString(),
+                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                       ),
@@ -279,6 +311,12 @@ void initState() {
                         ),
                       ),
                     ],
+                  ),
+                  LinearProgressIndicator(
+                    minHeight: 8,
+                    value: getCurrentStep() / totalSteps ,
+                    color: Colors.red,
+                    backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   ),
                   const SizedBox(height: 16),
                   Expanded(
@@ -456,7 +494,6 @@ void initState() {
                       }).toList(),
                     ),
                   ),
-                  // ...możesz dodać inne przyciski, np. zakończ trening...
                 ],
               ),
             ),
