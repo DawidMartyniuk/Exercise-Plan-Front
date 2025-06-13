@@ -8,6 +8,7 @@ import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
+import 'package:work_plan_front/widget/plan/plan_card_more_option.dart';
 import 'package:work_plan_front/widget/plan/plan_selected/plan_selected_list.dart';
 import 'dart:async';
 
@@ -64,6 +65,29 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       }).toList();
 
     }
+  void deletePlan(ExerciseTable plan, BuildContext context,int PlanID ) {
+    ref.read(exercisePlanProvider.notifier).deleteExercisePlan(PlanID);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Plan ${plan.exercise_table} deleted successfully."),
+      ),
+    );
+  }
+  void editPlna( ExerciseTable plan, BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => PlanCreation(
+         // exerciseTable: plan,
+        ),
+      ),
+    );
+     ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("in develop."),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -211,16 +235,15 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                                   textAlign: TextAlign.left,
                                 ),
                               ),
-                              IconButton(
-                                onPressed: () {},
-                                icon: Icon(
-                                  Icons.more_horiz,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
-                                  size: 20,
-                                ),
-                                alignment: Alignment.centerRight,
-                              ),
+                              PlanCardMoreOption(
+                                onEdit: () {
+                                  editPlna(exercise, context);
+                                },
+                                onDelete: () {
+                                  deletePlan(exercise, context, exercise.id);
+                                  }
+                                 ),
+                              
                             ],
                           ),
                           Align(

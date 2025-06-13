@@ -62,7 +62,7 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
   // Usuń plan ćwiczeń po ID
   Future<void> deleteExercisePlan(int id) async {
     try {
-      await _exerciseService.deleteExercise(id.toString());
+      await _exerciseService.deleteExercise(id);
       state = state.where((plan) => plan.id != id).toList();
       print("Exercise plan deleted successfully!");
     } catch (e) {

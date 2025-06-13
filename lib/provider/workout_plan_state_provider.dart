@@ -38,12 +38,18 @@ class ExerciseRowState {
   final int colKg;
   final int colRep;
   final bool isChecked;
+   final String exerciseNumber; 
   ExerciseRowState({
     required this.colStep,
     required this.colKg,
     required this.colRep,
     required this.isChecked,
+     required this.exerciseNumber,
   });
+   @override
+  String toString() {
+    return 'ExerciseRowState(colStep: $colStep, colKg: $colKg, colRep: $colRep, isChecked: $isChecked, exerciseNumber: $exerciseNumber)';
+  }
 
   Map<String, dynamic> toJson() => {
     'colStep': colStep,
@@ -57,6 +63,7 @@ class ExerciseRowState {
     colKg: json['colKg'],
     colRep: json['colRep'],
     isChecked: json['isChecked'],
+    exerciseNumber: json['exerciseNumber'] ?? "Unknown Number",
   );
 }
 
@@ -80,7 +87,10 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
 
   void updateRow(int planId, ExerciseRowState rowState) {
     final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
-    final idx = planRows.indexWhere((e) => e.colStep == rowState.colStep);
+    final idx = planRows.indexWhere((e) =>
+      e.colStep == rowState.colStep &&
+      e.exerciseNumber == rowState.exerciseNumber
+    );
     if (idx >= 0) {
       planRows[idx] = rowState;
     } else {
