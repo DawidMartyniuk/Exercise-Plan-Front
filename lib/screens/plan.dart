@@ -9,7 +9,7 @@ import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
 import 'package:work_plan_front/widget/plan/plan_card_more_option.dart';
-import 'package:work_plan_front/widget/plan/plan_selected/plan_selected_list.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
 import 'dart:async';
 
 class PlanScreen extends ConsumerStatefulWidget {

@@ -10,6 +10,8 @@ import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected_appBar.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected_card.dart';
 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -59,15 +61,16 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
         for (final row in rowData.data) {
           final match = savedRows.firstWhere(
             (e) =>
-              e.colStep == row.colStep &&
-              e.exerciseNumber == rowData.exercise_number,
-            orElse: () => ExerciseRowState(
-              colStep: row.colStep,
-              colKg: row.colKg,
-              colRep: row.colRep,
-              isChecked: row.isChecked,
-              exerciseNumber: rowData.exercise_number,
-            ),
+                e.colStep == row.colStep &&
+                e.exerciseNumber == rowData.exercise_number,
+            orElse:
+                () => ExerciseRowState(
+                  colStep: row.colStep,
+                  colKg: row.colKg,
+                  colRep: row.colRep,
+                  isChecked: row.isChecked,
+                  exerciseNumber: rowData.exercise_number,
+                ),
           );
           row.colKg = match.colKg;
           row.colRep = match.colRep;
@@ -163,6 +166,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     }
     ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
     debugPrint('Zapisano stan checkboxów do providera: $rowStates');
+    //Navigator.of(context).pop();
   }
 
   void _endWorkout(BuildContext context) {
@@ -213,8 +217,6 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     super.dispose();
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     final totalSteps = widget.plan.rows.fold(
@@ -250,7 +252,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
       );
     }
 
-     Widget cellText(
+    Widget cellText(
       BuildContext context,
       String text,
       String subject, {
@@ -292,63 +294,61 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                 ),
       );
     }
-    List<TableRow> buildExerciseTableRows(List<ExerciseRowsData> exerciseRows) {
-  final List<TableRow> rows = [];
-  for (final exerciseRowsData in exerciseRows) {
-    for (int idx = 0; idx < exerciseRowsData.data.length; idx++) {
-      final row = exerciseRowsData.data[idx];
-      final rowId = idx + 1;
-      rows.add(
-        TableRow(
-          decoration: BoxDecoration(
-            color: row.rowColor,
-          ),
-          children: [
-            cellText(
-              context,
-              "$rowId",
-              "step",
-              row: row,
-              exerciseNumber: exerciseRowsData.exercise_number,
-            ),
-            cellText(
-              context,
-              "${row.colKg}",
-              "weight",
-              row: row,
-              exerciseNumber: exerciseRowsData.exercise_number,
-            ),
-            cellText(
-              context,
-              "${row.colRep}",
-              "reps",
-              row: row,
-              exerciseNumber: exerciseRowsData.exercise_number,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: IconButton(
-                onPressed: () => _toogleRowChecked(
-                  row,
-                  exerciseRowsData.exercise_number,
-                ),
-                icon: Icon(
-                  row.isChecked
-                      ? Icons.check_box
-                      : Icons.check_box_outline_blank,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-  return rows;
-}
 
-   
+    List<TableRow> buildExerciseTableRows(List<ExerciseRowsData> exerciseRows) {
+      final List<TableRow> rows = [];
+      for (final exerciseRowsData in exerciseRows) {
+        for (int idx = 0; idx < exerciseRowsData.data.length; idx++) {
+          final row = exerciseRowsData.data[idx];
+          final rowId = idx + 1;
+          rows.add(
+            TableRow(
+              decoration: BoxDecoration(color: row.rowColor),
+              children: [
+                cellText(
+                  context,
+                  "$rowId",
+                  "step",
+                  row: row,
+                  exerciseNumber: exerciseRowsData.exercise_number,
+                ),
+                cellText(
+                  context,
+                  "${row.colKg}",
+                  "weight",
+                  row: row,
+                  exerciseNumber: exerciseRowsData.exercise_number,
+                ),
+                cellText(
+                  context,
+                  "${row.colRep}",
+                  "reps",
+                  row: row,
+                  exerciseNumber: exerciseRowsData.exercise_number,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: IconButton(
+                    onPressed:
+                        () => _toogleRowChecked(
+                          row,
+                          exerciseRowsData.exercise_number,
+                        ),
+                    icon: Icon(
+                      row.isChecked
+                          ? Icons.check_box
+                          : Icons.check_box_outline_blank,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+      return rows;
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -364,63 +364,15 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
               padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.arrow_downward,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        onPressed: () {
-                          _saveAllRowsToProvider();
-                          Navigator.pop(context);
-                        },
-                      ),
-                      Text(
-                        widget.plan.exercise_table,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      SizedBox(width: 20),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.timelapse,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            getTime(context),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyLarge!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(width: 20),
-                      Text(
-                        getCurrentStep().toString(),
-                        // getCurrentStep().toString() / totalSteps.toString(),
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      SizedBox(width: 20),
-                      TextButton(
-                        onPressed: () {
-                          _endWorkout(context);
-                        },
-                        child: Text(
-                          "End Workout",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyLarge!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ],
+                  PlanSelectedAppBar(
+                    onBack: () {
+                      _saveAllRowsToProvider();
+                      Navigator.pop(context);
+                    },
+                    planName: widget.plan.exercise_table,
+                    getTime: getTime,
+                    getCurrentStep: getCurrentStep,
+                    endWorkout: () => _endWorkout(context),
                   ),
                   LinearProgressIndicator(
                     minHeight: 8,
@@ -458,125 +410,25 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                                       ),
                                 );
 
-                            return Card(
-                              color: Theme.of(context).colorScheme.surface
-                                  .withAlpha((0.9 * 255).toInt()),
-                              margin: const EdgeInsets.only(bottom: 16),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 15,
-                                  vertical: 20,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            _openInfoExercise(matchingExercise);
-                                          },
-                                          child: ClipOval(
-                                            child:
-                                                matchingExercise
-                                                        .gifUrl
-                                                        .isNotEmpty
-                                                    ? Image.network(
-                                                      matchingExercise.gifUrl,
-                                                      width: 50,
-                                                      height: 50,
-                                                      fit: BoxFit.cover,
-                                                    )
-                                                    : Container(
-                                                      width: 50,
-                                                      height: 50,
-                                                      color: Colors.grey[300],
-                                                      alignment:
-                                                          Alignment.center,
-                                                      child: const Text(
-                                                        "brak",
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.black54,
-                                                        ),
-                                                      ),
-                                                    ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            exerciseName,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodyLarge!.copyWith(
-                                              color:
-                                                  Theme.of(
-                                                    context,
-                                                  ).colorScheme.onSurface,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    if (firstRow.notes.isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 10,
-                                        ),
-                                        child: Text(
-                                          "Notes: ${firstRow.notes}",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withOpacity(0.7),
-                                          ),
-                                        ),
-                                      ),
-                                    Table(
-                                      border: TableBorder.symmetric(
-                                        inside: BorderSide.none,
-                                        outside: BorderSide.none,
-                                      ),
-                                      columnWidths: const {
-                                        0: FlexColumnWidth(1),
-                                        1: FlexColumnWidth(1),
-                                        2: FlexColumnWidth(1),
-                                        3: FlexColumnWidth(1),
-                                      },
-                                      children: [
-                                        TableRow(
-                                          children: [
-                                            headerCellText(context, "Step"),
-                                            headerCellText(context, "KG"),
-                                            headerCellText(context, "Reps"),
-                                            Container(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withOpacity(0.1),
-                                              padding: const EdgeInsets.all(
-                                                8.0,
-                                              ),
-                                              child: Icon(
-                                                Icons.check,
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.onSurface,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        ...buildExerciseTableRows(exerciseRows),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                            return PlanSelectedCard(
+                              infoExercise:
+                                  () => _openInfoExercise(matchingExercise),
+                              exerciseGif: NetworkImage(
+                                matchingExercise.gifUrl,
+                              ),
+                              exerciseName: exerciseName,
+                              headerCellTextStep: headerCellText(
+                                context,
+                                "Step",
+                              ),
+                              headerCellTextKg: headerCellText(context, "KG"),
+                              headerCellTextReps: headerCellText(
+                                context,
+                                "Reps",
+                              ),
+                              notes: firstRow.notes,
+                              exerciseRows: buildExerciseTableRows(
+                                exerciseRows,
                               ),
                             );
                           }).toList(),

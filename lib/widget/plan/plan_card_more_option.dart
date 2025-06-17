@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import "package:work_plan_front/widget/plan/plan_selected/plan_selected_list.dart";
+import "package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart";
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/screens/plan.dart';
 
