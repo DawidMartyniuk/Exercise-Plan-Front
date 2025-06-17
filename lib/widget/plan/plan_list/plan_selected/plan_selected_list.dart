@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/main.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
@@ -10,8 +11,10 @@ import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected_appBar.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected_card.dart';
+import 'package:work_plan_front/screens/save_workout.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_appBar.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_card.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_details.dart';
 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -32,6 +35,7 @@ class PlanSelectedList extends ConsumerStatefulWidget {
 }
 
 class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   ScrollController? _scrollController;
   Map<int, bool> _expandedCards = {};
   bool _workoutStarted = false;
@@ -176,6 +180,20 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     ref.read(currentWorkoutPlanProvider.notifier).state = null;
     ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
     Navigator.of(context).pop();
+  }
+
+  void _savePlan() {
+    //_saveAllRowsToProvider();
+    //  Navigator.of(context).push(
+    //   MaterialPageRoute(
+    //     builder: (ctx) => PlanSelectedList(
+    final exerciseNames = widget.exercises.map((e) => e.name).toList();
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (ctx) => SaveWorkout()));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("in develop.")));
   }
 
   String getTime(BuildContext context) {
@@ -356,88 +374,140 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const Drawer(
+          child: PlanSelectedDetails(),
+        ),
         resizeToAvoidBottomInset: false,
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: ExpandableNotifier(
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                children: [
-                  PlanSelectedAppBar(
-                    onBack: () {
-                      _saveAllRowsToProvider();
-                      Navigator.pop(context);
-                    },
-                    planName: widget.plan.exercise_table,
-                    getTime: getTime,
-                    getCurrentStep: getCurrentStep,
-                    endWorkout: () => _endWorkout(context),
+        body: Stack(
+          children: [
+            ExpandableNotifier(
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    children: [
+                      PlanSelectedAppBar(
+                        onBack: () {
+                          _saveAllRowsToProvider();
+                          Navigator.pop(context);
+                        },
+                        planName: widget.plan.exercise_table,
+                        getTime: getTime,
+                        getCurrentStep: getCurrentStep,
+                       // endWorkout: () => _endWorkout(context),
+                        onSavePlan: () => _savePlan(),
+                      ),
+                      LinearProgressIndicator(
+                        minHeight: 8,
+                        value: getCurrentStep() / totalSteps,
+                        color: Colors.red,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withOpacity(0.2),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          children: [
+                            ...groupedData.entries.map((entry) {
+                              final exerciseName = entry.key;
+                              final exerciseRows = entry.value;
+                              final firstRow = exerciseRows.first;
+            
+                              final matchingExercise = widget.exercises
+                                  .firstWhere(
+                                    (ex) =>
+                                        int.tryParse(ex.id) ==
+                                        int.tryParse(firstRow.exercise_number),
+                                    orElse:
+                                        () => Exercise(
+                                          id: '',
+                                          name: 'Nieznane ćwiczenie',
+                                          bodyPart: '',
+                                          equipment: '',
+                                          gifUrl: '',
+                                          target: '',
+                                          secondaryMuscles: [],
+                                          instructions: [],
+                                        ),
+                                  );
+            
+                              return PlanSelectedCard(
+                                infoExercise:
+                                    () => _openInfoExercise(matchingExercise),
+                                exerciseGif: NetworkImage(
+                                  matchingExercise.gifUrl,
+                                ),
+                                exerciseName: exerciseName,
+                                headerCellTextStep: headerCellText(
+                                  context,
+                                  "Step",
+                                ),
+                                headerCellTextKg: headerCellText(context, "KG"),
+                                headerCellTextReps: headerCellText(
+                                  context,
+                                  "Reps",
+                                ),
+                                notes: firstRow.notes,
+                                exerciseRows: buildExerciseTableRows(
+                                  exerciseRows,
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                // TODO: Dodaj akcję dodawania ćwiczenia
+                              },
+                              icon: Icon(Icons.add),
+                              label: Text("Add Exercise"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: () => _endWorkout(context),
+                              child: Text("End Workout"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.red,
+                                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                  LinearProgressIndicator(
-                    minHeight: 8,
-                    value: getCurrentStep() / totalSteps,
-                    color: Colors.red,
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withOpacity(0.2),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: ListView(
-                      controller: _scrollController,
-                      children:
-                          groupedData.entries.map((entry) {
-                            final exerciseName = entry.key;
-                            final exerciseRows = entry.value;
-                            final firstRow = exerciseRows.first;
-
-                            final matchingExercise = widget.exercises
-                                .firstWhere(
-                                  (ex) =>
-                                      int.tryParse(ex.id) ==
-                                      int.tryParse(firstRow.exercise_number),
-                                  orElse:
-                                      () => Exercise(
-                                        id: '',
-                                        name: 'Nieznane ćwiczenie',
-                                        bodyPart: '',
-                                        equipment: '',
-                                        gifUrl: '',
-                                        target: '',
-                                        secondaryMuscles: [],
-                                        instructions: [],
-                                      ),
-                                );
-
-                            return PlanSelectedCard(
-                              infoExercise:
-                                  () => _openInfoExercise(matchingExercise),
-                              exerciseGif: NetworkImage(
-                                matchingExercise.gifUrl,
-                              ),
-                              exerciseName: exerciseName,
-                              headerCellTextStep: headerCellText(
-                                context,
-                                "Step",
-                              ),
-                              headerCellTextKg: headerCellText(context, "KG"),
-                              headerCellTextReps: headerCellText(
-                                context,
-                                "Reps",
-                              ),
-                              notes: firstRow.notes,
-                              exerciseRows: buildExerciseTableRows(
-                                exerciseRows,
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
+             Positioned(
+          left: 0,
+          top: MediaQuery.of(context).size.height / 2 - 24,
+          child: GestureDetector(
+            onTap: () {
+              _scaffoldKey.currentState?.openDrawer();
+            },
+            child: Container(
+              width: 32,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
+              ),
+              child: const Icon(Icons.arrow_forward_ios),
+            ),
           ),
+        ),
+          ],
         ),
       ),
     );
