@@ -1,14 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/widget/CustomDivider.dart';
 
 class SaveWorkout extends StatefulWidget {
-  const SaveWorkout({Key? key}) : super(key: key);
+ const SaveWorkout ({super.key});
 
   @override
   _SaveWorkoutState createState() => _SaveWorkoutState();
 }
 
 class _SaveWorkoutState extends State<SaveWorkout> {
+   File? _selectedImage;
   void verticalLine() {
     const Divider(
       color: Colors.black,
@@ -19,27 +23,64 @@ class _SaveWorkoutState extends State<SaveWorkout> {
     );
   }
 
-  void openDetails(){
+  void openDetails() {
     showModalBottomSheet(
       context: context,
-      builder: (context) => 
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Details about the workout will be displayed here.',
-            style: Theme.of(context).textTheme.bodyMedium,
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              'Details about the workout will be displayed here.',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
           ),
-        ),
     );
+  }
+   void _tahePicture() async {
+    final imagePicker = ImagePicker();
+    final pickedImage =
+        await imagePicker.pickImage(source: ImageSource.gallery, maxWidth: 600);
+    
+    if (pickedImage == null) {
+      return;
+      }
+      setState(() {
+        _selectedImage = File(pickedImage.path);
+      });
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget imageContent = TextButton.icon(
+      onPressed: () {
+          _tahePicture();
+      },
+      icon: Icon(Icons.add_a_photo, color: Theme.of(context).colorScheme.onSurface),
+       label: Text(
+        'Add Image',
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+    ),
+    );
     return Scaffold(
       appBar: AppBar(
         actions: [
-          TextButton(
-            child: Text('Save'),
+          ElevatedButton(
+            child: Text(
+              'Save',
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
             onPressed: () {
               ScaffoldMessenger.of(
                 context,
@@ -59,6 +100,9 @@ class _SaveWorkoutState extends State<SaveWorkout> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(40),
+            ),
             shadowColor: Theme.of(
               context,
             ).colorScheme.primary.withAlpha((0.9 * 255).toInt()),
@@ -69,124 +113,154 @@ class _SaveWorkoutState extends State<SaveWorkout> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 26,
-                    vertical: 40,
-                  ),
-                  child: Text(
-                    'Tytuł treningu',
-                    style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    //style: Theme.of(context).textTheme.headline6,
-                  ),
-                ),
-                CustomDivider(indent: 5, endIndent: 5, color: Colors.black),
-               // SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Column(
-                      children: [
-                        Text(
+                  padding: const EdgeInsets.only(top: 20, left: 26, right: 26),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: 'Tytuł treningu',
+                          ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.headlineLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                           textAlign: TextAlign.left,
-                          'Kiedy:',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface
-                                .withAlpha((0.9 * 255).toInt()),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
-                        SizedBox(height: 5),
-                        Text(
-                          '${DateTime.now().toLocal()}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                      ),
+                      SizedBox(width: 20),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Icon(
+                          Icons.edit,
+                          color: Theme.of(context).colorScheme.onSurface,
+                          size: 30,
                         ),
-                      ],
-                    ),
-                    SizedBox(width: 20),
-                    Column(
-                      children: [
-                        Text(
-                           textAlign: TextAlign.left,
-                          'Czas trwania:',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface
-                                .withAlpha((0.9 * 255).toInt()),
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          'Czas: 00:00:00',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-                CustomDivider(indent: 5, endIndent: 5, color: Colors.black),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 26),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: obsługa zmiany daty w przyszłości
+                        },
+                        child: Text(
+                          "${DateTime.now().day.toString().padLeft(2, '0')}.${DateTime.now().month.toString().padLeft(2, '0')}.${DateTime.now().year}",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: obsługa zmiany godziny w przyszłości
+                        },
+                        child: Text(
+                          "16:20 - 17:30",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
                 //SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Column(
-                      children: [
-                        Text(
-                           textAlign: TextAlign.left,
-                          "Ilość kilogramów:",
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface
-                                .withAlpha((0.9 * 255).toInt()),
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "0 kg", // ilość kilogramów w całości
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        // Tutaj można dodać logikę do wyświetlenia informacji o ćwiczeniu
-                        openDetails();
-                      },
+                    // Kolumna 1: czas
+                    Expanded(
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                             textAlign: TextAlign.left,
-                            "Ilość powtórzeń:",
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface
-                                  .withAlpha((0.9 * 255).toInt()),
+                          IconButton(
+                            icon: Icon(
+                              Icons.timer_sharp,
+                              size: 50,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            onPressed: () {},
+                          ),
+                          SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: () {},
+                            child: Text(
+                              '1 h 10 min',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                           ),
-                          SizedBox(height: 5),
-                          Text(
-                            "0 powtórzeń", // ilość powtórzeń w całości
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
+                        ],
+                      ),
+                    ),
+                    // Kolumna 2: ciężar
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.fitness_center,
+                            size: 50,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: () {},
+                            child: Text(
+                              '120 kg',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Kolumna 3: powtórzenia
+                    Expanded(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.repeat,
+                            size: 50,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          SizedBox(height: 10),
+                          GestureDetector(
+                            onTap: () {},
+                            child: Text(
+                              '12',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyLarge!.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                             ),
                           ),
                         ],
@@ -194,7 +268,33 @@ class _SaveWorkoutState extends State<SaveWorkout> {
                     ),
                   ],
                 ),
-                 CustomDivider(indent: 5, endIndent: 5, color: Colors.black),
+                CustomDivider(dashWidth: 12, dashSpace: 4,indent: 5, endIndent: 5, color: Colors.black),
+                Row(  
+                  children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: const Color.fromARGB(255, 75, 65, 65),
+                          ),
+                          child: _selectedImage != null
+                              ? Image.file(
+                                  _selectedImage!,
+                                  fit: BoxFit.cover,
+                                )
+                              : imageContent,
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Column( children: [
+
+                      ],
+                      ),
+                ], 
+                ),
               ],
             ),
           ),

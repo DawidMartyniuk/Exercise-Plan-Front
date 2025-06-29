@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/screens/save_workout.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
  // nie jest potzrebny bo app mam w main 
@@ -69,9 +70,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
 
-      home: TabsScreen(
-        selectedPageIndex: 0,
-      ),
+      home: SaveWorkout(),
+      // TabsScreen(
+      //   selectedPageIndex: 0,
+      // ),
       );
   }
 }
