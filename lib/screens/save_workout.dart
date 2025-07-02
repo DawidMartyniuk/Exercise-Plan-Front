@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/widget/save_workout/CustomDivider.dart';
-import 'package:work_plan_front/widget/save_workout/time_picker_bottom_sheet.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_interval_picker_bottom_sheet.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_picker_bottom_sheet.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/weight_info_bottom_sheet.dart';
 
 class SaveWorkout extends StatefulWidget {
  const SaveWorkout ({super.key});
@@ -16,6 +19,17 @@ class _SaveWorkoutState extends State<SaveWorkout> {
    File? _selectedImage;
   int minutesSelected = 30;
   int hoursSelected = 1;
+  int secondsSelected = 0;
+  int weightSelected = 120; 
+  int daySelected = DateTime.now().day;
+  int monthSelected = DateTime.now().month;
+  int yearSelected = DateTime.now().year;
+  int hourFrom = 16;
+  int minuteFrom = 20;
+  int hourTo = 17;
+  int minuteTo = 30;
+  
+  
 
   
 
@@ -62,10 +76,53 @@ class _SaveWorkoutState extends State<SaveWorkout> {
     builder: (context) => TimePickerBottomSheet(
       initialHour: hoursSelected,
       initialMinute: minutesSelected,
-      onTimeSelected: (hour, minute) {
+      initialSecond: secondsSelected,
+      onTimeSelected: (hour, minute, second) {
         setState(() {
           hoursSelected = hour;
           minutesSelected = minute;
+          secondsSelected = second; // Reset seconds to 0
+        });
+      },
+    ),
+  );
+}
+void _showWeightInfoSheet() {
+  showDialog(context: context, builder: 
+  (context) => WeightInfoBottomSheet(
+  ));
+}
+void _showDataPickerSheet(){
+  showModalBottomSheet(
+    context: context,
+    builder:(context) => DataPickerBottomSheet(
+      initialDay: daySelected,
+      initialMonth: monthSelected,
+      initialYear: yearSelected,
+      onDateSelected: (day, month, year) {
+        setState(() {
+          daySelected = day;
+          monthSelected = month;
+          yearSelected = year;
+        });
+      },
+    ),
+  );
+}
+void _showTimeIntervalPickerSheet() {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => TimeIntervalPickerBottomSheet(
+      initialHourFrom: hourFrom,
+      initialMinuteFrom: minuteFrom,
+      initialHourTo: hourTo,
+      initialMinuteTo: minuteTo,
+     onTimeIntervalSelected: (hourFrom, minuteFrom, hourTo, minuteTo) {
+        setState(() {
+          this.hourFrom = hourFrom;
+          this.minuteFrom = minuteFrom;
+          this.hourTo = hourTo;
+          this.minuteTo = minuteTo;
         });
       },
     ),
@@ -183,12 +240,12 @@ class _SaveWorkoutState extends State<SaveWorkout> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     GestureDetector(
-                    onTap: () {
-                      // TODO: obsługa zmiany daty w przyszłości
+                    onTap: 
+                      _showDataPickerSheet,
                      
-                    },
+                    
                     child: Text(
-                      "${DateTime.now().day.toString().padLeft(2, '0')}.${DateTime.now().month.toString().padLeft(2, '0')}.${DateTime.now().year}",
+                      "${daySelected.toString().padLeft(2, '0')}.${monthSelected.toString().padLeft(2, '0')}.${yearSelected.toString().padLeft(4, '0')}",
                       style: Theme.of(
                       context,
                       ).textTheme.bodyLarge!.copyWith(
@@ -199,12 +256,9 @@ class _SaveWorkoutState extends State<SaveWorkout> {
                     ),
                     const SizedBox(width: 32),
                     GestureDetector(
-                    onTap: () {
-                     
-                    },
-                    child: Container(
-                      child: Text(
-                        "16:20 - 17:30",
+                    onTap: _showTimeIntervalPickerSheet,
+                   child: Text(
+                        "${hourFrom.toString().padLeft(2, '0')}:${minuteFrom.toString().padLeft(2, '0')} - ${hourTo.toString().padLeft(2, '0')}:${minuteTo.toString().padLeft(2, '0')}",
                         style: Theme.of(
                         context,
                         ).textTheme.bodyLarge!.copyWith(
@@ -212,17 +266,17 @@ class _SaveWorkoutState extends State<SaveWorkout> {
                         fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
+                    
                     ),
                   ],
                   ),
                 ),
                 CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
-                //SizedBox(height: 20),
+               
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                  // Kolumna 1: czas
+
                   Expanded(
                     child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -263,9 +317,9 @@ class _SaveWorkoutState extends State<SaveWorkout> {
                       ),
                       SizedBox(height: 10),
                       GestureDetector(
-                      onTap: () {},
+                      onTap: _showWeightInfoSheet,
                       child: Text(
-                        '120 kg',
+                        '${weightSelected} kg',
                         style: Theme.of(
                         context,
                         ).textTheme.bodyLarge!.copyWith(
