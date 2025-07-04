@@ -10,7 +10,7 @@ import 'package:work_plan_front/screens/profil.dart';
 import 'package:work_plan_front/screens/plan.dart';
 import 'package:work_plan_front/widget/bottom_button_app_bar.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_list.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
 
 class TabsScreen extends ConsumerStatefulWidget {
   final int selectedPageIndex;

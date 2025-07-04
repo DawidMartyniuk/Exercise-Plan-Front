@@ -2,35 +2,87 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/widget/save_workout/CustomDivider.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/reps_info_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_interval_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/weight_info_bottom_sheet.dart';
 
 class SaveWorkout extends StatefulWidget {
- const SaveWorkout ({super.key});
+  final int allTime;
+  final int allReps;
+  final int allWeight;
+  final int startHour;
+  final int startMinute;
+  final VoidCallback? onEndWorkout;
+  final String planName;
+ 
+
+ const SaveWorkout ({
+  super.key,
+  required this.allTime,
+  required this.allReps,
+  required this.allWeight,
+  required this.startHour,
+  required this.startMinute,
+  required this.onEndWorkout,
+  required this.planName,
+  });
 
   @override
   _SaveWorkoutState createState() => _SaveWorkoutState();
 }
 
 class _SaveWorkoutState extends State<SaveWorkout> {
-   File? _selectedImage;
-  int minutesSelected = 30;
-  int hoursSelected = 1;
+  File? _selectedImage;
+
+  int get allTime => widget.allTime;
+  int get allReps => widget.allReps;
+  int get allWeight => widget.allWeight;
+  
+  int minutesSelected = 0;
+  int hoursSelected = 0;
   int secondsSelected = 0;
   int weightSelected = 120; 
   int daySelected = DateTime.now().day;
   int monthSelected = DateTime.now().month;
   int yearSelected = DateTime.now().year;
-  int hourFrom = 16;
-  int minuteFrom = 20;
-  int hourTo = 17;
-  int minuteTo = 30;
-  
-  
+  int hourFrom = 0;
+  int minuteFrom = 0;
+  int hourTo = DateTime.now().hour; // Zakładamy, że trening trwa co najmniej godzinę
+  int minuteTo = DateTime.now().minute;
 
+  late final TextEditingController TitleController;
+
+  
+  
+   final TextEditingController descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    TitleController.dispose();
+    descriptionController.dispose();
+    super.dispose();
+  }
+  
+  @override
+  void initState() {
+    super.initState();
+    TitleController = TextEditingController(text: widget.planName); // <-- inicjalizacja z planName
+    secondsSelected = allTime % 60;
+    minutesSelected = (allTime ~/ 60) % 60;
+    hoursSelected = allTime ~/ 3600;
+    weightSelected = allWeight;
+
+    hourFrom = widget.startHour;
+    minuteFrom = widget.startMinute;
+
+    print("czas: $allTime, powtórzenia: $allReps, ciężar: $allWeight");
+  }
   
 
   void verticalLine() {
@@ -91,6 +143,34 @@ void _showWeightInfoSheet() {
   showDialog(context: context, builder: 
   (context) => WeightInfoBottomSheet(
   ));
+}
+void _showBodyPartExercisePickerSheet() {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => BodyPartInfoBottomSheet(    
+      title: 'Body Part count exercises',
+      exercisesCount: {BodyPart.chest : 2}, 
+      // tutaj możesz przekazać mapę z liczbą ćwiczeń dla każdej partii,
+      // np. {BodyPart.chest: 2}
+    ),
+  );
+}
+void _showBodyPartRepsPickerSheet() {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) => BodyPartInfoBottomSheet(    
+      title: 'Body Part count reps',
+      exercisesCount: {BodyPart.chest : 6}, 
+      // tutaj możesz przekazać mapę z liczbą ćwiczeń dla każdej partii,
+      // np. {BodyPart.chest: 2}
+    ),
+  );
+}
+void _showRepsInfoSheet() {
+  showDialog(
+    context: context,
+    builder: (context) => RepsInfoBottomSheet(),
+  );
 }
 void _showDataPickerSheet(){
   showModalBottomSheet(
@@ -193,86 +273,21 @@ void _showTimeIntervalPickerSheet() {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(40),
             ),
-            child: Padding(
+            child: 
+            Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisSize: MainAxisSize.min, // <-- to jest ważne!
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 20, left: 26, right: 26),
-                  child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start, // <-- dodane
-                  children: [
-                    Flexible(
-                    child: TextField(
-                      controller: TextEditingController(
-                      text: 'Tytuł treningu',
-                      ),
-                      style: Theme.of(
-                      context,
-                      ).textTheme.headlineLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.left,
-                      decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                    ),
-                    SizedBox(width: 20),
-                    Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Icon(
-                      Icons.edit,
-                      color: Theme.of(context).colorScheme.onSurface,
-                      size: 30,
-                    ),
-                    ),
-                  ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 26),
-                  child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    GestureDetector(
-                    onTap: 
-                      _showDataPickerSheet,
-                     
-                    
-                    child: Text(
-                      "${daySelected.toString().padLeft(2, '0')}.${monthSelected.toString().padLeft(2, '0')}.${yearSelected.toString().padLeft(4, '0')}",
-                      style: Theme.of(
-                      context,
-                      ).textTheme.bodyLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    ),
-                    const SizedBox(width: 32),
-                    GestureDetector(
-                    onTap: _showTimeIntervalPickerSheet,
-                   child: Text(
-                        "${hourFrom.toString().padLeft(2, '0')}:${minuteFrom.toString().padLeft(2, '0')} - ${hourTo.toString().padLeft(2, '0')}:${minuteTo.toString().padLeft(2, '0')}",
-                        style: Theme.of(
-                        context,
-                        ).textTheme.bodyLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    
-                    ),
-                  ],
-                  ),
-                ),
+              SaveWorkoutHeader(
+              controller: TitleController,
+              hourFrom: hourFrom,
+              minuteFrom: minuteFrom,
+              onDateTap: _showDataPickerSheet,
+              onTimeTap: _showTimeIntervalPickerSheet
+            ),
                 CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
-               
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -310,10 +325,13 @@ void _showTimeIntervalPickerSheet() {
                     child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                      Icons.fitness_center,
-                      size: 50,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      GestureDetector(
+                        onTap:_showBodyPartExercisePickerSheet,
+                        child: Icon(
+                        Icons.fitness_center,
+                        size: 50,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       SizedBox(height: 10),
                       GestureDetector(
@@ -334,17 +352,21 @@ void _showTimeIntervalPickerSheet() {
                   Expanded(
                     child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    //_showBodyPartRepsPickerSheet
                     children: [
-                      Icon(
-                      Icons.repeat,
-                      size: 50,
-                      color: Theme.of(context).colorScheme.onSurface,
+                      GestureDetector(
+                        onTap: _showBodyPartRepsPickerSheet,
+                        child: Icon(
+                        Icons.repeat,
+                        size: 50,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        ),
                       ),
                       SizedBox(height: 10),
                       GestureDetector(
-                      onTap: () {},
+                      onTap: _showRepsInfoSheet,
                       child: Text(
-                        '12',
+                        '${allReps} ',
                         style: Theme.of(
                         context,
                         ).textTheme.bodyLarge!.copyWith(
@@ -391,11 +413,7 @@ void _showTimeIntervalPickerSheet() {
                         ),
                         SizedBox(height: 10),
                         TextField(
-                          
-                          controller: TextEditingController(
-                          
-                           // text: 'Tutaj możesz dodać szczegóły dotyczące treningu.',
-                          ),
+                          controller: descriptionController,
                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),

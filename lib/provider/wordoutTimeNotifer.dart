@@ -6,10 +6,16 @@ class WordoutTimenotifer extends StateNotifier<int>{
   Timer? _timer;
   bool _isRunning = false;
 
+  int? _startHour;
+  int? _startMinute;
+
+
   void startTimer(){
     if (_isRunning) return;
     _isRunning = true;
-
+    final nowTime = DateTime.now();
+    _startHour = nowTime.hour;
+    _startMinute = nowTime.minute;
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       state++;
     });
@@ -28,6 +34,9 @@ class WordoutTimenotifer extends StateNotifier<int>{
   }
   bool get isRunning => _isRunning;
   int get currentTime => state;
+  
+  int? get startHour => _startHour;
+  int? get startMinute => _startMinute;
 
 }
 final workoutProvider = StateNotifierProvider<WordoutTimenotifer, int>((ref){

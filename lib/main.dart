@@ -70,10 +70,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
 
-      home: SaveWorkout(),
-      // TabsScreen(
-      //   selectedPageIndex: 0,
-      // ),
+      home: //SaveWorkout(),
+       TabsScreen(
+        selectedPageIndex: 0,
+       ),
       );
   }
 }

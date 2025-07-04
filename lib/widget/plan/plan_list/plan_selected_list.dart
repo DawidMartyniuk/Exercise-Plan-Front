@@ -115,6 +115,14 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
   }
 
+  void _endWorkout(BuildContext context) {
+    final timerController = ref.read(workoutProvider.notifier);
+    timerController.stopTimer();
+    ref.read(currentWorkoutPlanProvider.notifier).state = null;
+    ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
+    Navigator.of(context).pop();
+  }
+
   // Dodaj obsługę zmiany wartości kg/reps
   void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
     setState(() {
@@ -173,27 +181,49 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     //Navigator.of(context).pop();
   }
 
-  void _endWorkout(BuildContext context) {
-    final timerController = ref.read(workoutProvider.notifier);
-    timerController.stopTimer();
+ 
+  
+  int getAllReps() {
+  return widget.plan.rows.fold(
+    0,
+    (sum, rowData) => sum + rowData.data
+    .where((row) => row.isChecked)
+    .fold( 0, (innerSum, row) => innerSum + row.colRep,
+    ),
+  );
+}
 
-    ref.read(currentWorkoutPlanProvider.notifier).state = null;
-    ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
-    Navigator.of(context).pop();
-  }
+int getAllWeight() {
+  return widget.plan.rows.fold(
+    0,
+    (sum, rowData) => sum + rowData.data
+    .where((row) => row.isChecked)
+    .fold(0,(innerSum, row) => innerSum + row.colKg * row.colRep,
+    ),
+  );
+}
+
+
 
   void _savePlan() {
-    //_saveAllRowsToProvider();
-    //  Navigator.of(context).push(
-    //   MaterialPageRoute(
-    //     builder: (ctx) => PlanSelectedList(
     final exerciseNames = widget.exercises.map((e) => e.name).toList();
+    final timerController = ref.read(workoutProvider.notifier);
+
+
+   final startHour  = timerController.startHour ?? 0;
+   final startMinute = timerController.startMinute ?? 0;
+
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (ctx) => SaveWorkout()));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("in develop.")));
+    ).push(MaterialPageRoute(builder: (ctx) => SaveWorkout(
+      allTime: ref.read(workoutProvider.notifier).currentTime,
+      allReps:getAllReps(),
+      allWeight: getAllWeight(),
+      startHour: startHour,
+      startMinute: startMinute,
+      planName: widget.plan.exercise_table,
+      onEndWorkout: () => _endWorkout(context),
+    )));
   }
 
   String getTime(BuildContext context) {
