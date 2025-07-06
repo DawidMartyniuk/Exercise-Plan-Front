@@ -33,149 +33,151 @@ class _TimePickerBottomSheetState extends State<TimePickerBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'Wybierz czas treningu',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 24),
-    
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-            decoration: BoxDecoration(
-
-       
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary,
-                width: 2,
-                style: BorderStyle.none
-              ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Wybierz czas treningu',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-            child: Text(
-              '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}:${selectedSecond.toString().padLeft(2, '0')}',
-              style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-        
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-          
-              SizedBox(
-                width: 80,
-                height: 120,
-                child: ListWheelScrollView.useDelegate(
-                  itemExtent: 40,
-                  diameterRatio: 1.2,
-                  physics: const FixedExtentScrollPhysics(),
-                  onSelectedItemChanged: (index) {
-                    setState(() {
-                      selectedHour = index + 1;
-                    });
-                  },
-                  childDelegate: ListWheelChildBuilderDelegate(
-                    builder: (context, index) {
-                      if (index < 0 || index > 58) return null;
-                      return Center(
-                        child: Text(
-                          (index + 1).toString().padLeft(2, '0'),
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      );
-                    },
-                  ),
-                 
-                  controller: FixedExtentScrollController(initialItem: selectedHour - 1),
+            const SizedBox(height: 24),
+      
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+              decoration: BoxDecoration(
+      
+         
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                  style: BorderStyle.none
                 ),
               ),
-              const SizedBox(width: 7),
-              Text(
-                ':',
-                style: Theme.of(context).textTheme.headlineMedium,
+              child: Text(
+                '${selectedHour.toString().padLeft(2, '0')}:${selectedMinute.toString().padLeft(2, '0')}:${selectedSecond.toString().padLeft(2, '0')}',
+                style: Theme.of(context).textTheme.headlineLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-              const SizedBox(width: 7),
+            ),
+            const SizedBox(height: 24),
+          
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+            
+                SizedBox(
+                  width: 80,
+                  height: 120,
+                  child: ListWheelScrollView.useDelegate(
+                    itemExtent: 40,
+                    diameterRatio: 1.2,
+                    physics: const FixedExtentScrollPhysics(),
+                    onSelectedItemChanged: (index) {
+                      setState(() {
+                        selectedHour = index + 1;
+                      });
+                    },
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      builder: (context, index) {
+                        if (index < 0 || index > 58) return null;
+                        return Center(
+                          child: Text(
+                            (index + 1).toString().padLeft(2, '0'),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        );
+                      },
+                    ),
+                   
+                    controller: FixedExtentScrollController(initialItem: selectedHour - 1),
+                  ),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  ':',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(width: 7),
+               
+                SizedBox(
+                  width: 80,
+                  height: 120,
+                  child: ListWheelScrollView.useDelegate(
+                    itemExtent: 40,
+                    diameterRatio: 1.2,
+                    physics: const FixedExtentScrollPhysics(),
+                    onSelectedItemChanged: (index) {
+                      setState(() {
+                        selectedMinute = index + 1;
+                      });
+                    },
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      builder: (context, index) {
+                        if (index < 0 || index > 58) return null;
+                        return Center(
+                          child: Text(
+                            (index + 1).toString().padLeft(2, '0'),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        );
+                      },
+                    ),
+                    controller: FixedExtentScrollController(initialItem: selectedMinute - 1),
+                  ),
+                ),
+                 const SizedBox(width: 7),
+                Text(
+                  ':',
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                const SizedBox(width: 7),
              
               SizedBox(
-                width: 80,
-                height: 120,
-                child: ListWheelScrollView.useDelegate(
-                  itemExtent: 40,
-                  diameterRatio: 1.2,
-                  physics: const FixedExtentScrollPhysics(),
-                  onSelectedItemChanged: (index) {
-                    setState(() {
-                      selectedMinute = index + 1;
-                    });
-                  },
-                  childDelegate: ListWheelChildBuilderDelegate(
-                    builder: (context, index) {
-                      if (index < 0 || index > 58) return null;
-                      return Center(
-                        child: Text(
-                          (index + 1).toString().padLeft(2, '0'),
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      );
+                  width: 80,
+                  height: 120,
+                  child: ListWheelScrollView.useDelegate(
+                    itemExtent: 40,
+                    diameterRatio: 1.2,
+                    physics: const FixedExtentScrollPhysics(),
+                    onSelectedItemChanged: (index) {
+                      setState(() {
+                        selectedSecond = index + 1;
+                      });
                     },
+                    childDelegate: ListWheelChildBuilderDelegate(
+                      builder: (context, index) {
+                        if (index < 0 || index > 58) return null;
+                        return Center(
+                          child: Text(
+                            (index + 1).toString().padLeft(2, '0'),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        );
+                      },
+                    ),
+                    controller: FixedExtentScrollController(initialItem: selectedSecond - 1),
                   ),
-                  controller: FixedExtentScrollController(initialItem: selectedMinute - 1),
                 ),
-              ),
-               const SizedBox(width: 7),
-              Text(
-                ':',
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(width: 7),
-           
-            SizedBox(
-                width: 80,
-                height: 120,
-                child: ListWheelScrollView.useDelegate(
-                  itemExtent: 40,
-                  diameterRatio: 1.2,
-                  physics: const FixedExtentScrollPhysics(),
-                  onSelectedItemChanged: (index) {
-                    setState(() {
-                      selectedSecond = index + 1;
-                    });
-                  },
-                  childDelegate: ListWheelChildBuilderDelegate(
-                    builder: (context, index) {
-                      if (index < 0 || index > 58) return null;
-                      return Center(
-                        child: Text(
-                          (index + 1).toString().padLeft(2, '0'),
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                      );
-                    },
-                  ),
-                  controller: FixedExtentScrollController(initialItem: selectedSecond - 1),
-                ),
-              ),
-            ],
-          ),
-         
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              widget.onTimeSelected(selectedHour, selectedMinute, selectedSecond);
-              Navigator.pop(context);
-            },
-            child: Text('Zatwierdź', style: Theme.of(context).textTheme.titleLarge!.copyWith(
-              color: Theme.of(context).colorScheme.primary)
+              ],
             ),
-          ),
-        ],
+           
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                widget.onTimeSelected(selectedHour, selectedMinute, selectedSecond);
+                Navigator.pop(context);
+              },
+              child: Text('Zatwierdź', style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                color: Theme.of(context).colorScheme.primary)
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

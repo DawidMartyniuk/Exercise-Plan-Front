@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/model/exercise_plan.dart';
+import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
@@ -15,8 +17,11 @@ import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/re
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_interval_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/weight_info_bottom_sheet.dart';
-
-class SaveWorkout extends StatefulWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
+import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
+import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/workout_list_botton_sheet.dart';
+class SaveWorkout extends ConsumerStatefulWidget {
   final int allTime;
   final int allReps;
   final int allWeight;
@@ -41,7 +46,7 @@ class SaveWorkout extends StatefulWidget {
   _SaveWorkoutState createState() => _SaveWorkoutState();
 }
 
-class _SaveWorkoutState extends State<SaveWorkout> {
+class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   File? _selectedImage;
 
   int get allTime => widget.allTime;
@@ -129,6 +134,7 @@ class _SaveWorkoutState extends State<SaveWorkout> {
  void _showTimePickerSheet() {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (context) => TimePickerBottomSheet(
       initialHour: hoursSelected,
       initialMinute: minutesSelected,
@@ -151,22 +157,20 @@ void _showWeightInfoSheet() {
 void _showBodyPartExercisePickerSheet() {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (context) => BodyPartInfoBottomSheet(    
       title: 'Body Part count exercises',
       exercisesCount: {BodyPart.chest : 2}, 
-      // tutaj możesz przekazać mapę z liczbą ćwiczeń dla każdej partii,
-      // np. {BodyPart.chest: 2}
     ),
   );
 }
 void _showBodyPartRepsPickerSheet() {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (context) => BodyPartInfoBottomSheet(    
       title: 'Body Part count reps',
       exercisesCount: {BodyPart.chest : 6}, 
-      // tutaj możesz przekazać mapę z liczbą ćwiczeń dla każdej partii,
-      // np. {BodyPart.chest: 2}
     ),
   );
 }
@@ -179,6 +183,7 @@ void _showRepsInfoSheet() {
 void _showDataPickerSheet(){
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder:(context) => DataPickerBottomSheet(
       initialDay: daySelected,
       initialMonth: monthSelected,
@@ -196,6 +201,7 @@ void _showDataPickerSheet(){
 void _showTimeIntervalPickerSheet() {
   showModalBottomSheet(
     context: context,
+    isScrollControlled: true,
     builder: (context) => TimeIntervalPickerBottomSheet(
       initialHourFrom: hourFrom,
       initialMinuteFrom: minuteFrom,
@@ -212,9 +218,60 @@ void _showTimeIntervalPickerSheet() {
     ),
   );
 }
+void onWorkoutSelected(String workout) {
+  // obsługa wyboru treningu
+  print("Wybrano: $workout");
+}
+
+Map<BodyPart, int> _getExercisesCount(List<Exercise> exercises) {
+  final Map<BodyPart, int> count = {};
+  for (final ex in exercises) {
+    final bodyPart = BodyPart.values.firstWhere(
+      (bp) => bp.name == ex.bodyPart,
+      orElse: () => BodyPart.chest, // domyślnie, jeśli nie znajdzie
+    );
+    count[bodyPart] = (count[bodyPart] ?? 0) + 1;
+  }
+  return count;
+}
+
+void _showWrokoutListPickerSheet(){
+final List<Exercise> currentCheckedExercise = [];
+final currentWorkout = ref.watch(currentWorkoutPlanProvider);
+ final ExerciseTable? currentPlan = currentWorkout?.plan;
+ final List<Exercise> currentExercises = currentWorkout?.exercises ?? [];
+ Exercise? matchingExercise;
+
+ if(currentPlan != null){
+  for(final rowData in currentPlan.rows){
+    for( final rowData in currentPlan.rows){
+            try {
+        matchingExercise = currentExercises.firstWhere((ex) => ex.id == rowData.exercise_number);
+      } catch (_) {
+        matchingExercise = null;
+      }
+         if (rowData.data.any((r) => r.isChecked) && matchingExercise != null) {
+        currentCheckedExercise.add(matchingExercise);
+      }
+    } 
+  }
+ }
+   showModalBottomSheet(
+    context: context,
+     builder: (context) => WorkoutListBottonSheet(
+      exercisesCount: _getExercisesCount(currentCheckedExercise),
+      // do poprawy przekazywać dane zaznaczonev i zrobić wiedziało jakie partie sa zaznaczone 
+      onWorkoutSelected: onWorkoutSelected, 
+      selectedExercises: currentCheckedExercise
+      ),
+     );
+}
+
 
   @override
   Widget build(BuildContext context) {
+
+
     Widget imageContent = TextButton.icon(
       onPressed: () {
           _tahePicture();
@@ -233,19 +290,14 @@ void _showTimeIntervalPickerSheet() {
           IconButton(
             icon:Icon(Icons.settings),
             onPressed: (){
-
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Settings are not implemented yet!')),
+              );
             }, 
             ),
            SizedBox(width: 3),
        
           ElevatedButton(
-              child: Text(
-                'Save',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  
-                ),
-              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
@@ -259,6 +311,13 @@ void _showTimeIntervalPickerSheet() {
                 ).showSnackBar(SnackBar(content: Text('Trening zapisany!')));
                 Navigator.pop(context);
               },
+              child: Text(
+                'Save',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  
+                ),
+              ),
             ),
           SizedBox(width: 4),
           
@@ -311,6 +370,7 @@ void _showTimeIntervalPickerSheet() {
                 ),
                 CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
               SaveWorkoutActionButtons(
+                onWorkoutList: _showWrokoutListPickerSheet,
                 onEndWorkout: widget.onEndWorkout ?? () {}
                 )
                   ],

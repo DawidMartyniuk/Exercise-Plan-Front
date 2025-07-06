@@ -98,17 +98,6 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
             BottomButtonAppBar(
               onBack: () {
                 backWorkout();
-                //  print('Back button pressed');
-                //  if(curentWorkout != null){
-                //  // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
-                //   Navigator.of(context).push( MaterialPageRoute(builder: (ctx) => PlanSelectedList(
-                //     exercises: curentWorkout.exercises,
-                //     plan: curentWorkout.plan!,
-                //   )
-                //   ));
-                //  }else {
-                //     print('Brak aktywnego planu treningowego!');
-                //  }
               },
               onEnd: () => endWorkoutGlobal(context: context, ref: ref),
             ),

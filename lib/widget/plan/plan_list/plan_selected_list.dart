@@ -121,11 +121,6 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     context: context,ref: ref
     );
     Navigator.of(context).pop();
-    // final timerController = ref.read(workoutProvider.notifier);
-    // timerController.stopTimer();
-    // ref.read(currentWorkoutPlanProvider.notifier).state = null;
-    // ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
-    // Navigator.of(context).pop();
   }
 
   // Dodaj obsługę zmiany wartości kg/reps
@@ -207,9 +202,6 @@ int getAllWeight() {
     ),
   );
 }
-
-
-
   void _savePlan() {
     final exerciseNames = widget.exercises.map((e) => e.name).toList();
     final timerController = ref.read(workoutProvider.notifier);

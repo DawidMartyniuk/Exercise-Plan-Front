@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 class SaveWorkoutActionButtons extends StatelessWidget {
-
+  final VoidCallback onWorkoutList;
   final VoidCallback onEndWorkout;
 
   const SaveWorkoutActionButtons({
     super.key,
     required this.onEndWorkout,
+    required this.onWorkoutList,
     });
 
   @override
@@ -18,7 +19,7 @@ class SaveWorkoutActionButtons extends StatelessWidget {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  // TODO: Dodaj akcję po kliknięciu całego kontenera (Workout List)
+                  onWorkoutList();
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
