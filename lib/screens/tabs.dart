@@ -8,14 +8,13 @@ import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/start.dart';
 import 'package:work_plan_front/screens/profil.dart';
 import 'package:work_plan_front/screens/plan.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/bottom_button_app_bar.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
 
 class TabsScreen extends ConsumerStatefulWidget {
   final int selectedPageIndex;
-
-
 
   const TabsScreen({super.key, this.selectedPageIndex = 0});
 
@@ -48,50 +47,70 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     });
   }
 
-  void activePlan(){
-    setState(() {
-      
-    });
+  void activePlan() {
+    setState(() {});
   }
+
+  void endWorkout() {}
 
   @override
   Widget build(BuildContext context) {
-   final timerValue = ref.watch(workoutProvider); 
-  final timerController = ref.watch(workoutProvider.notifier);
-  final isRunning = timerController.isRunning; 
-  final curentWorkout = ref.read(currentWorkoutPlanProvider);
+    final timerValue = ref.watch(workoutProvider);
+    final timerController = ref.watch(workoutProvider.notifier);
+    final isRunning = timerController.isRunning;
+    final curentWorkout = ref.read(currentWorkoutPlanProvider);
+
+    void endWorkout() {
+      print('End button pressed');
+      timerController.stopTimer();
+      ref.read(currentWorkoutPlanProvider.notifier).state = null;
+      if (curentWorkout != null) {
+        ref
+            .read(workoutPlanStateProvider.notifier)
+            .clearPlan(curentWorkout.plan!.id);
+      }
+    }
+
+    void backWorkout() {
+      print('Back button pressed');
+      if (curentWorkout != null) {
+        // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder:
+                (ctx) => PlanSelectedList(
+                  exercises: curentWorkout.exercises,
+                  plan: curentWorkout.plan!,
+                ),
+          ),
+        );
+      } else {
+        print('Brak aktywnego planu treningowego!');
+      }
+    }
+
     return Scaffold(
       body: _pages[_selectedPageIndex],
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-           if (isRunning) 
+          if (isRunning)
             BottomButtonAppBar(
               onBack: () {
-               // final curentWorkout = ref.read(currentWorkoutPlanProvider);
-               print('Back button pressed');
-               if(curentWorkout != null){
-               // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
-                Navigator.of(context).push( MaterialPageRoute(builder: (ctx) => PlanSelectedList(
-                  exercises: curentWorkout.exercises,
-                  plan: curentWorkout.plan!,
-                )  
-                ));
-               }else {
-                  print('Brak aktywnego planu treningowego!');
-               }
-              
+                backWorkout();
+                //  print('Back button pressed');
+                //  if(curentWorkout != null){
+                //  // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
+                //   Navigator.of(context).push( MaterialPageRoute(builder: (ctx) => PlanSelectedList(
+                //     exercises: curentWorkout.exercises,
+                //     plan: curentWorkout.plan!,
+                //   )
+                //   ));
+                //  }else {
+                //     print('Brak aktywnego planu treningowego!');
+                //  }
               },
-              onEnd: () {
-                print('End button pressed');
-                timerController.stopTimer();
-                ref.read(currentWorkoutPlanProvider.notifier).state = null; 
-                if (curentWorkout != null) {
-                  ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
-                }
-               // ref.read(workoutPlanStateProvider.notifier).clearPlan(  );
-             
-              },
+              onEnd: () => endWorkoutGlobal(context: context, ref: ref),
             ),
           BottomNavigationBar(
             selectedLabelStyle: TextStyle(),

@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
+import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
+import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
+import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/save_workout/CustomDivider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
@@ -53,7 +57,7 @@ class _SaveWorkoutState extends State<SaveWorkout> {
   int yearSelected = DateTime.now().year;
   int hourFrom = 0;
   int minuteFrom = 0;
-  int hourTo = DateTime.now().hour; // Zakładamy, że trening trwa co najmniej godzinę
+  int hourTo = DateTime.now().hour; 
   int minuteTo = DateTime.now().minute;
 
   late final TextEditingController TitleController;
@@ -287,225 +291,28 @@ void _showTimeIntervalPickerSheet() {
               onDateTap: _showDataPickerSheet,
               onTimeTap: _showTimeIntervalPickerSheet
             ),
-                CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-
-                  Expanded(
-                    child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                      icon: Icon(
-                        Icons.timer_sharp,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      onPressed: () {},
-                      ),
-                      SizedBox(height: 10),
-                      GestureDetector(
-                      onTap: 
-                       _showTimePickerSheet,
-                      child: Text(
-                        ' ${hoursSelected} h ${minutesSelected} min',
-                        style: Theme.of(
-                        context,
-                        ).textTheme.bodyLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      ),
-                    ],
-                    ),
-                  ),
-                  // Kolumna 2: ciężar
-                  Expanded(
-                    child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap:_showBodyPartExercisePickerSheet,
-                        child: Icon(
-                        Icons.fitness_center,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      GestureDetector(
-                      onTap: _showWeightInfoSheet,
-                      child: Text(
-                        '${weightSelected} kg',
-                        style: Theme.of(
-                        context,
-                        ).textTheme.bodyLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      ),
-                    ],
-                    ),
-                  ),
-                  // Kolumna 3: powtórzenia
-                  Expanded(
-                    child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    //_showBodyPartRepsPickerSheet
-                    children: [
-                      GestureDetector(
-                        onTap: _showBodyPartRepsPickerSheet,
-                        child: Icon(
-                        Icons.repeat,
-                        size: 50,
-                        color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      GestureDetector(
-                      onTap: _showRepsInfoSheet,
-                      child: Text(
-                        '${allReps} ',
-                        style: Theme.of(
-                        context,
-                        ).textTheme.bodyLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                      ),
-                    ],
-                    ),
-                  ),
-                  ],
+              CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
+                SaveWorkoutStatsRow(
+                  hoursSelected: hoursSelected,
+                  minutesSelected: minutesSelected,
+                  weightSelected: weightSelected,
+                  allReps: allReps,
+                  showTimePickerSheet: _showTimePickerSheet,
+                  showWeightInfoSheet: _showWeightInfoSheet,
+                  showBodyPartExercisePickerSheet: _showBodyPartExercisePickerSheet,
+                  showBodyPartRepsPickerSheet: _showBodyPartRepsPickerSheet,
+                  showRepsInfoSheet: _showRepsInfoSheet,
                 ),
                 CustomDivider(dashWidth: 12, dashSpace: 4,indent: 5, endIndent: 5, color: Colors.black),
-                Row(  
-                  crossAxisAlignment: CrossAxisAlignment.start, // <-- dodane
-                  children: [
-                    Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
-                    child: Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: const Color.fromARGB(255, 75, 65, 65),
-                      ),
-                      child: _selectedImage != null
-                        ? Image.file(
-                          _selectedImage!,
-                          fit: BoxFit.cover,
-                        )
-                        : imageContent,
-                    ),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Column( 
-                      crossAxisAlignment: CrossAxisAlignment.start, // <-- dodane
-                      children: [
-                        Text(
-                        'Opis',
-                        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        ),
-                        SizedBox(height: 10),
-                        TextField(
-                          controller: descriptionController,
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          textAlign: TextAlign.left,
-                          maxLines: 5,
-                          decoration: InputDecoration(
-                            hint: Text("Tutaj możesz dodać szczegóły dotyczące treningu."),
-                            border: InputBorder.none,
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                        ),
-                      ],
-                      ),
-                    ),
-                ], 
+                SaveWorkoutImageAndDescription(
+                  selectedImage: _selectedImage,
+                  onImagePick: _tahePicture,
+                  descriptionController: descriptionController,
                 ),
                 CustomDivider(dashWidth: 12, dashSpace: 4, indent: 5, endIndent: 5, color: Colors.black),
-               Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // TODO: Dodaj akcję po kliknięciu całego kontenera (Workout List)
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 48,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Theme.of(context).colorScheme.primary.withAlpha(150),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Workout List",
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios_sharp,
-                                color: Theme.of(context).colorScheme.onSurface,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-               SizedBox(height: 16),
-               Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          // TODO: Dodaj akcję po kliknięciu całego kontenera (Discard Workout)
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          height: 48,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20),
-                            color: Theme.of(context).colorScheme.primary.withAlpha(150),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Text(
-                                "Discard Workout",
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      color: Colors.red,
-                                    ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios_sharp,
-                                color: Theme.of(context).colorScheme.onSurface,
-                                size: 24,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
+              SaveWorkoutActionButtons(
+                onEndWorkout: widget.onEndWorkout ?? () {}
+                )
                   ],
                 ),
               ),

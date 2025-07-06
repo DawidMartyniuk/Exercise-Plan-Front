@@ -95,7 +95,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     final timer = ref.watch(workoutProvider);
     final timerController = ref.watch(workoutProvider.notifier);
 
-   // print("Zmienna timera: $timer");
 
     final exercisePlans = ref.watch(exercisePlanProvider);
     final allExercises = ref.watch(exerciseProvider) ?? [];
@@ -103,9 +102,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     if (allExercises == null) {
       return const Center(child: CircularProgressIndicator());
     }
-
-    // print("Zaladowane plany: ${exercisePlans.length}");
-    // print("Zaladowane ćwiczenia: ${allExercises.length}");
 
     void showPlanBottomSheet(
       BuildContext context,

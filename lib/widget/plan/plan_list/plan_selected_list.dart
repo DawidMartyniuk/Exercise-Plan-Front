@@ -12,6 +12,7 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/save_workout.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_appBar.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_card.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_details.dart';
@@ -116,11 +117,15 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   }
 
   void _endWorkout(BuildContext context) {
-    final timerController = ref.read(workoutProvider.notifier);
-    timerController.stopTimer();
-    ref.read(currentWorkoutPlanProvider.notifier).state = null;
-    ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
+    endWorkoutGlobal(
+    context: context,ref: ref
+    );
     Navigator.of(context).pop();
+    // final timerController = ref.read(workoutProvider.notifier);
+    // timerController.stopTimer();
+    // ref.read(currentWorkoutPlanProvider.notifier).state = null;
+    // ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
+    // Navigator.of(context).pop();
   }
 
   // Dodaj obsługę zmiany wartości kg/reps
@@ -210,19 +215,20 @@ int getAllWeight() {
     final timerController = ref.read(workoutProvider.notifier);
 
 
-   final startHour  = timerController.startHour ?? 0;
+   final startHour  = timerController.startHour ?? 0; 
    final startMinute = timerController.startMinute ?? 0;
 
     Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (ctx) => SaveWorkout(
-      allTime: ref.read(workoutProvider.notifier).currentTime,
-      allReps:getAllReps(),
-      allWeight: getAllWeight(),
-      startHour: startHour,
-      startMinute: startMinute,
-      planName: widget.plan.exercise_table,
-      onEndWorkout: () => _endWorkout(context),
+    ).push(MaterialPageRoute(
+      builder: (ctx) => SaveWorkout(
+        allTime: ref.read(workoutProvider.notifier).currentTime,
+        allReps:getAllReps(),
+        allWeight: getAllWeight(),
+        startHour: startHour,
+        startMinute: startMinute,
+        planName: widget.plan.exercise_table,
+        onEndWorkout: () => _endWorkout(context),
     )));
   }
 
