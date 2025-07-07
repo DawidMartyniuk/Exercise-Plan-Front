@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/main.dart';
+import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
@@ -112,6 +113,30 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
             exerciseNumber: exerciseNumber,
           ),
         );
+    // Stwórz głęboką kopię planu z nowymi danymi
+final newRows = widget.plan.rows
+    .map((rowData) => rowData.copyWithData(
+          rowData.data
+              .map((row) => ExerciseRow(
+                    colStep: row.colStep,
+                    colKg: row.colKg,
+                    colRep: row.colRep,
+                    isChecked: row.isChecked,
+                    rowColor: row.rowColor,
+                  ))
+              .toList(),
+        ))
+    .toList();
+
+final newPlan = widget.plan.copyWithRows(newRows);
+
+ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+  plan: newPlan,
+  exercises: widget.exercises,
+);
+    print('Zmieniono checkbox: $row, isChecked: ${row.isChecked}');
+    
+
     debugPrint('Zmieniono checkbox: $row');
     debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
   }

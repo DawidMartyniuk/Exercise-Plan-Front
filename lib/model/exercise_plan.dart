@@ -33,6 +33,13 @@ class ExerciseTable {
               .toList(),
     );
   }
+  ExerciseTable copyWithRows(List<ExerciseRowsData> newRows) {
+    return ExerciseTable(
+      id: id,
+      exercise_table: exercise_table,
+      rows: newRows,
+    );
+  }
 
   @override
   String toString() {
@@ -75,6 +82,17 @@ class ExerciseRowsData {
               .toList(),
     );
   }
+
+  
+  ExerciseRowsData copyWithData(List<ExerciseRow> newData) {
+    return ExerciseRowsData(
+      exercise_name: exercise_name,
+      exercise_number: exercise_number,
+      notes: notes,
+      data: newData,
+    );
+  }
+  
   @override
   String toString() {
     return 'ExerciseRowsData(exercise_name: $exercise_name, exercise_number: $exercise_number, notes: $notes, data: $data)';

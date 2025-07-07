@@ -9,6 +9,7 @@ import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
+import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/save_workout/CustomDivider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
@@ -241,28 +242,34 @@ final currentWorkout = ref.watch(currentWorkoutPlanProvider);
  final ExerciseTable? currentPlan = currentWorkout?.plan;
  final List<Exercise> currentExercises = currentWorkout?.exercises ?? [];
  Exercise? matchingExercise;
+ // final currentWorkout = ref.watch(currentWorkoutPlanProvider);
+  final performedExercises = getPerformedExercises(currentWorkout);
 
- if(currentPlan != null){
-  for(final rowData in currentPlan.rows){
-    for( final rowData in currentPlan.rows){
-            try {
-        matchingExercise = currentExercises.firstWhere((ex) => ex.id == rowData.exercise_number);
-      } catch (_) {
-        matchingExercise = null;
-      }
-         if (rowData.data.any((r) => r.isChecked) && matchingExercise != null) {
-        currentCheckedExercise.add(matchingExercise);
-      }
-    } 
+ for (final ex in performedExercises) {
+    print('Partia: ${ex.bodyPart}, ćwiczenie: ${ex.name}, liczba serii: ${ex.sets.length}');
   }
- }
+
+//  if(currentPlan != null){
+//   for(final rowData in currentPlan.rows){
+//     for( final rowData in currentPlan.rows){
+//             try {
+//         matchingExercise = currentExercises.firstWhere((ex) => ex.id == rowData.exercise_number);
+//       } catch (_) {
+//         matchingExercise = null;
+//       }
+//          if (rowData.data.any((r) => r.isChecked) && matchingExercise != null) {
+//         currentCheckedExercise.add(matchingExercise);
+//       }
+//     } 
+//   }
+ //}
    showModalBottomSheet(
     context: context,
      builder: (context) => WorkoutListBottonSheet(
-      exercisesCount: _getExercisesCount(currentCheckedExercise),
+     // exercisesCount: _getExercisesCount(currentCheckedExercise),
       // do poprawy przekazywać dane zaznaczonev i zrobić wiedziało jakie partie sa zaznaczone 
-      onWorkoutSelected: onWorkoutSelected, 
-      selectedExercises: currentCheckedExercise
+     // onWorkoutSelected: onWorkoutSelected, 
+     // selectedExercises: currentCheckedExercise
       ),
      );
 }
