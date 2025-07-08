@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/start.dart';
 import 'package:work_plan_front/screens/profil.dart';
@@ -24,7 +21,7 @@ class TabsScreen extends ConsumerStatefulWidget {
 
 class _TabsScreenState extends ConsumerState<TabsScreen> {
   int _selectedPageIndex = 0;
-  Timer? _timer;
+  //Timer? _timer;
   bool isTimerRunning = false;
   int seconds = 0;
 
@@ -55,26 +52,16 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final timerValue = ref.watch(workoutProvider);
+
     final timerController = ref.watch(workoutProvider.notifier);
     final isRunning = timerController.isRunning;
     final curentWorkout = ref.read(currentWorkoutPlanProvider);
 
-    void endWorkout() {
-      print('End button pressed');
-      timerController.stopTimer();
-      ref.read(currentWorkoutPlanProvider.notifier).state = null;
-      if (curentWorkout != null) {
-        ref
-            .read(workoutPlanStateProvider.notifier)
-            .clearPlan(curentWorkout.plan!.id);
-      }
-    }
 
     void backWorkout() {
       print('Back button pressed');
       if (curentWorkout != null) {
-        // ref.read(workoutPlanStateProvider.notifier).clearPlan(curentWorkout.plan!.id);
+      
         Navigator.of(context).push(
           MaterialPageRoute(
             builder:

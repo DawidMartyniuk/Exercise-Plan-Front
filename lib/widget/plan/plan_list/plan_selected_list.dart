@@ -452,6 +452,7 @@ int getAllWeight() {
                        // endWorkout: () => _endWorkout(context),
                         onSavePlan: () => _savePlan(),
                       ),
+                      SizedBox(height: 10),
                       LinearProgressIndicator(
                         minHeight: 8,
                         value: getCurrentStep() / totalSteps,

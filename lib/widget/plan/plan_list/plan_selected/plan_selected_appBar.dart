@@ -37,6 +37,7 @@ class PlanSelectedAppBar extends StatelessWidget {
             }
           },
         ),
+        SizedBox(width: 16),
         // Czas
         Row(
           children: [
@@ -59,7 +60,10 @@ class PlanSelectedAppBar extends StatelessWidget {
           child: Center(
             child: Text(
               planName,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -73,18 +77,26 @@ class PlanSelectedAppBar extends StatelessWidget {
         ),
         const SizedBox(width: 16),
         // Save Plan na końcu
-        TextButton(
-          onPressed: () {
+        ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromARGB(255, 98, 204, 107),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+           onPressed: () {
             if (onSavePlan != null) onSavePlan!();
           },
-          child: Text(
-            "Save Plan",
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
+            child: Text(
+              'Save',
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 }
+
+
