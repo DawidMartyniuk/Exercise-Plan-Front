@@ -161,7 +161,8 @@ void _showBodyPartExercisePickerSheet() {
     isScrollControlled: true,
     builder: (context) => BodyPartInfoBottomSheet(    
       title: 'Body Part count exercises',
-      exercisesCount: {BodyPart.chest : 2}, 
+    //  exercisesCount: {BodyPart.chest : 2}, 
+    info: "weight",
     ),
   );
 }
@@ -171,7 +172,8 @@ void _showBodyPartRepsPickerSheet() {
     isScrollControlled: true,
     builder: (context) => BodyPartInfoBottomSheet(    
       title: 'Body Part count reps',
-      exercisesCount: {BodyPart.chest : 6}, 
+     // exercisesCount: {BodyPart.chest : 6}, 
+      info: "reps",
     ),
   );
 }

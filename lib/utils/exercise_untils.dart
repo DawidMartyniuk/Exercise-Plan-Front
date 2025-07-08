@@ -32,8 +32,16 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
     print('currentPlan.rows: ${currentPlan.rows.length}');
     for (final rowData in currentPlan.rows) {
       print('rowData.exercise_number: ${rowData.exercise_number}');
+      for (final ex in currentExercises) {
+        print('Porównuję ex.id: ${ex.id} z rowData.exercise_number: ${rowData.exercise_number}');
+      }
       Exercise? exercise = currentExercises.firstWhereOrNull(
-        (ex) => int.tryParse(ex.id) == int.tryParse(rowData.exercise_number),
+        (ex) {
+          final exId = int.tryParse(ex.id ?? '');
+          final rowId = int.tryParse(rowData.exercise_number ?? '');
+          print('exId: $exId, rowId: $rowId');
+          return exId != null && rowId != null && exId == rowId;
+        },
       );
       print('exercise znaleziony: ${exercise?.name}');
       if (exercise != null) {

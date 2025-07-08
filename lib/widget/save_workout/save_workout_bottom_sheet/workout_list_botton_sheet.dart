@@ -7,6 +7,7 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 
 class WorkoutListBottonSheet extends ConsumerWidget {
+  const WorkoutListBottonSheet({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentWorkout = ref.watch(currentWorkoutPlanProvider);
