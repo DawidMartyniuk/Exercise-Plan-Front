@@ -23,6 +23,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
   int _selectedPageIndex = 0;
   //Timer? _timer;
   bool isTimerRunning = false;
+ //  final isRunning = ref.watch(workoutProvider) > 0;
   int seconds = 0;
 
   final List<Widget> _pages = [
@@ -53,9 +54,10 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
   @override
   Widget build(BuildContext context) {
 
-    final timerController = ref.watch(workoutProvider.notifier);
-    final isRunning = timerController.isRunning;
-    final curentWorkout = ref.read(currentWorkoutPlanProvider);
+    final timeValue = ref.watch(workoutProvider);
+   // final timerController = ref.watch(workoutProvider.notifier);
+    final isRunning = timeValue > 0;
+    final curentWorkout = ref.watch(currentWorkoutPlanProvider);
 
 
     void backWorkout() {

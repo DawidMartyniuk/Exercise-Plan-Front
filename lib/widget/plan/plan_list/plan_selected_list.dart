@@ -100,6 +100,9 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     setState(() {
       row.isChecked = !row.isChecked;
       row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
+    if (row.isChecked) {
+
+    }
     });
     ref
         .read(workoutPlanStateProvider.notifier)
@@ -135,8 +138,6 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
   exercises: widget.exercises,
 );
     print('Zmieniono checkbox: $row, isChecked: ${row.isChecked}');
-    
-
     debugPrint('Zmieniono checkbox: $row');
     debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
   }
@@ -218,7 +219,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
   );
 }
 
-int getAllWeight() {
+ double getAllWeight() {
   return widget.plan.rows.fold(
     0,
     (sum, rowData) => sum + rowData.data
@@ -344,6 +345,7 @@ int getAllWeight() {
                   ),
                 )
                 : TextField(
+                  
                   controller: TextEditingController(text: text),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
@@ -376,12 +378,22 @@ int getAllWeight() {
             TableRow(
               decoration: BoxDecoration(color: row.rowColor),
               children: [
-                cellText(
-                  context,
-                  "$rowId",
-                  "step",
-                  row: row,
-                  exerciseNumber: exerciseRowsData.exercise_number,
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      // Zmień kolor na czerwony tylko jeśli checkbox jest zaznaczony
+                    //  if (row.isChecked) {
+                    //    row.rowColor = const Color.fromARGB(255, 207, 53, 42);
+                  //    }
+                    });
+                  },
+                  child: cellText(
+                    context,
+                    "$rowId",
+                    "step",
+                    row: row,
+                    exerciseNumber: exerciseRowsData.exercise_number,
+                  ),
                 ),
                 cellText(
                   context,
@@ -397,19 +409,31 @@ int getAllWeight() {
                   row: row,
                   exerciseNumber: exerciseRowsData.exercise_number,
                 ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: IconButton(
-                    onPressed:
-                        () => _toogleRowChecked(
-                          row,
-                          exerciseRowsData.exercise_number,
-                        ),
-                    icon: Icon(
-                      row.isChecked
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
-                      color: Theme.of(context).colorScheme.onSurface,
+                GestureDetector(
+                  onDoubleTap: () {
+                    setState(() {
+                      if (row.isChecked) {
+
+                        if(row.isFailure && row.rowColor == const Color.fromARGB(255, 207, 53, 42)) {
+                          row.rowColor = Colors.transparent;
+                          row.isFailure = false;
+                        } else {
+                          row.rowColor = const Color.fromARGB(255, 207, 53, 42);
+                          row.isFailure = true;
+                        }
+                        // row.rowColor = const Color.fromARGB(255, 207, 53, 42);
+                        // row.isFailure = true;
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton(
+                      onPressed: () => _toogleRowChecked(row, exerciseRowsData.exercise_number),
+                      icon: Icon(
+                        row.isChecked ? Icons.check_box : Icons.check_box_outline_blank,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
                 ),

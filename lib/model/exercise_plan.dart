@@ -106,12 +106,14 @@ class ExerciseRow {
 
   bool isChecked;
   Color? rowColor;
+  bool isFailure;
 
   ExerciseRow({
     required this.colStep,
     required this.colKg,
     required this.colRep,
     this.isChecked = false,
+    this.isFailure = false,
     this.rowColor,
   });
 

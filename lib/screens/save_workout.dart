@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
@@ -26,7 +28,7 @@ import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/wo
 class SaveWorkout extends ConsumerStatefulWidget {
   final int allTime;
   final int allReps;
-  final int allWeight;
+  final double allWeight;
   final int startHour;
   final int startMinute;
   final VoidCallback? onEndWorkout;
@@ -52,7 +54,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
 
   int get allTime => widget.allTime;
   int get allReps => widget.allReps;
-  int get allWeight => widget.allWeight;
+  double get allWeight => widget.allWeight;
 
   int minutesSelected = 0;
   int hoursSelected = 0;
@@ -80,13 +82,11 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   @override
   void initState() {
     super.initState();
-    TitleController = TextEditingController(
-      text: widget.planName,
-    ); 
+    TitleController = TextEditingController(text: widget.planName);
     secondsSelected = allTime % 60;
     minutesSelected = (allTime ~/ 60) % 60;
     hoursSelected = allTime ~/ 3600;
-    weightSelected = allWeight;
+    weightSelected = allWeight.toInt();
 
     hourFrom = widget.startHour;
     minuteFrom = widget.startMinute;
@@ -248,7 +248,54 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     );
   }
 
-  void saveWorkoutPlan() {
+  void saveWorkoutPlan() async {
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    final performedExercises = getPerformedExercises(currentWorkout);
+
+    String imageBase64 = '';
+    if (_selectedImage != null) {
+      final bytes = await _selectedImage!.readAsBytes();
+      imageBase64 = base64Encode(bytes);
+    }
+    final completedExercises =
+        performedExercises.map((ex) {
+           final exerciseId = int.tryParse(ex.id)?.toString() ?? ex.id;
+          return CompletedExercise(
+            exerciseId: exerciseId,
+            notes: ex.notes,
+            sets: ex.sets.asMap().entries.map((entry) {
+              final idx = entry.key; // indeks serii
+              final set = entry.value;
+              return CompletedSet(
+                colStep: idx + 1, 
+                actualKg: set.kg,
+                actualReps: set.rep,
+                completed: set.isChecked,
+                toFailure: set.isFailure,
+              );
+            }).toList(),
+          );
+        }).toList();
+
+    final trainingSession = TrainingSession(
+      exerciseTableId: currentWorkout?.plan?.id ?? 0,
+      startedAt: DateTime(
+        yearSelected,
+        monthSelected,
+        daySelected,
+        hourFrom,
+        minuteFrom,
+      ),
+      duration: allTime,
+      completed: true,
+      totalWeight: allWeight,
+      description: descriptionController.text,
+      imageBase64: imageBase64,
+      exercises: completedExercises, 
+      // nie pokazuje po zmianie ćwiczeń do upatku oraz colStep jest
+      // zawsze 1 mimi że zaznacyłęś 2 wiersz 
+    );
+    print('Zapisuję trening: ${trainingSession.toJson()}');
 
     ScaffoldMessenger.of(
       context,
@@ -257,7 +304,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
 
   @override
   Widget build(BuildContext context) {
-
     Widget imageContent = TextButton.icon(
       onPressed: () {
         _tahePicture();
@@ -275,7 +321,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     );
     return Scaffold(
       appBar: AppBar(
-        
         actions: [
           IconButton(
             icon: Icon(Icons.settings),

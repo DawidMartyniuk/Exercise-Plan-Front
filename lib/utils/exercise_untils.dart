@@ -6,12 +6,14 @@ class PerformedExercise {
   final String id;
   final String name;
   final String bodyPart;
+  final String notes;
   final List<String> secondaryMuscles;
   final List<ExerciseSet> sets;
   PerformedExercise({
     required this.id,
     required this.name,
     required this.bodyPart,
+    required this.notes,
     required this.secondaryMuscles,
     required this.sets,
   });
@@ -21,7 +23,14 @@ class ExerciseSet {
   final int rep;
   final int kg;
   final bool isChecked;
-  ExerciseSet({required this.rep, required this.kg, required this.isChecked});
+  final bool isFailure; // Dodane pole do oznaczania, czy ćwiczenie było do upadku
+  
+  ExerciseSet({
+    required this.rep,
+   required this.kg,
+    required this.isChecked,
+   required this.isFailure, // Domyślnie ustawione na false
+   });
 }
 
 List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
@@ -53,6 +62,7 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
                     rep: row.colRep,
                     kg: row.colKg,
                     isChecked: row.isChecked,
+                    isFailure: row.isFailure, 
                   ),
                 )
                 .toList();
@@ -60,8 +70,9 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
         if (sets.isNotEmpty) {
           result.add(
             PerformedExercise(
-              id: exercise.id,
+              id: int.tryParse(exercise.id)?.toString() ?? exercise.id,
               name: exercise.name,
+              notes: rowData.notes,
               bodyPart: exercise.bodyPart,
               secondaryMuscles: exercise.secondaryMuscles,
               sets: sets,

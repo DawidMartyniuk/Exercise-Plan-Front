@@ -18,12 +18,13 @@ class ExerciseService {
     }
   }();
   final String _exerciseUrl = "/exercises";
+  //final _getHeaders = 
 
   Future<List<ExerciseTable>> fetchExercises() async {
     final url = Uri.parse("$_baseUrl$_exerciseUrl");
     print("Fetching data from URL: $url");
 
-    final response = await http.get(url, headers: await _getHeaders());
+    final response = await http.get(url, headers: await getHeaders());
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -43,7 +44,7 @@ class ExerciseService {
 
   Future<int> saveExercisePlan(List<ExerciseTable> exercises) async {
     try {
-      final userId = await _getUserIdFromToken();
+      final userId = await getUserIdFromToken();
       if (userId == null) {
         throw Exception("User ID not found.");
       }
@@ -53,7 +54,7 @@ class ExerciseService {
       final url = Uri.parse("$_baseUrl$_exerciseUrl");
       final response = await http.post(
         url,
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: jsonEncode(payload),
       );
 
@@ -74,7 +75,7 @@ class ExerciseService {
     final url = Uri.parse("$_baseUrl$_exerciseUrl/$id");
     final response = await http.delete(
       url, 
-      headers: await _getHeaders()
+      headers: await getHeaders()
       );
 
     if (response.statusCode == 200) {
@@ -84,30 +85,30 @@ class ExerciseService {
     }
   }
 
-  Future<String?> _getUserIdFromToken() async {
-    final token = await getToken();
-    if (token == null) {
-      throw Exception("No token found. User is not logged in.");
-    }
+  // Future<String?> _getUserIdFromToken() async {
+  //   final token = await getToken();
+  //   if (token == null) {
+  //     throw Exception("No token found. User is not logged in.");
+  //   }
 
-    try {
-      final decodedToken = JwtDecoder.decode(token);
-      return decodedToken['sub']; // Zakładamy, że `sub` zawiera `user_id`
-    } catch (e) {
-      throw Exception("Failed to decode token: $e");
-    }
-  }
+  //   try {
+  //     final decodedToken = JwtDecoder.decode(token);
+  //     return decodedToken['sub']; // Zakładamy, że `sub` zawiera `user_id`
+  //   } catch (e) {
+  //     throw Exception("Failed to decode token: $e");
+  //   }
+  // }
 
   // Pobierz nagłówki z tokenem
-  Future<Map<String, String>> _getHeaders() async {
-    final token = await getToken();
-    if (token == null) {
-      throw Exception("No token found. User is not logged in.");
-    }
-    return {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": "Bearer $token",
-    };
-  }
+  // Future<Map<String, String>> _getHeaders() async {
+  //   final token = await getToken();
+  //   if (token == null) {
+  //     throw Exception("No token found. User is not logged in.");
+  //   }
+  //   return {
+  //     "Content-Type": "application/json",
+  //     "Accept": "application/json",
+  //     "Authorization": "Bearer $token",
+  //   };
+  // }
 }

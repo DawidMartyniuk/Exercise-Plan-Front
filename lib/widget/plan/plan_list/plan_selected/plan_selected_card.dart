@@ -80,18 +80,30 @@ class PlanSelectedCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            if (notes.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  "Notes: ${notes}",
-                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withOpacity(0.7),
-                  ),
+             Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+              child: TextField(
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface, // tekst wpisywany
+                  fontSize: 16, // dopasuj do reszty tekstów
                 ),
+                decoration: InputDecoration(
+                  hintText: "notes",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), // podpowiedź lekko jaśniejsza
+                    fontSize: 16,
+                  ),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.all(8),
+                ),
+                minLines: 1,
+                maxLines: 3,
+                onChanged: (value) {
+                  // obsługa notatki
+                },
               ),
+            ),
             Table(
               border: TableBorder.symmetric(
                 inside: BorderSide.none,
