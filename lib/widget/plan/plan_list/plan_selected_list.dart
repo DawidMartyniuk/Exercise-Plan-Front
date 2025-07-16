@@ -75,6 +75,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                   colKg: row.colKg,
                   colRep: row.colRep,
                   isChecked: row.isChecked,
+                  isFailure:row.isFailure,
                   exerciseNumber: rowData.exercise_number,
                 ),
           );
@@ -99,10 +100,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   void _toogleRowChecked(ExerciseRow row, String exerciseNumber) {
     setState(() {
       row.isChecked = !row.isChecked;
-      row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
-    if (row.isChecked) {
-
-    }
+      row.rowColor = row.isChecked ? const Color.fromARGB(255, 103, 189, 106) : Colors.transparent;
+   print('TOGGLE: $row');
     });
     ref
         .read(workoutPlanStateProvider.notifier)
@@ -113,6 +112,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
             colKg: row.colKg,
             colRep: row.colRep,
             isChecked: row.isChecked,
+            isFailure: row.isFailure,
             exerciseNumber: exerciseNumber,
           ),
         );
@@ -125,6 +125,7 @@ final newRows = widget.plan.rows
                     colKg: row.colKg,
                     colRep: row.colRep,
                     isChecked: row.isChecked,
+                    isFailure: row.isFailure,
                     rowColor: row.rowColor,
                   ))
               .toList(),
@@ -163,6 +164,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
             colKg: row.colKg,
             colRep: row.colRep,
             isChecked: row.isChecked,
+            isFailure: row.isFailure,
             exerciseNumber: exerciseNumber,
           ),
         );
@@ -181,6 +183,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
             colKg: row.colKg,
             colRep: row.colRep,
             isChecked: row.isChecked,
+            isFailure: row.isFailure,
             exerciseNumber: exerciseNumber,
           ),
         );
@@ -197,6 +200,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
             colKg: row.colKg,
             colRep: row.colRep,
             isChecked: row.isChecked,
+            isFailure: row.isFailure,
             exerciseNumber: rowData.exercise_number, // <-- poprawka!
           ),
         );
@@ -414,13 +418,15 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                     setState(() {
                       if (row.isChecked) {
 
-                        if(row.isFailure && row.rowColor == const Color.fromARGB(255, 207, 53, 42)) {
-                          row.rowColor = Colors.transparent;
+                        if(row.isFailure && row.rowColor == const Color.fromARGB(255, 12, 107, 15)) {
+                          row.rowColor = const Color.fromARGB(255, 103, 189, 106);
                           row.isFailure = false;
                         } else {
-                          row.rowColor = const Color.fromARGB(255, 207, 53, 42);
+                          row.rowColor = const Color.fromARGB(255, 12, 107, 15);
                           row.isFailure = true;
+                        
                         }
+                        print('DOUBLE TAP: $row');
                         // row.rowColor = const Color.fromARGB(255, 207, 53, 42);
                         // row.isFailure = true;
                       }

@@ -20,16 +20,18 @@ class PerformedExercise {
 }
 
 class ExerciseSet {
+  final int step;
   final int rep;
   final int kg;
   final bool isChecked;
   final bool isFailure; // Dodane pole do oznaczania, czy ćwiczenie było do upadku
   
   ExerciseSet({
+    required this.step,
     required this.rep,
    required this.kg,
     required this.isChecked,
-   required this.isFailure, // Domyślnie ustawione na false
+   required this.isFailure, 
    });
 }
 
@@ -58,15 +60,21 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
             rowData.data
                 .where((row) => row.isChecked)
                 .map(
-                  (row) => ExerciseSet(
-                    rep: row.colRep,
-                    kg: row.colKg,
-                    isChecked: row.isChecked,
-                    isFailure: row.isFailure, 
-                  ),
+                  (row) {
+                   print('getPerformedExercises: $row');
+                    return ExerciseSet(
+                      step: row.colStep,
+                      rep: row.colRep,
+                      kg: row.colKg,
+                      isChecked: row.isChecked,
+                      isFailure: row.isFailure,
+                    );
+                  },
                 )
                 .toList();
+                
         print('sets.length: ${sets.length}');
+        
         if (sets.isNotEmpty) {
           result.add(
             PerformedExercise(
@@ -82,12 +90,16 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
       }
     }
     print('Zwracam ćwiczeń: ${result.length}');
+    
   }
   return result;
+  
 }
+
 
 /// Zwraca gifUrl dla danego exerciseNumber (lub id) na podstawie currentWorkout.
 /// Jeśli nie znajdzie, zwraca pusty string.
+
 String getExerciseGifUrl(Currentworkout? currentWorkout, String exerciseNumber) {
   if (currentWorkout == null) return '';
   final exercise = currentWorkout.exercises.firstWhereOrNull(

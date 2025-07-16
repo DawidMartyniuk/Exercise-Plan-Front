@@ -39,22 +39,26 @@ class ExerciseRowState {
   final int colRep;
   final bool isChecked;
    final String exerciseNumber; 
+   final bool isFailure;
   ExerciseRowState({
+
     required this.colStep,
     required this.colKg,
     required this.colRep,
     required this.isChecked,
-     required this.exerciseNumber,
+    required this.exerciseNumber,
+    this.isFailure = false,
   });
    @override
   String toString() {
-    return 'ExerciseRowState(colStep: $colStep, colKg: $colKg, colRep: $colRep, isChecked: $isChecked, exerciseNumber: $exerciseNumber)';
+    return 'ExerciseRowState(colStep: $colStep, colKg: $colKg, colRep: $colRep,isFailure: $isFailure, isChecked: $isChecked, exerciseNumber: $exerciseNumber)';
   }
 
   Map<String, dynamic> toJson() => {
     'colStep': colStep,
     'colKg': colKg,
     'colRep': colRep,
+    'isFailure': isFailure,
     'isChecked': isChecked,
   };
 
@@ -62,6 +66,7 @@ class ExerciseRowState {
     colStep: json['colStep'],
     colKg: json['colKg'],
     colRep: json['colRep'],
+    isFailure: json['isFailure'] ?? false,
     isChecked: json['isChecked'],
     exerciseNumber: json['exerciseNumber'] ?? "Unknown Number",
   );

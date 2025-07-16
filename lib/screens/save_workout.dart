@@ -264,10 +264,12 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
             exerciseId: exerciseId,
             notes: ex.notes,
             sets: ex.sets.asMap().entries.map((entry) {
+             
               final idx = entry.key; // indeks serii
               final set = entry.value;
+                print('SAVE: set.step=${set.step}, isFailure=${set.isFailure}');
               return CompletedSet(
-                colStep: idx + 1, 
+                colStep: set.step, 
                 actualKg: set.kg,
                 actualReps: set.rep,
                 completed: set.isChecked,
@@ -292,8 +294,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       description: descriptionController.text,
       imageBase64: imageBase64,
       exercises: completedExercises, 
-      // nie pokazuje po zmianie ćwiczeń do upatku oraz colStep jest
-      // zawsze 1 mimi że zaznacyłęś 2 wiersz 
+      
     );
     print('Zapisuję trening: ${trainingSession.toJson()}');
 

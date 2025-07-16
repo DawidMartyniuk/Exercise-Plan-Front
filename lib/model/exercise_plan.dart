@@ -118,7 +118,13 @@ class ExerciseRow {
   });
 
   Map<String, dynamic> toJson() {
-    return {'colStep': colStep, 'colKg': colKg, 'colRep': colRep};
+    return {
+      'colStep': colStep,
+      'colKg': colKg,
+      'colRep': colRep,
+      'isChecked': isChecked,
+      'isFailure': isFailure,
+      };
   }
 
   factory ExerciseRow.fromJson(Map<String, dynamic> json) {
@@ -126,12 +132,14 @@ class ExerciseRow {
       colStep: json['colStep'] ?? 0,
       colKg: json['colKg'] ?? 0,
       colRep: json['colRep'] ?? 0,
+      isChecked: json['isChecked'] ?? false,
+      isFailure: json['isFailure'] ?? false,
     );
   }
 
 
   @override
   String toString() {
-    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep)';
+    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep , isChecked: $isChecked, isFailure: $isFailure, rowColor: $rowColor)';
   }
 }
