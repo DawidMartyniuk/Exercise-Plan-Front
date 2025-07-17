@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
+import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
@@ -24,6 +25,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/workout_list_botton_sheet.dart';
+import 'package:work_plan_front/serwis/trainingSessions.dart';
 
 class SaveWorkout extends ConsumerStatefulWidget {
   final int allTime;
@@ -247,8 +249,39 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       builder: (context) => WorkoutListBottonSheet(),
     );
   }
+  void syncPlanWithProvider() {
+  final currentWorkout = ref.read(currentWorkoutPlanProvider);
+  final plan = currentWorkout?.plan;
+  if (plan == null) return;
+
+  final planId = plan.id;
+  final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
+
+  for (final rowData in plan.rows) {
+    for (final row in rowData.data) {
+      final match = savedRows.firstWhere(
+        (e) =>
+            e.colStep == row.colStep &&
+            e.exerciseNumber == rowData.exercise_number,
+      
+      );
+      if (match != null) {
+        row.colKg = match.colKg;
+        row.colRep = match.colRep;
+        row.isChecked = match.isChecked;
+        row.isFailure = match.isFailure;
+        row.rowColor = row.isChecked
+            ? (row.isFailure
+                ? const Color.fromARGB(255, 12, 107, 15)
+                : const Color.fromARGB(255, 103, 189, 106))
+            : Colors.transparent;
+      }
+    }
+  }
+}
 
   void saveWorkoutPlan() async {
+    syncPlanWithProvider();
     final currentWorkout = ref.read(currentWorkoutPlanProvider);
     final performedExercises = getPerformedExercises(currentWorkout);
 
@@ -298,9 +331,33 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     );
     print('Zapisuję trening: ${trainingSession.toJson()}');
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Trening zapisany!')));
+    final ExerciseService _exerciseService = ExerciseService();
+
+    try {
+    final status = await _exerciseService.saveTrainingSesions(trainingSession);
+    //final status = await _exerciseService.saveTrainingSesions([trainingSession]);
+    if (status == 200 || status == 201) {
+     
+      ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
+     // ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Trening zapisany!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Błąd zapisu treningu!')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Błąd zapisu treningu: $e')),
+    );
+  }
+
+    // ScaffoldMessenger.of(
+    //   context,
+    // ).showSnackBar(SnackBar(content: Text('Trening zapisany!')));
   }
 
   @override

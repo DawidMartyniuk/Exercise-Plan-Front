@@ -79,6 +79,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                   exerciseNumber: rowData.exercise_number,
                 ),
           );
+           print('initState: match dla row $row: $match');
           row.colKg = match.colKg;
           row.colRep = match.colRep;
           row.isChecked = match.isChecked;
@@ -95,6 +96,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
         }
       }
     }
+    
   }
 
   void _toogleRowChecked(ExerciseRow row, String exerciseNumber) {
@@ -417,18 +419,28 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                   onDoubleTap: () {
                     setState(() {
                       if (row.isChecked) {
-
-                        if(row.isFailure && row.rowColor == const Color.fromARGB(255, 12, 107, 15)) {
+                        if (row.isFailure && row.rowColor == const Color.fromARGB(255, 12, 107, 15)) {
                           row.rowColor = const Color.fromARGB(255, 103, 189, 106);
                           row.isFailure = false;
                         } else {
                           row.rowColor = const Color.fromARGB(255, 12, 107, 15);
                           row.isFailure = true;
-                        
                         }
-                        print('DOUBLE TAP: $row');
-                        // row.rowColor = const Color.fromARGB(255, 207, 53, 42);
-                        // row.isFailure = true;
+                        // DODAJ TO:
+                        ref.read(workoutPlanStateProvider.notifier).updateRow(
+                          widget.plan.id,
+                          ExerciseRowState(
+                            colStep: row.colStep,
+                            colKg: row.colKg,
+                            colRep: row.colRep,
+                            isChecked: row.isChecked,
+                            isFailure: row.isFailure,
+                            exerciseNumber: exerciseRowsData.exercise_number,
+                          ),
+                        );
+                        final planId = widget.plan.id;
+                        final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
+                        print('Po DOUBLE TAP, stan w providerze: $savedRows');
                       }
                     });
                   },

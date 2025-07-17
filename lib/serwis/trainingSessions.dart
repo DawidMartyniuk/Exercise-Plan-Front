@@ -1,4 +1,3 @@
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -21,42 +20,44 @@ class ExerciseService {
     }
   }();
 
-  final String _trainingUrl = "/training-sessions";
+  final String _trainingUrl = "/training-sessions"; 
 
 
-    Future<int>saveTrainingSesions(List<TrainingSession> trainingSessions) async {
-    try{
-      final url = Uri.parse("$_baseUrl$_trainingUrl");
-      
-      final userId = await getUserIdFromToken();
-       if (userId == null) {
-        throw Exception("User ID not found.");
-      }
+    Future<int> saveTrainingSesions(TrainingSession trainingSession) async {
+  try {
+    final url = Uri.parse("$_baseUrl$_trainingUrl");
 
-      final playaod = {
-        "user_id": userId,
-        "training_sessions": trainingSessions.map((e) => e.toJson()).toList()
-      };
-
-      print ("Saving data to URL: $url");
-
-      final response = await http.post(
-        url,
-        headers: await getHeaders(),
-        body: jsonEncode(playaod),
-      );
-
-      if(response.statusCode == 200 || response.statusCode == 201) {
-        print("Data saved successfully: ${response.body}");
-      } else {
-        print("Failed to save data: ${response.body}");
-        throw Exception("Failed to save training sessions: ${response.body}");
-      }
-      return response.statusCode;
-        }catch (e) {
-      print("Error saving training sessions: $e");
-      rethrow;
+    final userId = await getUserIdFromToken();
+    if (userId == null) {
+      throw Exception("User ID not found.");
     }
+
+    // Jeśli backend wymaga user_id, dodaj go do payloadu:
+    final payload = {
+      "user_id": userId,
+      ...trainingSession.toJson(), // rozpakuj dane treningu na tym samym poziomie
+    };
+
+    print("Payload: ${jsonEncode(payload)}");
+    print("Saving data to URL: $url");
+
+    final response = await http.post(
+      url,
+      headers: await getHeaders(),
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("Data saved successfully: ${response.body}");
+    } else {
+      print("Failed to save data: ${response.body}");
+      throw Exception("Failed to save training session: ${response.body}");
     }
+    return response.statusCode;
+  } catch (e) {
+    print("Error saving training session: $e");
+    rethrow;
+  }
+}
   
 }

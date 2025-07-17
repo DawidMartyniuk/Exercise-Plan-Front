@@ -24,15 +24,16 @@ class ExerciseSet {
   final int rep;
   final int kg;
   final bool isChecked;
-  final bool isFailure; // Dodane pole do oznaczania, czy ćwiczenie było do upadku
-  
+  final bool
+  isFailure; // Dodane pole do oznaczania, czy ćwiczenie było do upadku
+
   ExerciseSet({
     required this.step,
     required this.rep,
-   required this.kg,
+    required this.kg,
     required this.isChecked,
-   required this.isFailure, 
-   });
+    required this.isFailure,
+  });
 }
 
 List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
@@ -44,37 +45,32 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
     for (final rowData in currentPlan.rows) {
       print('rowData.exercise_number: ${rowData.exercise_number}');
       for (final ex in currentExercises) {
-        print('Porównuję ex.id: ${ex.id} z rowData.exercise_number: ${rowData.exercise_number}');
+        print(
+          'Porównuję ex.id: ${ex.id} z rowData.exercise_number: ${rowData.exercise_number}',
+        );
       }
-      Exercise? exercise = currentExercises.firstWhereOrNull(
-        (ex) {
-          final exId = int.tryParse(ex.id ?? '');
-          final rowId = int.tryParse(rowData.exercise_number ?? '');
-          print('exId: $exId, rowId: $rowId');
-          return exId != null && rowId != null && exId == rowId;
-        },
-      );
+      Exercise? exercise = currentExercises.firstWhereOrNull((ex) {
+        final exId = int.tryParse(ex.id ?? '');
+        final rowId = int.tryParse(rowData.exercise_number ?? '');
+        print('exId: $exId, rowId: $rowId');
+        return exId != null && rowId != null && exId == rowId;
+      });
       print('exercise znaleziony: ${exercise?.name}');
       if (exercise != null) {
         final sets =
-            rowData.data
-                .where((row) => row.isChecked)
-                .map(
-                  (row) {
-                   print('getPerformedExercises: $row');
-                    return ExerciseSet(
-                      step: row.colStep,
-                      rep: row.colRep,
-                      kg: row.colKg,
-                      isChecked: row.isChecked,
-                      isFailure: row.isFailure,
-                    );
-                  },
-                )
-                .toList();
-                
+            rowData.data.where((row) => row.isChecked).map((row) {
+              print('getPerformedExercises: $row');
+              return ExerciseSet(
+                step: row.colStep,
+                rep: row.colRep,
+                kg: row.colKg,
+                isChecked: row.isChecked,
+                isFailure: row.isFailure,
+              );
+            }).toList();
+
         print('sets.length: ${sets.length}');
-        
+
         if (sets.isNotEmpty) {
           result.add(
             PerformedExercise(
@@ -90,17 +86,25 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
       }
     }
     print('Zwracam ćwiczeń: ${result.length}');
-    
+    for (final ex in result) {
+      for (final set in ex.sets) {
+        print(
+          'getPerformedExercises: set.step=${set.step}, isFailure=${set.isFailure}',
+        );
+      }
+    }
   }
   return result;
-  
 }
 
 
 /// Zwraca gifUrl dla danego exerciseNumber (lub id) na podstawie currentWorkout.
 /// Jeśli nie znajdzie, zwraca pusty string.
 
-String getExerciseGifUrl(Currentworkout? currentWorkout, String exerciseNumber) {
+String getExerciseGifUrl(
+  Currentworkout? currentWorkout,
+  String exerciseNumber,
+) {
   if (currentWorkout == null) return '';
   final exercise = currentWorkout.exercises.firstWhereOrNull(
     (ex) => int.tryParse(ex.id) == int.tryParse(exerciseNumber),
