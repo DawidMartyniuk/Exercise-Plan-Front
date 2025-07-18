@@ -44,6 +44,9 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
   Timer? _timer;
   int totalSteps = 0;
 
+  final Map<String, TextEditingController> _kgControllers = {};
+ final Map<String, TextEditingController> _repControllers = {};
+
   void _openInfoExercise(Exercise exercise) {
     showModalBottomSheet(
       useSafeArea: true,
@@ -61,6 +64,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     final planId = widget.plan.id;
     final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
     debugPrint('Odczytano z providera: $savedRows');
+   
+
 
     if (savedRows.isNotEmpty) {
       for (final rowData in widget.plan.rows) {
@@ -86,17 +91,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
           row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
         }
       }
-    } else {
-      for (final rowData in widget.plan.rows) {
-        for (final row in rowData.data) {
-          row.colKg = 0;
-          row.colRep = 0;
-          row.isChecked = false;
-          row.rowColor = Colors.transparent;
-        }
-      }
-    }
-    
+    } 
   }
 
   void _toogleRowChecked(ExerciseRow row, String exerciseNumber) {
@@ -308,7 +303,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
           .expand((rowData) => rowData.data)
           .where((row) => row.isChecked)
           .length;
-      ;
+      
     }
 
     final groupedData = <String, List<ExerciseRowsData>>{};
@@ -338,7 +333,9 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
       required ExerciseRow row,
       required String exerciseNumber,
     }) {
+      print('cellText: $text, subject: $subject, row: $row, exerciseNumber: $exerciseNumber');
       return Padding(
+        
         padding: const EdgeInsets.all(8.0),
         child:
             subject == "step"
@@ -352,7 +349,14 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                 )
                 : TextField(
                   
-                  controller: TextEditingController(text: text),
+                  controller: null,
+                  //if( subject == "weight"){
+                  //  _kgControllers[kgKey] = TextEditingController(text: text);
+                  //}else if (subject == "reps") {
+                  //  _repControllers[repKey] = TextEditingController(text: text);
+                  //}
+                  //_kgControllers[kgKrey],
+                  //TextEditingController(text: text),
                   keyboardType: TextInputType.number,
                   onChanged: (value) {
                     if (subject == "weight") {
@@ -362,7 +366,8 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                     }
                   },
                   textAlign: TextAlign.center,
-                  decoration: InputDecoration(
+                  decoration: InputDecoration( 
+                    hintText: text,
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.zero,
                   ),
@@ -380,6 +385,12 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
         for (int idx = 0; idx < exerciseRowsData.data.length; idx++) {
           final row = exerciseRowsData.data[idx];
           final rowId = idx + 1;
+
+          final kgKey = '${exerciseRowsData.exercise_number}_${row.colStep}_kg';
+          final repKey = '${exerciseRowsData.exercise_number}_${row.colStep}_rep';
+
+          _kgControllers[kgKey]?.text = row.colKg.toString();
+          _repControllers[repKey]?.text = row.colRep.toString();
           rows.add(
             TableRow(
               decoration: BoxDecoration(color: row.rowColor),
