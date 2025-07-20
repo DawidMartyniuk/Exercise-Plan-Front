@@ -76,7 +76,6 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     void backWorkout() {
       print('Back button pressed');
       if (curentWorkout != null) {
-      
         Navigator.of(context).push(
           MaterialPageRoute(
             builder:

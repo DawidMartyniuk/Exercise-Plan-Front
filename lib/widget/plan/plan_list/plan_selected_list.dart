@@ -218,6 +218,13 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
 
       // Resetuj plan w currentWorkout (lokalnie)
       resetPlanRows(currentWorkout.plan!);
+       for (final controller in _kgControllers.values) {
+      controller.clear();
+      }
+      for (final controller in _repControllers.values) {
+        controller.clear();
+      }
+
     }
     endWorkoutGlobal(context: context, ref: ref);
      Navigator.of(context).pop();
@@ -348,6 +355,25 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
       required ExerciseRow row,
       required String exerciseNumber,
     }) {
+      final key = subject == "weight" 
+      ? '${exerciseNumber}_${row.colStep}_kg'
+      : '${exerciseNumber}_${row.colStep}_rep';
+      final controller = subject == "weight" 
+      ? _kgControllers[key]
+      : _repControllers[key];
+
+
+      if(row.isChecked) {
+        if(controller != null && controller.text.isEmpty){
+          controller.text = text; // Ustaw tekst tylko jeśli pole jest puste
+        }
+      } else {
+        if(controller !=null && controller.text.isNotEmpty) {
+          controller.clear(); // Wyczyść pole, jeśli checkbox nie jest zaznaczony
+        }
+      } 
+
+
       print('cellText: $text, subject: $subject, row: $row, exerciseNumber: $exerciseNumber');
       return Padding(
         
@@ -363,8 +389,11 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                   ),
                 )
                 : TextField(
-                  
-                  controller: null,
+                  controller: row.isChecked == false
+                      ? null
+                      : subject == "weight"
+                          ? _kgControllers['${exerciseNumber}_${row.colStep}_kg']
+                          : _repControllers['${exerciseNumber}_${row.colStep}_rep'],
                   //if( subject == "weight"){
                   //  _kgControllers[kgKey] = TextEditingController(text: text);
                   //}else if (subject == "reps") {

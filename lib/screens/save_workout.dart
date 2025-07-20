@@ -280,18 +280,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     }
   }
 }
-//  void _endWorkout(BuildContext context) {
-//     final currentWorkout = ref.read(currentWorkoutPlanProvider);
-//     if (currentWorkout?.plan != null) {
-//       // Resetuj plan w providerze z listą planów
-//       ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
-
-//       // Resetuj plan w currentWorkout (lokalnie)
-//       resetPlanRows(currentWorkout.plan!);
-//     }
-//     endWorkoutGlobal(context: context, ref: ref);
-//      Navigator.of(context).pop();
-//   }
 
   void saveWorkoutPlan() async {
     syncPlanWithProvider();
