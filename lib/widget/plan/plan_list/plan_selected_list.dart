@@ -18,6 +18,7 @@ import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_appBar.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_card.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_details.dart';
+import 'package:work_plan_front/widget/plan/widget/Info_bottom.dart';
 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -85,7 +86,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
                   exerciseNumber: rowData.exercise_number,
                 ),
           );
-           print('initState: match dla row $row: $match');
+          // print('initState: match dla row $row: $match');
           row.colKg = match.colKg;
           row.colRep = match.colRep;
           row.isChecked = match.isChecked;
@@ -100,7 +101,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
     setState(() {
       row.isChecked = !row.isChecked;
       row.rowColor = row.isChecked ? const Color.fromARGB(255, 103, 189, 106) : Colors.transparent;
-   print('TOGGLE: $row');
+   //print('TOGGLE: $row');
     });
     ref
         .read(workoutPlanStateProvider.notifier)
@@ -137,7 +138,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
   plan: newPlan,
   exercises: widget.exercises,
 );
-    print('Zmieniono checkbox: $row, isChecked: ${row.isChecked}');
+    //print('Zmieniono checkbox: $row, isChecked: ${row.isChecked}');
     debugPrint('Zmieniono checkbox: $row');
     debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
   }
@@ -334,9 +335,25 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
     }
 
     Widget headerCellText(BuildContext context, String text) {
-      return Container(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        padding: const EdgeInsets.all(8.0),
+    return Container(
+      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+      padding: const EdgeInsets.all(8.0),
+      child: GestureDetector(
+        onTap: () {
+          showModalBottomSheet(
+            context: context,
+            builder: (ctx) {
+              if (text == "Step") {
+                return InfoBottomSheet(textInfo: "Here you have the set or step number for this exercise.");
+              } else if (text == "Weight") {
+                return InfoBottomSheet(textInfo: "Enter the weight you plan to use for this set.");
+              } else if (text == "Reps") {
+                return InfoBottomSheet(textInfo: "Type the number of repetitions for this set.");
+              }
+              return SizedBox.shrink();
+            },
+          );
+        },
         child: Text(
           text,
           style: Theme.of(context).textTheme.bodyMedium!.copyWith(
@@ -344,8 +361,9 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
           ),
           textAlign: TextAlign.center,
         ),
-      );
-    }
+      ),
+    );
+  }
 
     Widget cellText(
       BuildContext context,
@@ -374,53 +392,62 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
       } 
 
 
-      print('cellText: $text, subject: $subject, row: $row, exerciseNumber: $exerciseNumber');
+     // print('cellText: $text, subject: $subject, row: $row, exerciseNumber: $exerciseNumber');
       return Padding(
         
         padding: const EdgeInsets.all(8.0),
         child:
             subject == "step"
-                ? Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                  ),
+                ? GestureDetector(
+                  onTap:  () {
+                      setState(() {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (ctx) => InfoBottomSheet(textInfo: "Step or set number"),
+                        );
+                      });
+                    },
+                  child: TextField(
+                      controller: TextEditingController(text: text),
+                      readOnly: true,
+                      enabled: false,
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
                 )
-                : TextField(
-                  controller: row.isChecked == false
-                      ? null
-                      : subject == "weight"
-                          ? _kgControllers['${exerciseNumber}_${row.colStep}_kg']
-                          : _repControllers['${exerciseNumber}_${row.colStep}_rep'],
-                  //if( subject == "weight"){
-                  //  _kgControllers[kgKey] = TextEditingController(text: text);
-                  //}else if (subject == "reps") {
-                  //  _repControllers[repKey] = TextEditingController(text: text);
-                  //}
-                  //_kgControllers[kgKrey],
-                  //TextEditingController(text: text),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    if (subject == "weight") {
-                      _onKgChanged(row, value, exerciseNumber);
-                    } else if (subject == "reps") {
-                      _onRepChanged(row, value, exerciseNumber);
-                    }
-                  },
-                  textAlign: TextAlign.center,
-                  decoration: InputDecoration( 
-                    hintText: text,
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.zero,
+                :TextField(
+                    controller: row.isChecked == false
+                        ? null
+                        : subject == "weight"
+                            ? _kgControllers['${exerciseNumber}_${row.colStep}_kg']
+                            : _repControllers['${exerciseNumber}_${row.colStep}_rep'],
+                    onChanged: (value) {
+                      if (subject == "weight") {
+                        _onKgChanged(row, value, exerciseNumber);
+                      } else if (subject == "reps") {
+                        _onRepChanged(row, value, exerciseNumber);
+                      }
+                    },
+                    textAlign: TextAlign.center,
+                    decoration: InputDecoration( 
+                      hintText: text,
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+                    ),
                   ),
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-      );
+                );
+
     }
 
     List<TableRow> buildExerciseTableRows(List<ExerciseRowsData> exerciseRows) {
@@ -442,10 +469,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                 GestureDetector(
                   onTap: () {
                     setState(() {
-                      // Zmień kolor na czerwony tylko jeśli checkbox jest zaznaczony
-                    //  if (row.isChecked) {
-                    //    row.rowColor = const Color.fromARGB(255, 207, 53, 42);
-                  //    }
+               
                     });
                   },
                   child: cellText(
@@ -481,7 +505,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                           row.rowColor = const Color.fromARGB(255, 12, 107, 15);
                           row.isFailure = true;
                         }
-                        // DODAJ TO:
+                        
                         ref.read(workoutPlanStateProvider.notifier).updateRow(
                           widget.plan.id,
                           ExerciseRowState(
@@ -495,7 +519,7 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                         );
                         final planId = widget.plan.id;
                         final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
-                        print('Po DOUBLE TAP, stan w providerze: $savedRows');
+                       // print('Po DOUBLE TAP, stan w providerze: $savedRows');
                       }
                     });
                   },
@@ -598,7 +622,10 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                                   context,
                                   "Step",
                                 ),
-                                headerCellTextKg: headerCellText(context, "KG"),
+                                headerCellTextKg: headerCellText(
+                                  context,
+                                   "Weight",
+                                   ),
                                 headerCellTextReps: headerCellText(
                                   context,
                                   "Reps",

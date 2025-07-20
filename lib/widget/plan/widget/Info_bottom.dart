@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 
-class WeightInfoBottomSheet extends StatelessWidget {
-  const WeightInfoBottomSheet({super.key});
+class InfoBottomSheet extends StatelessWidget {
+  final String textInfo;
+
+  const InfoBottomSheet({
+    super.key,
+    required this.textInfo
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,12 +16,14 @@ class WeightInfoBottomSheet extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary, size: 48),
+          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurface, size: 48),
           const SizedBox(height: 16),
           Text(
-            'Zmiana ciężaru będzie dostępna w przyszłej wersji.',
+            textInfo,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context).textTheme.titleLarge!.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ],
       ),

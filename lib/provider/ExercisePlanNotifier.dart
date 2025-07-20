@@ -40,9 +40,9 @@ Future<void> fetchExercisePlans() async {
         .map((exercise) => ExerciseTable.fromJson(exercise as Map<String, dynamic>))
         .toList();
 
-    print("Adding exercises to state: $exercises");
+   // print("Adding exercises to state: $exercises");
     state = [...state, ...exercises];
-    print("State after adding exercises: $state");
+   // print("State after adding exercises: $state");
 
     print("Exercise plan initialized for user $userId.");
   }

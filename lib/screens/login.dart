@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 
@@ -33,6 +34,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
      if(loginResult?.statusCode ==200 || loginResult?.statusCode == 201 ){
 
       print("zalogowano na $email i $password");
+      ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Login successful"),

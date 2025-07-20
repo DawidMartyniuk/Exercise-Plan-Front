@@ -91,7 +91,7 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
   }
 
   void updateRow(int planId, ExerciseRowState rowState) {
-     print('updateRow: $rowState');
+    // print('updateRow: $rowState');
     final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
     final idx = planRows.indexWhere((e) =>
       e.colStep == rowState.colStep &&
@@ -105,14 +105,14 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     state = state.copyWith(plans: {...state.plans, planId: planRows});
     
     _saveToPrefs();
-     print('Stan planu po updateRow: ${state.plans[planId]}');
+    // print('Stan planu po updateRow: ${state.plans[planId]}');
   }
 
   void setPlanRows(int planId, List<ExerciseRowState> rows) {
-      print('setPlanRows: $rows');
+    //  print('setPlanRows: $rows');
     state = state.copyWith(plans: {...state.plans, planId: rows});
     _saveToPrefs();
-     print('Stan planu po setPlanRows: ${state.plans[planId]}');
+    // print('Stan planu po setPlanRows: ${state.plans[planId]}');
   }
 
   List<ExerciseRowState> getRows(int planId) {

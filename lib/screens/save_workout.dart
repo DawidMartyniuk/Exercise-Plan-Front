@@ -15,13 +15,13 @@ import 'package:work_plan_front/screens/save_workout/save_workout_image_and_desc
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
-import 'package:work_plan_front/widget/save_workout/CustomDivider.dart';
+import 'package:work_plan_front/widget/plan/widget/CustomDivider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/reps_info_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_interval_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_picker_bottom_sheet.dart';
-import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/weight_info_bottom_sheet.dart';
+import 'package:work_plan_front/widget/plan/widget/Info_bottom.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
@@ -157,7 +157,10 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   }
 
   void _showWeightInfoSheet() {
-    showDialog(context: context, builder: (context) => WeightInfoBottomSheet());
+    showDialog(context: context, builder: (context) => 
+    InfoBottomSheet(
+      textInfo: "Weight is the total weight lifted during the workout.",
+    ));
   }
 
   void _showBodyPartExercisePickerSheet() {

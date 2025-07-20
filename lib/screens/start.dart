@@ -18,6 +18,7 @@ class _StartscreenState extends ConsumerState<Startscreen> {
   @override
   void initState() {
     super.initState();
+    //await ExerciseService().exerciseList(forceRefresh: true);
     _checkLoginStatus();
   }
 

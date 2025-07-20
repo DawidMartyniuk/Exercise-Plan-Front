@@ -13,8 +13,8 @@ class ExerciseService {
   final lastSync = box.get('lastSync') as DateTime?;
   final now = DateTime.now();
 
-  // Jeśli nie wymuszamy odświeżenia i nie minęło 24h → użyj cache
-  final bool shouldUpdate = forceRefresh || lastSync == null || now.difference(lastSync).inHours >= 24;
+  // Jeśli nie wymuszamy odświeżenia i nie minęło 1h → użyj cache
+ final bool shouldUpdate = forceRefresh || lastSync == null || now.difference(lastSync).inHours >= 1;
 
   if (!shouldUpdate) {
     print("✅ Używam lokalnej pamięci ćwiczeń");

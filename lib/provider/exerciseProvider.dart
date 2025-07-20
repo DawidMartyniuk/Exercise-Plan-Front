@@ -17,10 +17,13 @@ Future<void> fetchExercises({bool forceRefresh = false}) async {
   }
 }
 
-  void clearExercises() {
-    state = [];
-  }
+ void clearExercises() async {
+  final box = await Hive.openBox('exerciseBox');
+  await box.clear();
+  state = [];
 }
+}
+
 
 final exerciseProvider = StateNotifierProvider<ExerciseNotifier, List<Exercise>?>(
   (ref) => ExerciseNotifier(),
