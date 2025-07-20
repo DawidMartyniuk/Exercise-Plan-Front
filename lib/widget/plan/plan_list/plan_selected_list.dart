@@ -7,6 +7,7 @@ import 'package:work_plan_front/main.dart';
 import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
@@ -88,6 +89,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
           row.colKg = match.colKg;
           row.colRep = match.colRep;
           row.isChecked = match.isChecked;
+          row.isFailure = match.isFailure;
           row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
         }
       }
@@ -140,12 +142,12 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
     debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
   }
 
-  void _endWorkout(BuildContext context) {
-    endWorkoutGlobal(
-    context: context,ref: ref
-    );
-    Navigator.of(context).pop();
-  }
+  // void _endWorkout(BuildContext context) {
+  //   endWorkoutGlobal(
+  //   context: context,ref: ref
+  //   );
+   
+  // }
 
   // Dodaj obsługę zmiany wartości kg/reps
   void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
@@ -206,6 +208,19 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
     ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
     debugPrint('Zapisano stan checkboxów do providera: $rowStates');
     //Navigator.of(context).pop();
+  }
+
+   void _endWorkout(BuildContext context) {
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    if (currentWorkout?.plan != null) {
+      // Resetuj plan w providerze z listą planów
+      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+
+      // Resetuj plan w currentWorkout (lokalnie)
+      resetPlanRows(currentWorkout.plan!);
+    }
+    endWorkoutGlobal(context: context, ref: ref);
+     Navigator.of(context).pop();
   }
 
  

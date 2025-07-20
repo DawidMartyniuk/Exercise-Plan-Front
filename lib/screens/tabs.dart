@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/start.dart';
@@ -49,7 +50,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     setState(() {});
   }
 
-  void endWorkout() {}
+
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +59,18 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
    // final timerController = ref.watch(workoutProvider.notifier);
     final isRunning = timeValue > 0;
     final curentWorkout = ref.watch(currentWorkoutPlanProvider);
+    
+   void _endWorkout(BuildContext context) {
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    if (currentWorkout?.plan != null) {
+      // Resetuj plan w providerze z listą planów
+      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+
+      // Resetuj plan w currentWorkout (lokalnie)
+      resetPlanRows(currentWorkout.plan!);
+    }
+    endWorkoutGlobal(context: context, ref: ref);
+  }
 
 
     void backWorkout() {
@@ -88,7 +101,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
               onBack: () {
                 backWorkout();
               },
-              onEnd: () => endWorkoutGlobal(context: context, ref: ref),
+              onEnd: () => _endWorkout(context),
             ),
           BottomNavigationBar(
             selectedLabelStyle: TextStyle(),

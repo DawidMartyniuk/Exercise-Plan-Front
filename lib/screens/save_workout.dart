@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
@@ -279,6 +280,18 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     }
   }
 }
+//  void _endWorkout(BuildContext context) {
+//     final currentWorkout = ref.read(currentWorkoutPlanProvider);
+//     if (currentWorkout?.plan != null) {
+//       // Resetuj plan w providerze z listą planów
+//       ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+
+//       // Resetuj plan w currentWorkout (lokalnie)
+//       resetPlanRows(currentWorkout.plan!);
+//     }
+//     endWorkoutGlobal(context: context, ref: ref);
+//      Navigator.of(context).pop();
+//   }
 
   void saveWorkoutPlan() async {
     syncPlanWithProvider();

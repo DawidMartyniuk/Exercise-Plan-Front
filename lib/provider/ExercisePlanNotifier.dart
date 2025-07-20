@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/serwis/exercisePlan.dart';
@@ -75,6 +76,27 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
     final token = await getToken();
     return token;
   }
+  
+  void resetPlanById(int planId) {
+  state = state.map((plan) {
+    if (plan.id == planId) {
+      // Resetuj wszystkie wiersze
+      final newRows = plan.rows.map((rowData) {
+        final newData = rowData.data.map((row) => ExerciseRow(
+          colStep: row.colStep,
+          colKg: row.colKg,
+          colRep: row.colRep,
+          isChecked: false,
+          isFailure: false,
+          rowColor: Colors.transparent,
+        )).toList();
+        return rowData.copyWithData(newData);
+      }).toList();
+      return plan.copyWithRows(newRows);
+    }
+    return plan;
+  }).toList();
+}
 
   // Wyczyść wszystkie plany
   void clearExercisePlans() {
