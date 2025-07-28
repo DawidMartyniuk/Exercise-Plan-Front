@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/screens/home_dashboard/recent_workout_section.dart';
 import 'package:work_plan_front/screens/login.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
@@ -35,7 +36,7 @@ class _StartscreenState extends ConsumerState<Startscreen> {
     if (isLoggedIn) {
       final authResponse = ref.read(authProviderLogin);
       setState(() {
-        loginStatus = authResponse?.user.name ?? "user not found"; 
+        loginStatus = authResponse?.user.name ?? "user not found";
       });
     } else {
       setState(() {
@@ -67,14 +68,7 @@ class _StartscreenState extends ConsumerState<Startscreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Text(
-          'Welcome to the Start Screen! $userName',
-          style: Theme.of(context).textTheme.titleLarge!.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-      ),
+      body: SingleChildScrollView(child: RecentWorkoutsSection()),
     );
   }
 }

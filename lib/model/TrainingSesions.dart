@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 
 class TrainingSession {
+  final int? id;
   final int exerciseTableId;
+  final String? exercise_table_name;
   final DateTime startedAt;
   final int duration;
   final bool completed;
@@ -12,7 +14,9 @@ class TrainingSession {
   final List<CompletedExercise> exercises;
 
   TrainingSession({
+   this.id,
     required this.exerciseTableId,
+    required this.exercise_table_name,
     required this.startedAt,
     required this.duration,
     required this.completed,
@@ -24,30 +28,40 @@ class TrainingSession {
 
   factory TrainingSession.fromJson(Map<String, dynamic> json) {
     return TrainingSession(
+      id: json['id'],
       exerciseTableId: json['exercise_table_id'],
+      exercise_table_name: json['exercise_table_name'], // ✅ null → optional
       startedAt: DateTime.parse(json['started_at']),
       duration: json['duration'],
-      completed: json['completed'],
+      completed: json['completed'] == 1, // ✅ int → bool
       totalWeight: (json['total_weight'] as num).toDouble(),
-      description: json['description'],
-      imageBase64: json['image_base64'],
+      description: json['description'] ?? '', // ✅ null → empty string
+      imageBase64: json['image_base64'] ?? '', // ✅ null → empty string
       exercises: (json['exercises'] as List)
           .map((ex) => CompletedExercise.fromJson(ex))
           .toList(),
     );
   }
 
-  Map<String, dynamic> toJson() => {
-    'exercise_table_id': exerciseTableId,
-    'started_at': startedAt.toIso8601String(),
-    'duration': duration,
-    'completed': completed,
-    'total_weight': totalWeight,
-    'description': description,
-    'image_base64': imageBase64,
-    'exercises': exercises.map((e) => e.toJson()).toList(),
-  };
-
+  Map<String, dynamic> toJson() {
+    final json = {
+      'exercise_table_id': exerciseTableId,
+      'exercise_table_name': exercise_table_name, // ✅ null → optional
+      'started_at': startedAt.toIso8601String(),
+      'duration': duration,
+      'completed': completed ? 1 : 0, // ✅ bool → int
+      'total_weight': totalWeight,
+      'description': description,
+      'image_base64': imageBase64,
+      'exercises': exercises.map((e) => e.toJson()).toList(),
+    };
+    
+    if (id != null) {
+      json['id'] = id!;
+    }
+    
+    return json;
+  }
 }
 
 class CompletedExercise {
@@ -64,7 +78,7 @@ class CompletedExercise {
   factory CompletedExercise.fromJson(Map<String, dynamic> json) {
     return CompletedExercise(
       exerciseId: json['exercise_id'],
-      notes: json['notes'],
+      notes: json['notes'] ?? '', // ✅ null → empty string
       sets: (json['sets'] as List)
           .map((set) => CompletedSet.fromJson(set))
           .toList(),
@@ -77,6 +91,7 @@ class CompletedExercise {
     'sets': sets.map((s) => s.toJson()).toList(),
   };
 }
+
 class CompletedSet {
   final int colStep;
   final int actualKg;
@@ -97,8 +112,8 @@ class CompletedSet {
       colStep: json['colStep'],
       actualKg: json['actual_kg'],
       actualReps: json['actual_reps'],
-      completed: json['completed'],
-      toFailure: json['to_failure'],
+      completed: json['completed'] == 1, // ✅ int → bool
+      toFailure: json['to_failure'] == 1, // ✅ int → bool
     );
   }
 
@@ -106,7 +121,7 @@ class CompletedSet {
     'colStep': colStep,
     'actual_kg': actualKg,
     'actual_reps': actualReps,
-    'completed': completed,
-    'to_failure': toFailure,
+    'completed': completed ? 1 : 0, // ✅ bool → int
+    'to_failure': toFailure ? 1 : 0, // ✅ bool → int
   };
 }

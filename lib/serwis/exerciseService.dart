@@ -58,7 +58,7 @@ class ExerciseService {
       });
       
       exercises.add(exerciseItem); // Dodaj do listy exercises
-      print("🖼️ Pobrano: ${exerciseItem.name} (${i+1}/${exerciseJson.length})");
+     // print("🖼️ Pobrano: ${exerciseItem.name} (${i+1}/${exerciseJson.length})");
     }
     
     // Zapisz do cache
@@ -68,11 +68,11 @@ class ExerciseService {
     }
     await box.put('lastSync', now);
 
-    print("✅ Zaktualizowano ${exercises.length} ćwiczeń ze zdjęciami");
+   // print("✅ Zaktualizowano ${exercises.length} ćwiczeń ze zdjęciami");
     return exercises;
     
   } catch (e) {
-    print('❌ Błąd pobierania ćwiczeń: $e');
+    //print('❌ Błąd pobierania ćwiczeń: $e');
     return box.values.whereType<Exercise>().toList(); // fallback
   }
 }
@@ -95,11 +95,11 @@ class ExerciseService {
           return imageData['url'] ?? imageData['image_url'] ?? '';
         }
       } else {
-        print('❌ Błąd pobierania zdjęcia dla $exerciseId: ${imageResponse.statusCode}');
+      //  print('❌ Błąd pobierania zdjęcia dla $exerciseId: ${imageResponse.statusCode}');
         return ''; // Pusty string jako fallback
       }
     } catch (e) {
-      print('❌ Błąd pobierania zdjęcia dla $exerciseId: $e');
+      //print('❌ Błąd pobierania zdjęcia dla $exerciseId: $e');
       return '';
     }
   }

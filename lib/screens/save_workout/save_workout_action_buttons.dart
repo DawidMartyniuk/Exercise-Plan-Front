@@ -65,7 +65,7 @@ class SaveWorkoutActionButtons extends StatelessWidget {
                   height: 48,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    color: Theme.of(context).colorScheme.primary.withAlpha(150),
+                    color: Colors.red.withAlpha(150), // ✅ ZMIEŃ NA CZERWONY
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -73,13 +73,13 @@ class SaveWorkoutActionButtons extends StatelessWidget {
                     children: [
                       Text(
                         "Discard Workout",
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium!.copyWith(color: Colors.red),
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Colors.white, // ✅ BIAŁY TEKST NA CZERWONYM TLE
+                        ),
                       ),
                       Icon(
-                        Icons.arrow_forward_ios_sharp,
-                        color: Theme.of(context).colorScheme.onSurface,
+                        Icons.delete, // ✅ ZMIEŃ IKONĘ NA DELETE
+                        color: Colors.white,
                         size: 24,
                       ),
                     ],

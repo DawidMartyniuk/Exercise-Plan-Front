@@ -13,6 +13,7 @@ import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
+import 'package:work_plan_front/serwis/exercisePlan.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/widget/CustomDivider.dart';
@@ -263,13 +264,14 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
 
   for (final rowData in plan.rows) {
     for (final row in rowData.data) {
-      final match = savedRows.firstWhere(
-        (e) =>
-            e.colStep == row.colStep &&
-            e.exerciseNumber == rowData.exercise_number,
-      
-      );
-      if (match != null) {
+      try {
+        // ✅ POPRAWKA: Dodaj try-catch
+        final match = savedRows.firstWhere(
+          (e) =>
+              e.colStep == row.colStep &&
+              e.exerciseNumber == rowData.exercise_number,
+        );
+        
         row.colKg = match.colKg;
         row.colRep = match.colRep;
         row.isChecked = match.isChecked;
@@ -279,75 +281,100 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
                 ? const Color.fromARGB(255, 12, 107, 15)
                 : const Color.fromARGB(255, 103, 189, 106))
             : Colors.transparent;
+      } catch (e) {
+        // ✅ Jeśli nie znajdzie elementu, po prostu pomiń
+        print("🔍 Nie znaleziono zapisanego stanu dla row: colStep=${row.colStep}, exerciseNumber=${rowData.exercise_number}");
+        // Wartości pozostają niezmienione
       }
     }
   }
 }
 
   void saveWorkoutPlan() async {
-    syncPlanWithProvider();
-    final currentWorkout = ref.read(currentWorkoutPlanProvider);
-    final performedExercises = getPerformedExercises(currentWorkout);
+  syncPlanWithProvider();
+  final currentWorkout = ref.read(currentWorkoutPlanProvider);
+  final performedExercises = getPerformedExercises(currentWorkout);
 
-    String imageBase64 = '';
-    if (_selectedImage != null) {
-      final bytes = await _selectedImage!.readAsBytes();
-      imageBase64 = base64Encode(bytes);
-    }
-    final completedExercises =
-        performedExercises.map((ex) {
-           final exerciseId = int.tryParse(ex.id)?.toString() ?? ex.id;
-          return CompletedExercise(
-            exerciseId: exerciseId,
-            notes: ex.notes,
-            sets: ex.sets.asMap().entries.map((entry) {
-             
-              final idx = entry.key; // indeks serii
-              final set = entry.value;
-                print('SAVE: set.step=${set.step}, isFailure=${set.isFailure}');
-              return CompletedSet(
-                colStep: set.step, 
-                actualKg: set.kg,
-                actualReps: set.rep,
-                completed: set.isChecked,
-                toFailure: set.isFailure,
-              );
-            }).toList(),
-          );
-        }).toList();
-
-    final trainingSession = TrainingSession(
-      exerciseTableId: currentWorkout?.plan?.id ?? 0,
-      startedAt: DateTime(
-        yearSelected,
-        monthSelected,
-        daySelected,
-        hourFrom,
-        minuteFrom,
-      ),
-      duration: allTime,
-      completed: true,
-      totalWeight: allWeight,
-      description: descriptionController.text,
-      imageBase64: imageBase64,
-      exercises: completedExercises, 
-      
+  // ✅ DEBUGGING - sprawdź co masz w currentWorkout
+  print("🔍 currentWorkout?.plan?.id: ${currentWorkout?.plan?.id}");
+  print("🔍 currentWorkout?.plan?.exercise_table: '${currentWorkout?.plan?.exercise_table}'");
+  
+  String imageBase64 = '';
+  if (_selectedImage != null) {
+    final bytes = await _selectedImage!.readAsBytes();
+    imageBase64 = base64Encode(bytes);
+  }
+  
+  final completedExercises = performedExercises.map((ex) {
+    final exerciseId = int.tryParse(ex.id)?.toString() ?? ex.id;
+    return CompletedExercise(
+      exerciseId: exerciseId,
+      notes: ex.notes,
+      sets: ex.sets.asMap().entries.map((entry) {
+        final set = entry.value;
+        print('SAVE: set.step=${set.step}, isFailure=${set.isFailure}');
+        return CompletedSet(
+          colStep: set.step, 
+          actualKg: set.kg,
+          actualReps: set.rep,
+          completed: set.isChecked,
+          toFailure: set.isFailure,
+        );
+      }).toList(),
     );
-    print('Zapisuję trening: ${trainingSession.toJson()}');
+  }).toList();
 
-    final ExerciseService _exerciseService = ExerciseService();
+  // ✅ POPRAWKA - sprawdź czy exerciseTableName nie jest puste
+  final exerciseTableName = currentWorkout?.plan?.exercise_table ?? '';
+  print("🔍 exerciseTableName: '$exerciseTableName'");
+  
+  // ✅ Fallback jeśli nazwa jest pusta
+  final finalExerciseTableName = exerciseTableName.isEmpty 
+      ? 'Workout Session' 
+      : exerciseTableName;
+  
+  print("🔍 finalExerciseTableName: '$finalExerciseTableName'");
 
-    try {
-    final status = await _exerciseService.saveTrainingSesions(trainingSession);
-    //final status = await _exerciseService.saveTrainingSesions([trainingSession]);
+  final trainingSession = TrainingSession(
+    exerciseTableId: currentWorkout?.plan?.id ?? 0,
+    exercise_table_name: finalExerciseTableName, // ✅ UŻYJ FALLBACK
+    startedAt: DateTime(
+      yearSelected,
+      monthSelected,
+      daySelected,
+      hourFrom,
+      minuteFrom,
+    ),
+    duration: allTime,
+    completed: true,
+    totalWeight: allWeight,
+    description: descriptionController.text,
+    imageBase64: imageBase64,
+    exercises: completedExercises, 
+  );
+  
+  // ✅ DEBUGGING - sprawdź JSON przed wysłaniem
+  final json = trainingSession.toJson();
+  print('🔍 Wysyłam JSON: ${jsonEncode(json)}');
+  print('🔍 exercise_table_name w JSON: "${json['exercise_table_name']}"');
+
+  final TrainingSessionService _trainingService = TrainingSessionService();
+
+  try {
+    final status = await _trainingService.saveTrainingSession(trainingSession);
+    
     if (status == 200 || status == 201) {
-     
       ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
-     // ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Trening zapisany!')),
       );
+      
+      if (widget.onEndWorkout != null) {
+        widget.onEndWorkout!();
+      }
+      Navigator.of(context).pop();
+      
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Błąd zapisu treningu!')),
@@ -358,11 +385,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       SnackBar(content: Text('Błąd zapisu treningu: $e')),
     );
   }
-
-    // ScaffoldMessenger.of(
-    //   context,
-    // ).showSnackBar(SnackBar(content: Text('Trening zapisany!')));
-  }
+}
 
   @override
   Widget build(BuildContext context) {
