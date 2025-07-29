@@ -1,56 +1,77 @@
 import 'package:hive/hive.dart';
 
-part 'exercise.g.dart'; // do wygenerowania
+part 'exercise.g.dart';
 
 @HiveType(typeId: 0)
 class Exercise extends HiveObject {
   @HiveField(0)
-  String id;
+  final String id;
 
   @HiveField(1)
-  String name;
+  final String name;
 
   @HiveField(2)
-  String bodyPart;
+  final String bodyPart;
 
   @HiveField(3)
-  String equipment;
+  final String equipment;
 
   @HiveField(4)
-  String gifUrl;
+  final String? gifUrl; // ✅ Nullable, bo API nie zwraca tego pola
 
   @HiveField(5)
-  String target;
+  final String target;
 
   @HiveField(6)
-  List<String> secondaryMuscles;
+  final List<String> secondaryMuscles;
 
   @HiveField(7)
-  List<String> instructions;
+  final List<String> instructions;
+
+  @HiveField(8)
+  final String? description; // ✅ DODAJ: nowe pola z API
+
+  @HiveField(9)
+  final String? difficulty; // ✅ DODAJ
+
+  @HiveField(10)
+  final String? category; // ✅ DODAJ
 
   Exercise({
     required this.id,
     required this.name,
     required this.bodyPart,
     required this.equipment,
-    required this.gifUrl,
+    this.gifUrl,
     required this.target,
     required this.secondaryMuscles,
     required this.instructions,
+    this.description, // ✅ DODAJ
+    this.difficulty,  // ✅ DODAJ
+    this.category,    // ✅ DODAJ
   });
+
+  // ✅ DODAJ: getter do formatowania bodyPart
+  String get formattedBodyPart {
+    return bodyPart.replaceAll('_', ' ').toUpperCase();
+  }
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
-      id: json['id'],
-      name: json['name'],
-      bodyPart: json['bodyPart'],
-      equipment: json['equipment'],
-      gifUrl: json['gifUrl'],
-      target: json['target'],
-      secondaryMuscles: List<String>.from(json['secondaryMuscles']),
-      instructions: List<String>.from(json['instructions']),
+      id: json['id']?.toString() ?? '', // ✅ Obsługa null
+      name: json['name']?.toString() ?? '',
+      bodyPart: json['bodyPart']?.toString() ?? '',
+      equipment: json['equipment']?.toString() ?? '',
+      gifUrl: null, // ✅ API nie zwraca tego pola - ustawimy później
+      target: json['target']?.toString() ?? '',
+      secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? []),
+      instructions: List<String>.from(json['instructions'] ?? []),
+      description: json['description']?.toString(), // ✅ DODAJ
+      difficulty: json['difficulty']?.toString(),   // ✅ DODAJ
+      category: json['category']?.toString(),       // ✅ DODAJ
     );
   }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -61,9 +82,13 @@ class Exercise extends HiveObject {
       'target': target,
       'secondaryMuscles': secondaryMuscles,
       'instructions': instructions,
+      'description': description, // ✅ DODAJ
+      'difficulty': difficulty,   // ✅ DODAJ
+      'category': category,       // ✅ DODAJ
     };
   }
 }
+
 
 enum BodyPart {
     back,

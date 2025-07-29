@@ -1,0 +1,319 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
+
+class WorkoutCardInfo extends ConsumerStatefulWidget {
+  final TrainingSession trainingSession;
+
+  const WorkoutCardInfo({
+    Key? key,
+    required this.trainingSession,
+  }) : super(key: key);
+
+  @override
+  _WorkoutCardInfoState createState() => _WorkoutCardInfoState();
+}
+
+class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
+  String _formatDuration(int durationMinutes) {
+    final hours = durationMinutes ~/ 60;
+    final minutes = durationMinutes % 60;
+    if (hours > 0) {
+      return "${hours}h ${minutes}m";
+    }
+    return "${minutes}m";
+  }
+
+  String _getDaysAgo(DateTime date) {
+    final now = DateTime.now();
+    final difference = now.difference(date).inDays;
+    if (difference == 0) return "Today";
+    if (difference == 1) return "Yesterday";
+    return "$difference days ago";
+  }
+
+  int _getTotalSets() {
+    return widget.trainingSession.exercises
+        .map((ex) => ex.sets.length)
+        .fold(0, (sum, sets) => sum + sets);
+  }
+
+  int _getTotalReps() {
+    return widget.trainingSession.exercises
+        .map(
+          (ex) => ex.sets
+              .map((set) => set.actualReps)
+              .fold(0, (sum, reps) => sum + reps),
+        )
+        .fold(0, (sum, reps) => sum + reps);
+  }
+
+  String _getWorkoutTitle() {
+    final exercisePlans = ref.watch(exercisePlanProvider);
+
+    // Znajdź plan o tym samym ID
+    try {
+      final matchingPlan = exercisePlans.firstWhere(
+        (plan) => plan.id == widget.trainingSession.exerciseTableId,
+      );
+      return matchingPlan.exercise_table;
+    } catch (e) {
+      // Jeśli nie znajdzie planu, zwróć domyślną nazwę
+      return widget.trainingSession.description.isNotEmpty
+          ? widget.trainingSession.description
+          : 'Workout Session';
+    }
+  }
+
+  String _getUserName() {
+    final authResponse = ref.watch(authProviderLogin);
+    return authResponse?.user.name ?? 'User';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Workout Details'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ SEKCJA 1: Header z użytkownikiem i datą
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                      color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 16.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _getUserName(),
+                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                        SizedBox(height: 4.0),
+                        Text(
+                          _getDaysAgo(widget.trainingSession.startedAt),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.more_horiz,
+                    size: 24,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 8.0),
+              
+              // ✅ SEKCJA 2: Tytuł treningu
+              Row(
+                children: [
+                  Text(
+                    _getWorkoutTitle(),
+                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+              
+              SizedBox(height: 8.0),
+              
+              // ✅ SEKCJA 3: Statystyki
+              Padding(
+                padding: EdgeInsets.only(left: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(width: 16),
+                    _buildStatColumn(
+                      "Time",
+                      _formatDuration(widget.trainingSession.duration),
+                      context,
+                    ),
+                    SizedBox(width: 24),
+                    _buildStatColumn(
+                      "Volume",
+                      "${widget.trainingSession.totalWeight.toInt()}kg",
+                      context,
+                    ),
+                    SizedBox(width: 24),
+                    _buildStatColumn("Sets", "${_getTotalSets()}", context),
+                    SizedBox(width: 24),
+                    _buildStatColumn("Reps", "${_getTotalReps()}", context),
+                  ],
+                ),
+              ),
+              
+              SizedBox(height: 8.0),
+              
+              // ✅ SEKCJA 4: Divider (końcowy punkt)
+              Divider(color: Theme.of(context).dividerColor),
+              
+              // ✅ DODATKOWA SEKCJA: Miejsce na więcej treści
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 16),
+                      Text(
+                        'Workout Summary',
+                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      
+                      // ✅ Informacje o treningu
+                      _buildInfoRow('Start Time', widget.trainingSession.startedAt.toString()),
+                      _buildInfoRow('Duration', _formatDuration(widget.trainingSession.duration)),
+                      _buildInfoRow('Total Weight', '${widget.trainingSession.totalWeight.toInt()}kg'),
+                      _buildInfoRow('Total Sets', '${_getTotalSets()}'),
+                      _buildInfoRow('Total Reps', '${_getTotalReps()}'),
+                      _buildInfoRow('Completed', widget.trainingSession.completed ? 'Yes' : 'No'),
+                      
+                      if (widget.trainingSession.description.isNotEmpty) ...[
+                        SizedBox(height: 16),
+                        _buildInfoRow('Description', widget.trainingSession.description),
+                      ],
+                      
+                      SizedBox(height: 24),
+                      
+                      // ✅ Lista ćwiczeń
+                      Text(
+                        'Exercises (${widget.trainingSession.exercises.length})',
+                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      
+                      ...widget.trainingSession.exercises.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final exercise = entry.value;
+                        return Card(
+                          margin: EdgeInsets.only(bottom: 8),
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Exercise ${index + 1}',
+                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text('ID: ${exercise.exerciseId}'),
+                                Text('Sets: ${exercise.sets.length}'),
+                                if (exercise.notes.isNotEmpty)
+                                  Text('Notes: ${exercise.notes}'),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  /// wykresy 
+  /// każde ćwiczenie ile było powtórzeń i ciężaru
+
+  // ✅ KOPIUJ metodę z workoutCard.dart
+  Widget _buildStatColumn(String label, String value, BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: 4.0),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ✅ NOWA metoda: Wiersz informacji
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

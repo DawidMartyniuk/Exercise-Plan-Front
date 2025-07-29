@@ -144,7 +144,7 @@ _deleteExerciseForPlan(String exerciseId) {
                     },
                     child: ClipOval(
                       child: Image.network(
-                        exercise.gifUrl,
+                        exercise.gifUrl!,
                         width: 50,
                         height: 50,
                         fit: BoxFit.cover,

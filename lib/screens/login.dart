@@ -115,7 +115,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.email),
+                        prefixIcon: Icon(Icons.email , color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         labelText: "Email",
                         labelStyle: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
@@ -141,7 +142,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _passwordController,
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
-                        prefixIcon: const Icon(Icons.lock),
+                        prefixIcon: Icon(Icons.lock , color: Theme.of(context).colorScheme.onSurface,
+                        ),
                         labelText: "Password",
                         suffixIcon: IconButton(
                             onPressed: () {

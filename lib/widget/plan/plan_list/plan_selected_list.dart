@@ -14,7 +14,8 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/save_workout.dart';
-import 'package:work_plan_front/utils/workout_utils.dart';
+import 'package:work_plan_front/utils/imge_untils.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';// ✅ DODAJ IMPORT
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_appBar.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_card.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_details.dart';
@@ -614,9 +615,8 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                               return PlanSelectedCard(
                                 infoExercise:
                                     () => _openInfoExercise(matchingExercise),
-                                exerciseGif: NetworkImage(
-                                  matchingExercise.gifUrl,
-                                ),
+                                // ✅ UŻYJ NetworkImage bezpośrednio
+                                exerciseGif: ImageUtils.createImageProvider(matchingExercise.gifUrl),
                                 exerciseName: exerciseName,
                                 headerCellTextStep: headerCellText(
                                   context,
@@ -687,6 +687,145 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
         ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// import 'package:flutter/material.dart';
+// import 'package:work_plan_front/model/exercise_plan.dart';
+// import 'package:work_plan_front/utils/image_utils.dart'; // ✅ DODAJ IMPORT
+
+class PlanSelectedCard extends StatelessWidget {
+  final VoidCallback? infoExercise;
+  final ImageProvider? exerciseGif; // ✅ ZMIANA: ImageProvider? zamiast NetworkImage
+  final String exerciseName;
+  final Widget headerCellTextStep;
+  final Widget headerCellTextKg;
+  final Widget headerCellTextReps;
+  final List<TableRow> exerciseRows;
+  final String notes;
+
+  const PlanSelectedCard({
+    super.key,
+    required this.infoExercise,
+    this.exerciseGif, // ✅ ZMIANA: Opcjonalny ImageProvider
+    required this.exerciseName,
+    required this.headerCellTextStep,
+    required this.headerCellTextKg,
+    required this.headerCellTextReps,
+    required this.notes,
+    required this.exerciseRows,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    infoExercise?.call();
+                  },
+                  child: ClipOval(
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
+                      ),
+                      child: exerciseGif != null
+                          ? Image(
+                              image: exerciseGif!,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildPlaceholder(context);
+                              },
+                            )
+                          : _buildPlaceholder(context),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    exerciseName,
+                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (notes.isNotEmpty) ...[
+              Text(
+                'Notes: $notes',
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            Table(
+              border: TableBorder.all(
+                color: Theme.of(context).colorScheme.outline.withAlpha(50),
+                width: 1,
+              ),
+              children: [
+                TableRow(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                  ),
+                  children: [
+                    headerCellTextStep,
+                    headerCellTextKg,
+                    headerCellTextReps,
+                    Container(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Done',
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+                ...exerciseRows,
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ DODAJ: Placeholder widget
+  Widget _buildPlaceholder(BuildContext context) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
+      ),
+      child: Icon(
+        Icons.fitness_center,
+        color: Theme.of(context).colorScheme.primary,
+        size: 24,
       ),
     );
   }
