@@ -20,6 +20,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmPasswordController = TextEditingController();
   File? _profileImage;
 
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
  
 
   Future<void> register(BuildContext contex) async {
@@ -133,7 +136,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email),
+                          prefixIcon: Icon(Icons.email, 
+                          color: Theme.of(context).colorScheme.onSurface,
+                          ),
                           labelText: "Email",
                           labelStyle: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
@@ -155,21 +160,38 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 30),
+                      SizedBox(height: 30), 
+                      
                       TextFormField(
                         controller: _passwordController,
                         keyboardType: TextInputType.visiblePassword,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: Icon(Icons.lock,  color: Theme.of(context).colorScheme.onSurface,),
                           labelText: "Password",
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                           labelStyle: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
+                          
                         ),
+                        
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
+                        
                         validator: (value) {
                           if (value == null) {
                             return 'Please enter your password';
@@ -188,7 +210,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             return 'Passwords is not the same';
                           }
                         },
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                       ),
                       SizedBox(height: 30),
                       TextFormField(
@@ -196,8 +218,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         keyboardType: TextInputType.visiblePassword,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock),
+                          prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.onSurface,),
                           labelText: "Repead Password",
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                           labelStyle: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
@@ -223,7 +258,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             return 'Passwords is not the same';
                           }
                         },
-                        obscureText: true,
+                        obscureText: !_isPasswordVisible,
                       ),
                       SizedBox(height: 30),
                       Row(

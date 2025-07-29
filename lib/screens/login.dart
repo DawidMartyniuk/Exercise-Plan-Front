@@ -18,6 +18,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+    bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
   Future<void> _login(BuildContext context)async {
     final email = _emailController.text;
     final password = _passwordController.text;
@@ -140,6 +143,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock),
                         labelText: "Password",
+                        suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                            icon: Icon(
+                              _isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
                         labelStyle: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface,
                         ),
@@ -160,7 +176,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         }
                         return null;
                       },
-                      obscureText: true,
+                      obscureText: !_isPasswordVisible,
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
