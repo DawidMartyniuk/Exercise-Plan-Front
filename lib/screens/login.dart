@@ -203,7 +203,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       children: [
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
+                            backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #AE9174
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -211,40 +213,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           onPressed: () {
                             _login(context);
                           },
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color.fromARGB(255, 239, 64, 64),
-                                  Color.fromARGB(255, 247, 87, 75),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                "Login Account",
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
+                          child: Text(
+                            "Login Account",
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                              color: Colors.white,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 30),
                         
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.zero,
+                            backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #4C2F1F
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -254,32 +235,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               MaterialPageRoute(builder: (ctx) => const RegisterScreen()),
                             );
                           },
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color.fromARGB(255, 239, 64, 64),
-                                  Color.fromARGB(255, 247, 87, 75),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(25),
-                            ),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 6,
-                              ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                "Create Account",
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.titleMedium!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
+                          child: Text(
+                            "Create Account",
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                              color: Colors.white,
                             ),
                           ),
                         ),

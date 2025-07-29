@@ -2,6 +2,7 @@ class User {
   final int id;
   final String name;
   final String email;
+  final String? avatar;
   final String createdAt;
   final String updatedAt;
 
@@ -9,6 +10,7 @@ class User {
     required this.id,
     required this.name,
     required this.email,
+    this.avatar,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -19,6 +21,7 @@ class User {
       id: json['id'] as int,
       name: json['name'] as String,
       email: json['email'] as String,
+      avatar: json['avatar'] as String?,
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String,
     );

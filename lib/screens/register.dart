@@ -3,6 +3,7 @@ import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/login.dart';
 import 'dart:io';
+import 'package:image_picker/image_picker.dart'; // ✅ DODAJ
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -19,9 +20,112 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Center(
+            child: Text(
+              'Select Image Source',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  'Camera',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  'Gallery',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+            actions: [
+            Container(
+              width: double.infinity,
+              alignment: Alignment.centerRight,
+              child: TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _pickImage(ImageSource source ) async {
+    try{
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxHeight: 512,
+        maxWidth: 512,
+        imageQuality: 80,
+        );
+
+        if(image != null){
+          setState(() {
+            _profileImage = File(image.path);
+          });
+          print("Wybrano obraz: ${_profileImage!.path}");
+        }
+    } catch (e) {
+      print("Błąd podczas wybierania obrazu: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+  }
 
  
 
@@ -89,10 +193,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                       SizedBox(height: 20),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: _showImageSourceDialog, // tutaj 
                         child: CircleAvatar(
                           radius: 50,
-                          backgroundColor: Colors.grey[300],
+                          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
                           backgroundImage:
                               _profileImage != null
                                   ? FileImage(_profileImage!)
@@ -102,7 +206,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   ? Icon(
                                     Icons.camera_alt,
                                     size: 40,
-                                    color: Colors.white,
+                                    color:Theme.of(context).colorScheme.primary,
                                   )
                                   : null,
                         ),
@@ -266,7 +370,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         children: [
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
+                              backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #1C1B1B
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -278,40 +384,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 ),
                               );
                             },
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color.fromARGB(255, 239, 64, 64),
-                                    Color.fromARGB(255, 247, 87, 75),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 6,
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "cancel",
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium!.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
+                            child: Text(
+                              "Cancel",
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Colors.white,
                               ),
                             ),
                           ),
                           SizedBox(width: 20),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.zero,
+                              backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #AE9174
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -319,33 +404,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             onPressed: () {
                               register(context);
                             },
-                            child: Ink(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Color.fromARGB(255, 239, 64, 64),
-                                    Color.fromARGB(255, 247, 87, 75),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 6,
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "Create Account",
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium!.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.onSurface,
-                                  ),
-                                ),
+                            child: Text(
+                              "Create Account",
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Colors.white,
                               ),
                             ),
                           ),
