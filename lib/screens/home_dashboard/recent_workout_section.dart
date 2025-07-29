@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/User.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard.dart';
 
@@ -12,12 +14,15 @@ class RecentWorkoutsSection extends ConsumerStatefulWidget {
 }
 
 class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
+
   @override
   void initState() {
     super.initState();
     // Pobierz sesje przy starcie
-    Future.microtask(() {
-      ref.read(completedTrainingSessionProvider.notifier).fetchSessions();
+    Future.microtask(() async {
+      await ref.read(completedTrainingSessionProvider.notifier).fetchSessions();
+      await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+    
     });
   }
 
@@ -56,13 +61,7 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text(
-            'Recent Workouts',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-        ),
+     
         ListView.builder(
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),

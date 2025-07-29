@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
 
 class WorkoutCard extends ConsumerStatefulWidget {
   final TrainingSession trainingSession;
@@ -13,8 +15,6 @@ class WorkoutCard extends ConsumerStatefulWidget {
 }
 
 class _WorkoutCardState extends ConsumerState<WorkoutCard> {
-
-
   String _formatDuration(int durationMinutes) {
     final hours = durationMinutes ~/ 60;
     final minutes = durationMinutes % 60;
@@ -40,13 +40,17 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
 
   int _getTotalReps() {
     return widget.trainingSession.exercises
-        .map((ex) => ex.sets.map((set) => set.actualReps).fold(0, (sum, reps) => sum + reps))
+        .map(
+          (ex) => ex.sets
+              .map((set) => set.actualReps)
+              .fold(0, (sum, reps) => sum + reps),
+        )
         .fold(0, (sum, reps) => sum + reps);
   }
-  
-    String _getWorkoutTitle() {
+
+  String _getWorkoutTitle() {
     final exercisePlans = ref.watch(exercisePlanProvider);
-    
+
     // Znajdź plan o tym samym ID
     try {
       final matchingPlan = exercisePlans.firstWhere(
@@ -55,12 +59,38 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
       return matchingPlan.exercise_table;
     } catch (e) {
       // Jeśli nie znajdzie planu, zwróć domyślną nazwę
-      return widget.trainingSession.description.isNotEmpty 
-          ? widget.trainingSession.description 
+      return widget.trainingSession.description.isNotEmpty
+          ? widget.trainingSession.description
           : 'Workout Session';
     }
   }
 
+  String _getUserName() {
+    final authResponse = ref.watch(authProviderLogin);
+    return authResponse?.user.name ?? 'User';
+  }
+
+  String? _getExerciseName(int exerciseId) {
+    final allExercise = ref.watch(exerciseProvider);
+
+    final formattedID = exerciseId.toString().padLeft(
+      4,
+      '0',
+    ); // Formatowanie ID do 4 cyfr
+
+    print(
+      "🔍 Szukam ćwiczenia: exerciseId=$exerciseId, formattedId=$formattedID",
+    );
+
+    try {
+      final exercise = allExercise?.firstWhere((ex) => ex.id == formattedID);
+      print("✅ Znaleziono ćwiczenie: ${exercise?.name}");
+      return exercise?.name;
+    } catch (e) {
+      print("❌ Nie znaleziono ćwiczenia o ID: $formattedID");
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,12 +113,14 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                         color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
-                      color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withAlpha(50),
                     ),
                     child: Icon(
-                      Icons.person, // ✅ Zmieniono na person
+                      Icons.person, //
                       size: 20,
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.onSecondary,
                     ),
                   ),
                   SizedBox(width: 16.0),
@@ -98,10 +130,10 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          widget.trainingSession.description?.isEmpty ?? true 
-                              ? 'Workout Session' 
-                              : widget.trainingSession.description!,
-                          style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                          _getUserName(),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium!.copyWith(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
@@ -114,7 +146,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                     ),
                   ),
                   Icon(
-                    Icons.more_horiz, // ✅ Zmieniono na chevron_right
+                    Icons.more_horiz,
                     size: 24,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -124,7 +156,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
               Row(
                 children: [
                   Text(
-                    _getWorkoutTitle(), // ✅ Rzeczywista liczba ćwiczeń
+                    _getWorkoutTitle(),
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -132,14 +164,112 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                 ],
               ),
               SizedBox(height: 8.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround, // ✅ Równomierne rozłożenie
-                children: [
-                  _buildStatColumn("Time", _formatDuration(widget.trainingSession.duration), context),
-                  _buildStatColumn("Volume", "${widget.trainingSession.totalWeight.toInt()}kg", context),
-                  _buildStatColumn("Sets", "${_getTotalSets()}", context),
-                  _buildStatColumn("Reps", "${_getTotalReps()}", context),
-                ],
+              Padding(
+                padding: EdgeInsets.only(left: 16), // ✅ Odstęp od lewej
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment
+                          .start, // ✅ ZMIANA: start zamiast spaceAround
+                  children: [
+                    SizedBox(width: 16), // ✅ DODAJ: odstęp od lewej
+                    _buildStatColumn(
+                      "Time",
+                      _formatDuration(widget.trainingSession.duration),
+                      context,
+                    ),
+                    SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                    _buildStatColumn(
+                      "Volume",
+                      "${widget.trainingSession.totalWeight.toInt()}kg",
+                      context,
+                    ),
+                    SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                    _buildStatColumn("Sets", "${_getTotalSets()}", context),
+                    SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                    _buildStatColumn("Reps", "${_getTotalReps()}", context),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8.0),
+              Divider(color: Theme.of(context).dividerColor),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: widget.trainingSession.exercises.length,
+                itemBuilder: (context, index) {
+                  final exercise = widget.trainingSession.exercises[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      children: [
+                        // ✅ Ikona na początku
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.onSecondary,
+                              width: 2,
+                            ),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha(50),
+                          ),
+                          child: Icon(
+                            Icons.fitness_center,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        SizedBox(width: 12), // ✅ Odstęp między ikoną a tekstem
+                        // ✅ Nazwa ćwiczenia - rozciąga się
+                        
+                         Text(
+                          "Sets: ${exercise.sets.length} ",
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface,
+                          ),
+                        ),
+                        
+                        Text(
+                            _getExerciseName(
+                              int.parse(exercise.exerciseId),
+                            ) ?? "Unknown Exercise",
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        
+
+                        // ✅ Liczba serii
+                       
+
+                        SizedBox(width: 16), // ✅ Odstęp
+                        // ✅ Liczba powtórzeń
+                        // Text(
+                        //   "${exercise.sets.map((set) => set.actualReps).reduce((a, b) => a + b)} reps",
+                        //   style: Theme.of(
+                        //     context,
+                        //   ).textTheme.bodySmall?.copyWith(
+                        //     color: Theme.of(
+                        //       context,
+                        //     ).colorScheme.onSurface.withAlpha(150),
+                        //   ),
+                        // ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -150,17 +280,20 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
 
   Widget _buildStatColumn(String label, String value, BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey[600],
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         SizedBox(height: 4.0),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.bold,
           ),
         ),
