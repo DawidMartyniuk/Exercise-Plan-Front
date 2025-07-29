@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:hive/hive.dart';
+import 'dart:typed_data';
 
 class ExerciseService {
   final String _baseUrl = "https://exercisedb.p.rapidapi.com";
@@ -58,7 +59,7 @@ class ExerciseService {
       });
       
       exercises.add(exerciseItem); // Dodaj do listy exercises
-     // print("🖼️ Pobrano: ${exerciseItem.name} (${i+1}/${exerciseJson.length})");
+     print("🖼️ Pobrano: ${exerciseItem.name} (${i+1}/${exerciseJson.length})");
     }
     
     // Zapisz do cache
@@ -68,11 +69,11 @@ class ExerciseService {
     }
     await box.put('lastSync', now);
 
-   // print("✅ Zaktualizowano ${exercises.length} ćwiczeń ze zdjęciami");
+    print("✅ Zaktualizowano ${exercises.length} ćwiczeń ze zdjęciami");
     return exercises;
     
   } catch (e) {
-    //print('❌ Błąd pobierania ćwiczeń: $e');
+    print('❌ Błąd pobierania ćwiczeń: $e');
     return box.values.whereType<Exercise>().toList(); // fallback
   }
 }
@@ -85,23 +86,43 @@ class ExerciseService {
       );
 
       if (imageResponse.statusCode == 200) {
-        // API prawdopodobnie zwraca bezpośrednio URL do zdjęcia lub JSON z URL
-        // Sprawdź, czy odpowiedź to JSON czy bezpośredni URL
-        if (imageResponse.body.startsWith('http')) {
-          return imageResponse.body; // Bezpośredni URL
-        } else {
-          // Jeśli to JSON, wyciągnij URL
+        // ✅ SPRAWDŹ Content-Type zamiast zgadywać
+        final contentType = imageResponse.headers['content-type'];
+        
+        if (contentType?.startsWith('image/') == true) {
+          // ✅ To jest rzeczywisty obrazek - zwróć dane jako base64
+          final bytes = imageResponse.bodyBytes;
+          final base64String = base64Encode(bytes);
+          return 'data:$contentType;base64,$base64String';
+          
+        } else if (contentType?.contains('json') == true) {
+          // ✅ To jest JSON z URL
           final imageData = json.decode(imageResponse.body);
           return imageData['url'] ?? imageData['image_url'] ?? '';
+          
+        } else if (imageResponse.body.startsWith('http')) {
+          // ✅ To jest bezpośredni URL
+          return imageResponse.body.trim();
+          
+        } else {
+          // ✅ To jest HTML lub coś innego - użyj fallback
+          print('⚠️ Nieoczekiwany format odpowiedzi dla $exerciseId: $contentType');
+          return _getFallbackGifUrl(exerciseId);
         }
       } else {
-      //  print('❌ Błąd pobierania zdjęcia dla $exerciseId: ${imageResponse.statusCode}');
-        return ''; // Pusty string jako fallback
+        print('❌ Błąd pobierania zdjęcia dla $exerciseId: ${imageResponse.statusCode}');
+        return _getFallbackGifUrl(exerciseId);
       }
     } catch (e) {
-      //print('❌ Błąd pobierania zdjęcia dla $exerciseId: $e');
-      return '';
+      print('❌ Błąd pobierania zdjęcia dla $exerciseId: $e');
+      return _getFallbackGifUrl(exerciseId);
     }
+  }
+
+  // ✅ DODAJ metodę fallback - używa publicznie dostępnych GIF-ów
+  String _getFallbackGifUrl(String exerciseId) {
+    // ExerciseDB ma publiczne GIF-y pod tym URL
+    return 'https://v2.exercisedb.io/image/$exerciseId';
   }
 }
 
