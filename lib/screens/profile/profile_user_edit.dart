@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 
@@ -13,10 +15,14 @@ class ProfileUserEdit extends ConsumerStatefulWidget {
 }
 
 class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
+  
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+
+   File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -45,6 +51,108 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   String _getProfileImage() {
     final authResponse = ref.watch(authProviderLogin);
     return authResponse?.user.avatar ?? '';
+  }
+
+   void _showImageSourceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          title: Center(
+            child: Text(
+              'Select Image Source',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(
+                  Icons.camera_alt,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  'Camera',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.photo_library,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text(
+                  'Gallery',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+            actions: [
+            Container(
+              width: double.infinity,
+              alignment: Alignment.centerRight,
+              child: TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+    Future<void> _pickImage(ImageSource source ) async {
+    try{
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        maxHeight: 512,
+        maxWidth: 512,
+        imageQuality: 80,
+        );
+
+        if(image != null){
+          setState(() {
+            _profileImage = File(image.path);
+          });
+          print("Wybrano obraz: ${_profileImage!.path}");
+        }
+    } catch (e) {
+      print("Błąd podczas wybierania obrazu: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
   }
 
   Widget _buildAvatarImage() {
@@ -92,47 +200,22 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   }
 
   // ✅ POPRAWIONA METODA - BEZ ROW
-  Widget textEditConstructor(String title, TextEditingController controller) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 8),
-          TextFormField(
-            controller: controller,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-              hintText: 'Enter your $title',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            ),
-            onChanged: (value) {
-              // Handle change
-            },
-          ),
-        ],
-      ),
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Profile'),
+        title: 
+         
+         Text('Edit Profile',
+         textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
+            
+          ),
+         ),
+         
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 2,
@@ -142,18 +225,22 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
         child: Column( // ✅ ZMIENIONO Z SINGLECHILDSCROLLVIEW
           children: [
             // ✅ AVATAR SECTION
-            Container(
-              height: 120,
-              width: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 3,
+            GestureDetector(
+              onTap: _showImageSourceDialog,
+              child: Container(
+                height: 120,
+                width: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 3,
+                  ),
+                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
                 ),
-                color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                child: 
+                _buildAvatarImage(),
               ),
-              child: _buildAvatarImage(),
             ),
             
             SizedBox(height: 20),
@@ -206,6 +293,43 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
             ),
           ],
         ),
+      ),
+    );
+  }
+  Widget textEditConstructor(String title, TextEditingController controller) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+        
+           Text(
+              title,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          
+          SizedBox(height: 8),
+          TextFormField(
+            controller: controller,
+            keyboardType: TextInputType.text,
+            decoration: InputDecoration(
+              hintText: 'Enter your $title',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              filled: true,
+              fillColor: Theme.of(context).colorScheme.surface,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            ),
+            onChanged: (value) {
+              // Handle change
+            },
+          ),
+        ],
       ),
     );
   }
