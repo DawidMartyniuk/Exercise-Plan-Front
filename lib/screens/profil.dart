@@ -88,7 +88,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 100, // ✅ ZWIĘKSZ SZEROKOŚĆ DLA WIĘKSZEGO PRZYCISKU
+        leadingWidth: 150, // ✅ ZWIĘKSZ SZEROKOŚĆ DLA WIĘKSZEGO PRZYCISKU
         leading: Container(
           margin: EdgeInsets.symmetric(horizontal: 15, vertical: 6), // ✅ ZMNIEJSZ MARGINES
           decoration: BoxDecoration(
@@ -114,7 +114,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
               color: Theme.of(context).colorScheme.onPrimary,
             ),
             label: Text(
-              'Edit',
+              'Edit Profile',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: 14, 
