@@ -45,6 +45,8 @@ dependencies:
   path_provider: ^2.1.5
   workmanager: ^0.7.0
   expandable: ^5.0.1
+  animations: ^2.0.11
+  motion_toast: ^2.14.0
 
 
 dev_dependencies:

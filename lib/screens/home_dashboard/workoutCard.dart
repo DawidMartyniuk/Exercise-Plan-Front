@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:animations/animations.dart'; // ✅ DODAJ IMPORT
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
@@ -88,6 +89,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
       return null;
     }
   }
+  
   String _getExerciseImage(int exerciseId) {
     final allExercise = ref.watch(exerciseProvider);
 
@@ -109,17 +111,21 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (ctx) => WorkoutCardInfo( 
-                trainingSession: widget.trainingSession, 
-              ),
-            ),
-          );
-        },
-        child: Card(
+      // ✅ ZAMIEŃ GestureDetector na OpenContainer z animations
+      child: OpenContainer<bool>(
+        transitionType: ContainerTransitionType.fade,
+        transitionDuration: Duration(milliseconds: 500),
+        openColor: Theme.of(context).colorScheme.surface,
+        closedColor: Colors.transparent,
+        openShape: RoundedRectangleBorder(),
+        closedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        openElevation: 0,
+        closedElevation: 2,
+        
+        // ✅ WIDGET ZAMKNIĘTY (karta)
+        closedBuilder: (context, action) => Card(
           child: Padding(
             padding: EdgeInsets.all(5.0),
             child: Column(
@@ -136,12 +142,10 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                           color: Theme.of(context).colorScheme.primary,
                           width: 2,
                         ),
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withAlpha(50),
+                        color: Theme.of(context).colorScheme.primary.withAlpha(50),
                       ),
                       child: Icon(
-                        Icons.person, //
+                        Icons.person,
                         size: 20,
                         color: Theme.of(context).colorScheme.onSecondary,
                       ),
@@ -154,9 +158,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                         children: [
                           Text(
                             _getUserName(),
-                            style: Theme.of(
-                              context,
-                            ).textTheme.titleMedium!.copyWith(
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
@@ -188,27 +190,25 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                 ),
                 SizedBox(height: 8.0),
                 Padding(
-                  padding: EdgeInsets.only(left: 16), // ✅ Odstęp od lewej
+                  padding: EdgeInsets.only(left: 16),
                   child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment
-                            .start, // ✅ ZMIANA: start zamiast spaceAround
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      SizedBox(width: 16), // ✅ DODAJ: odstęp od lewej
+                      SizedBox(width: 16),
                       _buildStatColumn(
                         "Time",
                         _formatDuration(widget.trainingSession.duration),
                         context,
                       ),
-                      SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                      SizedBox(width: 24),
                       _buildStatColumn(
                         "Volume",
                         "${widget.trainingSession.totalWeight.toInt()}kg",
                         context,
                       ),
-                      SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                      SizedBox(width: 24),
                       _buildStatColumn("Sets", "${_getTotalSets()}", context),
-                      SizedBox(width: 24), // ✅ DODAJ: odstęp między kolumnami
+                      SizedBox(width: 24),
                       _buildStatColumn("Reps", "${_getTotalReps()}", context),
                     ],
                   ),
@@ -238,9 +238,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                                 color: Theme.of(context).colorScheme.onSecondary,
                                 width: 2,
                               ),
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primary.withAlpha(50),
+                              color: Theme.of(context).colorScheme.primary.withAlpha(50),
                             ),
                             child: ClipOval(
                               child: ImageUtils.buildImage(
@@ -252,53 +250,23 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                                 placeholder: ImageUtils.buildSmallPlaceholder(context, size: 40),
                               ),
                             )
-                            // Icon(
-                            //   Icons.fitness_center,
-                            //   size: 20,
-                            //   color: Theme.of(context).colorScheme.primary,
-                            // ),
                           ),
-                          SizedBox(width: 12), // ✅ Odstęp między ikoną a tekstem
-                          // ✅ Nazwa ćwiczenia - rozciąga się
-                          
-                           Text(
+                          SizedBox(width: 12),
+                          Text(
                             "Sets: ${exercise.sets.length} ",
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
-                          
                           Text(
                               _getExerciseName(
                                 int.parse(exercise.exerciseId),
                               ) ?? "Unknown Exercise",
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                          
-        
-                          // ✅ Liczba serii
-                         
-        
-                          SizedBox(width: 16), // ✅ Odstęp
-                          // ✅ Liczba powtórzeń
-                          // Text(
-                          //   "${exercise.sets.map((set) => set.actualReps).reduce((a, b) => a + b)} reps",
-                          //   style: Theme.of(
-                          //     context,
-                          //   ).textTheme.bodySmall?.copyWith(
-                          //     color: Theme.of(
-                          //       context,
-                          //     ).colorScheme.onSurface.withAlpha(150),
-                          //   ),
-                          // ),
+                          SizedBox(width: 16),
                         ],
                       ),
                     );
@@ -307,6 +275,11 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
               ],
             ),
           ),
+        ),
+        
+        // ✅ WIDGET OTWARTY (WorkoutCardInfo)
+        openBuilder: (context, action) => WorkoutCardInfo(
+          trainingSession: widget.trainingSession,
         ),
       ),
     );
