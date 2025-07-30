@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:animations/animations.dart'; 
+
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/screens/profile/profile_user_edit.dart';
 
 class ProfilScreen extends ConsumerStatefulWidget {
   @override
@@ -88,40 +90,54 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 150, // ✅ ZWIĘKSZ SZEROKOŚĆ DLA WIĘKSZEGO PRZYCISKU
-        leading: Container(
-          margin: EdgeInsets.symmetric(horizontal: 15, vertical: 6), // ✅ ZMNIEJSZ MARGINES
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.secondary, // ✅ ZMIEŃ NA PRIMARY
-            borderRadius: BorderRadius.circular(20), // ✅ ZWIĘKSZ PROMIEŃ
-           
+        leadingWidth: 150, 
+        leading: OpenContainer<bool>(
+          transitionType: ContainerTransitionType.fade,
+          transitionDuration: Duration(milliseconds: 600),
+          openColor: Theme.of(context).colorScheme.surface,
+          closedColor: Colors.transparent,
+          openShape: RoundedRectangleBorder(),
+          closedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          openElevation: 0,
+          closedElevation: 0,
           
-            
-          ),
-          child: TextButton.icon(
-            onPressed: () {},
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ DODAJ PADDING
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+          // ✅ PRZYCISK ZAMKNIĘTY (Edit Profile)
+          closedBuilder: (context, action) => Container(
+            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 6), 
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondary,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: TextButton.icon(
+              onPressed: action, // ✅ UŻYWAJ ACTION ZAMIAST PUSTEJ FUNKCJI
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              icon: Icon(
+                Icons.edit,
+                size: 16, 
+                color: Theme.of(context).colorScheme.onSecondary, // ✅ ZMIEŃ NA onSecondary
+              ),
+              label: Text(
+                'Edit Profile',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSecondary, // ✅ ZMIEŃ NA onSecondary
+                  fontSize: 14, 
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-            icon: Icon(
-              Icons.edit, // ✅ IKONA EDYCJI
-              size: 16, 
-              color: Theme.of(context).colorScheme.onPrimary,
-            ),
-            label: Text(
-              'Edit Profile',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: 14, 
-                fontWeight: FontWeight.bold,
-              ),
-            ),
           ),
+          
+          // ✅ EKRAN OTWARTY (ProfileUserEdit)
+          openBuilder: (context, action) => ProfileUserEdit(),
         ),
         actions: [
           Container(
@@ -146,8 +162,8 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
               ),
               onPressed: () {},
               style: IconButton.styleFrom(
-                padding: EdgeInsets.all(12), // ✅ ZWIĘKSZ PADDING
-                minimumSize: Size(48, 48), // ✅ ZWIĘKSZ MINIMALNY ROZMIAR
+                padding: EdgeInsets.all(12),
+                minimumSize: Size(48, 48), 
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
