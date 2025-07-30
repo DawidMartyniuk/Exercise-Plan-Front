@@ -241,15 +241,33 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                               color: Theme.of(context).colorScheme.primary.withAlpha(50),
                             ),
                             child: ClipOval(
-                              child: ImageUtils.buildImage(
-                                imageUrl: _getExerciseImage(int.parse(exercise.exerciseId)),
-                                context: context,
-                                width: 40,
-                                height: 40,
-                                fit: BoxFit.cover,
-                                placeholder: ImageUtils.buildSmallPlaceholder(context, size: 40),
-                              ),
-                            )
+                              child: () {
+                                final imageUrl = _getExerciseImage(int.parse(exercise.exerciseId));
+                                
+                                // ✅ JEŚLI BRAK OBRAZKA - POKAŻ IKONĘ
+                                if (imageUrl.isEmpty) {
+                                  return Icon(
+                                    Icons.fitness_center,
+                                    size: 20,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  );
+                                }
+                                
+                                // ✅ JEŚLI JEST OBRAZEK - POKAŻ OBRAZEK
+                                return ImageUtils.buildImage(
+                                  imageUrl: imageUrl,
+                                  context: context,
+                                  width: 40,
+                                  height: 40,
+                                  fit: BoxFit.cover,
+                                  placeholder: Icon(
+                                    Icons.fitness_center,
+                                    size: 20,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                );
+                              }(),
+                            ),
                           ),
                           SizedBox(width: 12),
                           Text(

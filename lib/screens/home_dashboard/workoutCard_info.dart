@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+// ignore: depend_on_referenced_packages
+import 'package:intl/intl.dart'; // ✅ Import for DateFormat
+ // ✅ DODAJ IMPORT dla formatowania dat
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
@@ -35,6 +38,18 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
     return "$difference days ago";
   }
 
+  // ✅ NOWA METODA: Formatowanie pełnej daty
+  String _formatFullDateTime(DateTime date) {
+    final formatter = DateFormat('yyyy-MM-dd HH:mm');
+    return formatter.format(date);
+  }
+
+  // ✅ ALTERNATYWNA METODA: Bardziej czytelny format
+  String _formatReadableDateTime(DateTime date) {
+    final formatter = DateFormat('dd MMMM yyyy, HH:mm');
+    return formatter.format(date);
+  }
+
   int _getTotalSets() {
     return widget.trainingSession.exercises
         .map((ex) => ex.sets.length)
@@ -54,14 +69,12 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
   String _getWorkoutTitle() {
     final exercisePlans = ref.watch(exercisePlanProvider);
 
-    // Znajdź plan o tym samym ID
     try {
       final matchingPlan = exercisePlans.firstWhere(
         (plan) => plan.id == widget.trainingSession.exerciseTableId,
       );
       return matchingPlan.exercise_table;
     } catch (e) {
-      // Jeśli nie znajdzie planu, zwróć domyślną nazwę
       return widget.trainingSession.description.isNotEmpty
           ? widget.trainingSession.description
           : 'Workout Session';
@@ -181,10 +194,8 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
               
               SizedBox(height: 8.0),
               
-              // ✅ SEKCJA 4: Divider (końcowy punkt)
               Divider(color: Theme.of(context).dividerColor),
               
-              // ✅ DODATKOWA SEKCJA: Miejsce na więcej treści
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
@@ -200,13 +211,12 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
                       ),
                       SizedBox(height: 16),
                       
-                      // ✅ Informacje o treningu
-                      _buildInfoRow('Start Time', widget.trainingSession.startedAt.toString()),
+                      // ✅ POPRAWIONE formatowanie daty
+                      _buildInfoRow('Start Workout', _formatReadableDateTime(widget.trainingSession.startedAt)),
                       _buildInfoRow('Duration', _formatDuration(widget.trainingSession.duration)),
                       _buildInfoRow('Total Weight', '${widget.trainingSession.totalWeight.toInt()}kg'),
                       _buildInfoRow('Total Sets', '${_getTotalSets()}'),
                       _buildInfoRow('Total Reps', '${_getTotalReps()}'),
-                      _buildInfoRow('Completed', widget.trainingSession.completed ? 'Yes' : 'No'),
                       
                       if (widget.trainingSession.description.isNotEmpty) ...[
                         SizedBox(height: 16),
@@ -260,10 +270,7 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
       ),
     );
   }
-  /// wykresy 
-  /// każde ćwiczenie ile było powtórzeń i ciężaru
 
-  // ✅ KOPIUJ metodę z workoutCard.dart
   Widget _buildStatColumn(String label, String value, BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,7 +294,6 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
     );
   }
 
-  // ✅ NOWA metoda: Wiersz informacji
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),

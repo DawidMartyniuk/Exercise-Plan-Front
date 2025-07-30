@@ -65,7 +65,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     print('Exercises in build: $exercises');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Exercises')),
+      appBar: AppBar(title: const Text('Exercises'),
+       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100), 
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant, ),
       body:
           exercises == null
               ? const Center(child: CircularProgressIndicator()) // Ładowanie

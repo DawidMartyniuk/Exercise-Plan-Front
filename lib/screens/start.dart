@@ -50,21 +50,26 @@ class _StartscreenState extends ConsumerState<Startscreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(loginStatus ?? "Start Screen"),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 2,
         actions: [
           IconButton(
             padding: EdgeInsets.symmetric(horizontal: 30),
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (ctx) => LoginScreen()),
+              );
             },
             icon: Icon(Icons.login),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
           IconButton(
             onPressed: () async {
               await logout(context);
             },
             icon: Icon(Icons.logout),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ],
       ),
