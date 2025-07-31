@@ -222,7 +222,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column( // ✅ ZMIENIONO Z SINGLECHILDSCROLLVIEW
+        child: Column( 
           children: [
             // ✅ AVATAR SECTION
             GestureDetector(

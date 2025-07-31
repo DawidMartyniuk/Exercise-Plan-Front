@@ -26,4 +26,32 @@ class User {
       updatedAt: json['updated_at'] as String,
     );
   }
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'avatar': avatar,
+      'created_at': createdAt,
+      'updated_at': updatedAt,
+    };
+  }
+
+   User copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? avatar,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      avatar: avatar ?? this.avatar,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
