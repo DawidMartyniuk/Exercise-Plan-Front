@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/profileServiseProvider.dart';
+import 'package:work_plan_front/utils/toast_untils.dart';
 
 class ProfileUserEdit extends ConsumerStatefulWidget {
   const ProfileUserEdit({super.key});
@@ -15,26 +17,25 @@ class ProfileUserEdit extends ConsumerStatefulWidget {
 }
 
 class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
-  
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
 
-   File? _profileImage;
+  File? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authResponse = ref.read(authProviderLogin);
       if (authResponse != null) {
         _nameController.text = authResponse.user.name ?? '';
         _emailController.text = authResponse.user.email ?? '';
         _bioController.text = 'Enter your bio here';
-        _weightController.text = '70'; 
+        _weightController.text = '70';
       }
     });
   }
@@ -53,7 +54,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
     return authResponse?.user.avatar ?? '';
   }
 
-   void _showImageSourceDialog() {
+  void _showImageSourceDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -63,9 +64,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
             child: Text(
               'Select Image Source',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           content: Column(
@@ -105,22 +104,22 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
               ),
             ],
           ),
-            actions: [
+          actions: [
             Container(
               width: double.infinity,
               alignment: Alignment.centerRight,
               child: TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-              ),
               ),
             ),
           ],
@@ -128,101 +127,203 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
       },
     );
   }
-    Future<void> _pickImage(ImageSource source ) async {
-    try{
+
+  Future<void> _pickImage(ImageSource source) async {
+    try {
       final XFile? image = await _picker.pickImage(
         source: source,
         maxHeight: 512,
         maxWidth: 512,
         imageQuality: 80,
-        );
+      );
 
-        if(image != null){
-          setState(() {
-            _profileImage = File(image.path);
-          });
-          print("Wybrano obraz: ${_profileImage!.path}");
-        }
+      if (image != null) {
+        setState(() {
+          _profileImage = File(image.path);
+        });
+        print("Wybrano obraz: ${_profileImage!.path}");
+      }
+
+      // ✅ TOAST SUKCESU DLA WYBORU OBRAZU
+      ToastUtils.showSuccessToast(
+        context: context,
+        title: "Image Selected",
+        message: "Profile image has been selected successfully.",
+      );
     } catch (e) {
       print("Błąd podczas wybierania obrazu: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to pick image: $e'),
-          backgroundColor: Colors.red,
-        ),
+      ToastUtils.showErrorToast(
+        context: context,
+        title: "Image Selection Failed",
+        message: "Failed to select image. Please try again.",
       );
     }
-
   }
 
   Widget _buildAvatarImage() {
-    final imageBase64 = _getProfileImage();
-
-    if (imageBase64.isEmpty) {
-      return Icon(
-        Icons.person,
-        size: 50,
-        color: Theme.of(context).colorScheme.primary,
-      );
-    }
-
-    try {
-      String cleanBase64 = imageBase64;
-      if (imageBase64.contains(',')) {
-        cleanBase64 = imageBase64.split(',').last;
-      }
-
-      Uint8List imageBytes = base64Decode(cleanBase64);
-
+    //  nAJPIERW SPRAWDŹ CZY JEST LOKALNY OBRAZ
+    if (_profileImage != null) {
       return ClipOval(
-        child: Image.memory(
-          imageBytes,
+        child: Image.file(
+          _profileImage!,
           width: 100,
           height: 100,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.person,
-              size: 50,
-              color: Theme.of(context).colorScheme.primary,
-            );
-          },
         ),
       );
-    } catch (e) {
-      print("❌ Błąd dekodowania base64: $e");
-      return Icon(
-        Icons.person,
-        size: 50,
-        color: Theme.of(context).colorScheme.primary,
+    }
+
+    //  POTEM SPRAWDŹ BASE64 Z SERWERA
+    final imageBase64 = _getProfileImage();
+    if (imageBase64.isNotEmpty) {
+      try {
+        String cleanBase64 = imageBase64;
+        if (imageBase64.contains(',')) {
+          cleanBase64 = imageBase64.split(',').last;
+        }
+
+        Uint8List imageBytes = base64Decode(cleanBase64);
+
+        return ClipOval(
+          child: Image.memory(
+            imageBytes,
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.person,
+                size: 50,
+                color: Theme.of(context).colorScheme.primary,
+              );
+            },
+          ),
+        );
+      } catch (e) {
+        print("❌ Błąd dekodowania base64: $e");
+      }
+    }
+
+    // DOMYŚLNA IKONA
+    return Icon(
+      Icons.person,
+      size: 50,
+      color: Theme.of(context).colorScheme.primary,
+    );
+  }
+
+  Future<void> updateProfile(
+    String name,
+    String email,
+    String bio,
+    String weight,
+  ) async {
+    final authResponse = ref.read(authProviderLogin);
+    if (authResponse != null) {
+      if (name.trim().isEmpty) {
+        ToastUtils.showValidationError(
+          context,
+          customMessage: "Name field cannot be empty.",
+        );
+        return;
+      }
+
+      if (email.trim().isEmpty || !email.contains('@')) {
+        ToastUtils.showValidationError(
+          context,
+          customMessage: "Please enter a valid email address.",
+        );
+        return;
+      }
+
+      try {
+        await ref
+            .read(profileUpdateProvider.notifier)
+            .updateProfile(
+              userId: authResponse.user.id,
+              name: name,
+              email: email,
+              avatarFile: _profileImage,
+              bio: bio,
+              weight: weight,
+            );
+        final updateState = ref.read(profileUpdateProvider);
+
+        updateState.when(
+          data: (user) {
+            if (user != null) {
+              // ✅ TOAST SUKCESU
+              ToastUtils.showSaveSuccess(context, itemName: "Profile");
+              ToastUtils.showSuccessToast(
+                context: context,
+                title: "Profile Updated!",
+                message:
+                    "Your profile has been updated successfully. Changes will be visible immediately.",
+                duration: Duration(seconds: 4),
+              );
+              Navigator.pop(context);
+            } else {
+              ToastUtils.showErrorToast(
+                context: context,
+                title: "Update Failed",
+                message: "Failed to update profile. Please try again.",
+              );
+            }
+          },
+          error: (error, stack) {
+            ToastUtils.showErrorToast(
+              context: context,
+              title: "Update Error",
+              message: "Failed to update profile: $error",
+            );
+          },
+          loading: () {
+            // Loading już pokazany wcześniej
+          },
+        );
+      } catch (e) {
+        print("❌ Błąd aktualizacji profilu: $e");
+
+        // ✅ TOAST BŁĘDU POŁĄCZENIA
+        if (e.toString().contains('connection') ||
+            e.toString().contains('network') ||
+            e.toString().contains('timeout')) {
+          ToastUtils.showConnectionError(context);
+        } else {
+          ToastUtils.showErrorToast(
+            context: context,
+            title: "Update Error",
+            message: "An unexpected error occurred. Please try again.",
+          );
+        }
+      }
+    } else {
+      // ✅ TOAST BŁĘDU AUTORYZACJI
+      ToastUtils.showErrorToast(
+        context: context,
+        title: "Authentication Error",
+        message: "You are not logged in. Please login again.",
       );
     }
   }
-
-  // ✅ POPRAWIONA METODA - BEZ ROW
-  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: 
-         
-         Text('Edit Profile',
-         textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-            
-          ),
-         ),
-         
+        title: Text(
+          'Edit Profile',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+        ),
+
         backgroundColor: Theme.of(context).colorScheme.surface,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 2,
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column( 
+        child: Column(
           children: [
             // ✅ AVATAR SECTION
             GestureDetector(
@@ -238,43 +339,51 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
                   ),
                   color: Theme.of(context).colorScheme.primary.withAlpha(50),
                 ),
-                child: 
-                _buildAvatarImage(),
+                child: _buildAvatarImage(),
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // ✅ FORM FIELDS - USUŃ EXPANDED
-            Expanded( // ✅ EXPANDED TYLKO TUTAJ
+            Expanded(
+              // ✅ EXPANDED TYLKO TUTAJ
               child: SingleChildScrollView(
                 child: Column(
                   children: [
                     textEditConstructor('Name', _nameController),
-                    textEditConstructor('Email', _emailController), 
+                    textEditConstructor('Email', _emailController),
                     textEditConstructor('Bio', _bioController),
                     textEditConstructor('Weight', _weightController),
-                    
+
                     SizedBox(height: 30),
-                    
+
                     // ✅ SAVE BUTTON
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                           padding: EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () {
+                          updateProfile(
+                            _nameController.text,
+                            _emailController.text,
+                            _bioController.text,
+                            _weightController.text,
+                          );
                           print('Name: ${_nameController.text}');
                           print('Email: ${_emailController.text}');
                           print('Bio: ${_bioController.text}');
                           print('Weight: ${_weightController.text}');
-                          
+
                           // ✅ POWRÓT DO PROFILU
                           Navigator.pop(context);
                         },
@@ -296,22 +405,22 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
       ),
     );
   }
+
   Widget textEditConstructor(String title, TextEditingController controller) {
     return Padding(
       padding: EdgeInsets.only(bottom: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        
-           Text(
-              title,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
+          Text(
+            title,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
-          
+          ),
+
           SizedBox(height: 8),
           TextFormField(
             controller: controller,
@@ -323,7 +432,10 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
               ),
               filled: true,
               fillColor: Theme.of(context).colorScheme.surface,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 16,
+              ),
             ),
             onChanged: (value) {
               // Handle change

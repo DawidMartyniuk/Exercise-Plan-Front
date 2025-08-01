@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/User.dart';
 import 'package:work_plan_front/serwis/profileService.dart';
@@ -19,20 +21,29 @@ class ProfileUpdateNotifier extends StateNotifier<AsyncValue<User?>> {
     required int userId,
     required String name,
     required String email,
-    String? avatar,
+    File? avatarFile,
     String? bio,
     String? weight,
   }) async {
     state = const AsyncValue.loading();
-    
+
+   
     try {
+      String? avatarBase64;
+
+       if (avatarFile != null) {
+        avatarBase64 = await _profileService.fileToBase64(avatarFile);
+      }
+
+    
       final updatedUser = await _profileService.updateProfile(
         userId: userId,
         name: name,
         email: email,
         bio: bio,
         weight: weight,
-        avatar: avatar,
+        avatar: avatarBase64, 
+        
       );
       
       state = AsyncValue.data(updatedUser);
