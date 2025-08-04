@@ -250,7 +250,12 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                     final newExercise = await Navigator.of(
                       context,
                     ).push<Exercise>(
-                      MaterialPageRoute(builder: (ctx) => ExercisesScreen()),
+                      MaterialPageRoute(
+                        builder: (ctx) => ExercisesScreen(
+                          isSelectionMode: true, // ✅ DODAJ TO!
+                          title: 'Select Exercise for Plan', // ✅ DODAJ TO!
+                        ),
+                      ),
                     );
                     if (newExercise != null) {
                       print('Adding exercise: ${newExercise.name}');

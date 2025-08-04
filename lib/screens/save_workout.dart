@@ -364,8 +364,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     final status = await _trainingService.saveTrainingSession(trainingSession);
     
     if (status == 200 || status == 201) {
-      ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
-      
+     ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Trening zapisany!')),
       );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart'; // ✅ DODAJ IMPORT
 import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
@@ -54,17 +55,27 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
   String _getWorkoutTitle() {
     final exercisePlans = ref.watch(exercisePlanProvider);
 
+    // ✅ DODAJ DEBUG
+    print("🔍 Szukam planu ID=${widget.trainingSession.exerciseTableId}");
+    print("🔍 Dostępne plany: ${exercisePlans.map((p) => 'ID=${p.id}:${p.exercise_table}').join(', ')}");
+
     // Znajdź plan o tym samym ID
     try {
       final matchingPlan = exercisePlans.firstWhere(
         (plan) => plan.id == widget.trainingSession.exerciseTableId,
       );
+      print("✅ Znaleziono plan: ${matchingPlan.exercise_table}");
       return matchingPlan.exercise_table;
     } catch (e) {
-      // Jeśli nie znajdzie planu, zwróć domyślną nazwę
-      return widget.trainingSession.description.isNotEmpty
-          ? widget.trainingSession.description
-          : 'Workout Session';
+      // ✅ LEPSZE FALLBACK
+      print("❌ Nie znaleziono planu ID=${widget.trainingSession.exerciseTableId}: $e");
+      
+      if (widget.trainingSession.description.isNotEmpty) {
+        return widget.trainingSession.description;
+      }
+      
+      // ✅ POKAŻ ID PLANU W NAZWIE
+      return 'Deleted Plan (ID: ${widget.trainingSession.exerciseTableId})';
     }
   }
 
@@ -73,38 +84,50 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
     return authResponse?.user.name ?? 'User';
   }
 
-  String? _getExerciseName(int exerciseId) {
-    final allExercise = ref.watch(exerciseProvider);
+  String? _getExerciseName(String exerciseId) {
 
-    final formattedID = exerciseId.toString().padLeft(4, '0');
-    print(
-      "🔍 Szukam ćwiczenia: exerciseId=$exerciseId, formattedId=$formattedID",
-    );
-    try {
-      final exercise = allExercise?.firstWhere((ex) => ex.id == formattedID);
-      print("✅ Znaleziono ćwiczenie: ${exercise?.name}");
-      return exercise?.name;
-    } catch (e) {
-      print("❌ Nie znaleziono ćwiczenia o ID: $formattedID");
-      return null;
-    }
+    final exerciseState = ref.watch(exerciseProvider);
+
+    return exerciseState.when(
+      data:  (allExercise) {
+        try {
+          final exercise = allExercise.firstWhere((ex) => ex.exerciseId == exerciseId);
+          print("✅ Znaleziono ćwiczenie: ${exercise.name}");
+          return exercise.name;
+        } catch (e) {
+          print("❌ Nie znaleziono ćwiczenia o ID: $exerciseId");
+          return "Unknown Exercise ($exerciseId)";
+        }
+      },
+      error: (error, stackTrace) {
+        print("❌ Błąd podczas pobierania ćwiczeń: $error");
+        return null;
+      },
+      loading: () => "Loading...",
+      );
   }
   
-  String _getExerciseImage(int exerciseId) {
-    final allExercise = ref.watch(exerciseProvider);
+  String? _getExerciseImage(String exerciseId) {
+    final exerciseData = ref.watch(exerciseProvider);
 
-    final formattedID = exerciseId.toString().padLeft(4, '0');
-    print(
-      "🔍 Szukam obrazka ćwiczenia: exerciseId=$exerciseId, formattedId=$formattedID",
+    return exerciseData.when(
+      data: (allExercise) {
+        try {
+          final exercise = allExercise.firstWhere((ex) => ex.exerciseId == exerciseId);
+          print("✅ Znaleziono obrazek ćwiczenia: ${exercise.gifUrl}");
+          return exercise.gifUrl ?? '';
+        } catch (e) {
+          print("❌ Nie znaleziono obrazka ćwiczenia o ID: $exerciseId");
+          return '';
+        }
+      },
+      error: (error, stackTrace) {
+        print("❌ Błąd podczas pobierania obrazków ćwiczeń: $error");
+        return '';
+      },
+      loading: () => '',
     );
-    try {
-      final exercise = allExercise?.firstWhere((ex) => ex.id == formattedID);
-      print("✅ Znaleziono obrazek ćwiczenia: ${exercise?.gifUrl}");
-      return exercise?.gifUrl ?? '';
-    } catch (e) {
-      print("❌ Nie znaleziono obrazka ćwiczenia o ID: $formattedID");
-      return '';
-    }
+
   }
 
   @override
@@ -242,10 +265,10 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                             ),
                             child: ClipOval(
                               child: () {
-                                final imageUrl = _getExerciseImage(int.parse(exercise.exerciseId));
+                                final imageUrl = _getExerciseImage(exercise.exerciseId);
                                 
                                 // ✅ JEŚLI BRAK OBRAZKA - POKAŻ IKONĘ
-                                if (imageUrl.isEmpty) {
+                                if (imageUrl!.isEmpty) {
                                   return Icon(
                                     Icons.fitness_center,
                                     size: 20,
@@ -278,7 +301,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                           ),
                           Text(
                               _getExerciseName(
-                                int.parse(exercise.exerciseId),
+                                exercise.exerciseId,
                               ) ?? "Unknown Exercise",
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,

@@ -123,7 +123,7 @@ class _ExerciseInfoScreenState extends ConsumerState<ExerciseInfoScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Body Part: ${exercise.formattedBodyPart}', // ✅ UŻYWAJ formattedBodyPart
+                  'Body Part: ${exercise.bodyPart}', // ✅ UŻYWAJ formattedBodyPart
                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),

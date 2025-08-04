@@ -17,12 +17,12 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Exercise(
-      id: fields[0] as String,
+      exerciseId: fields[0] as String,
       name: fields[1] as String,
-      bodyPart: fields[2] as String,
-      equipment: fields[3] as String,
-      gifUrl: fields[4] as String,
-      target: fields[5] as String,
+      bodyParts: (fields[2] as List).cast<String>(),
+      equipments: (fields[3] as List).cast<String>(),
+      gifUrl: fields[4] as String?,
+      targetMuscles: (fields[5] as List).cast<String>(),
       secondaryMuscles: (fields[6] as List).cast<String>(),
       instructions: (fields[7] as List).cast<String>(),
     );
@@ -33,17 +33,17 @@ class ExerciseAdapter extends TypeAdapter<Exercise> {
     writer
       ..writeByte(8)
       ..writeByte(0)
-      ..write(obj.id)
+      ..write(obj.exerciseId)
       ..writeByte(1)
       ..write(obj.name)
       ..writeByte(2)
-      ..write(obj.bodyPart)
+      ..write(obj.bodyParts)
       ..writeByte(3)
-      ..write(obj.equipment)
+      ..write(obj.equipments)
       ..writeByte(4)
       ..write(obj.gifUrl)
       ..writeByte(5)
-      ..write(obj.target)
+      ..write(obj.targetMuscles)
       ..writeByte(6)
       ..write(obj.secondaryMuscles)
       ..writeByte(7)

@@ -63,35 +63,57 @@ class TrainingSessionService {
 
   // Pobierz sesje treningowe dla zalogowanego użytkownika
   Future<List<TrainingSession>> getUserTrainingSessions() async {
+    print("🌐 TrainingSessionService: getUserTrainingSessions() START");
+    
     try {
+      print("🌐 TrainingSessionService: Rozpoczynam pobieranie sesji...");
+      
       final userId = await getUserIdFromToken();
+      print("👤 User ID: $userId");
+      
       if (userId == null) {
+        print("❌ User ID jest null!");
         throw Exception("User ID not found.");
       }
 
       final url = Uri.parse("$_baseUrl$_trainingUrl?user_id=$userId");
+      print("🌐 Calling URL: $url");
 
+      // ✅ DODAJ TIMEOUT
       final response = await http.get(
-        url,
+        url, 
         headers: await getHeaders(),
-      );
+      ).timeout(Duration(seconds: 5));
+
+      print("📡 Response status: ${response.statusCode}");
+      print("📡 Response body length: ${response.body.length}");
+      print("📡 Response body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}");
 
       if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      
-      // ✅ POPRAWKA: Wyciągnij dane z pola 'data'
-      final List<dynamic> jsonData = responseData['data'] as List;
-      
-      print("✅ Pobrano ${jsonData.length} sesji treningowych");
-      
-      return jsonData.map((item) => TrainingSession.fromJson(item)).toList();
-    } else {
-      print("Failed to fetch user training sessions: ${response.body}");
-      throw Exception("Failed to fetch user training sessions");
-    }
-    } catch (e) {
-      print("Error fetching user training sessions: $e");
-      rethrow;
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        final List<dynamic> jsonData = responseData['data'] as List;
+        
+        print("✅ Pobrano ${jsonData.length} sesji treningowych z API");
+        
+        if (jsonData.isEmpty) {
+          print("⚠️ API zwróciło pustą listę sesji");
+          return [];
+        }
+        
+        final sessions = jsonData.map((item) => TrainingSession.fromJson(item)).toList();
+        print("✅ Sparsowano ${sessions.length} sesji");
+        
+        return sessions;
+      } else {
+        print("❌ Błąd API: ${response.statusCode} - ${response.body}");
+        return [];
+      }
+    } catch (e, stackTrace) {
+      print("❌ TrainingSessionService ERROR: $e");
+      print("❌ Stack trace: $stackTrace");
+      return [];
+    } finally {
+      print("🌐 TrainingSessionService: getUserTrainingSessions() END");
     }
   }
 }

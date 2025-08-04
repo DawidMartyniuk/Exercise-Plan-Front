@@ -1,144 +1,131 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:hive/hive.dart';
-import 'dart:typed_data';
 
 class ExerciseService {
-  final String _baseUrl = "https://exercisedb.p.rapidapi.com";
-  final String _exercisesEndpoint = "/exercises";
-  final String _imageEndpoint = "/image";
-  final String _limit = "?limit=50";
-  final String _offset = "&offset=0";
+  static const String _boxName = 'exerciseBox';
 
-  final Map<String, String> _headers = {
-    'x-rapidapi-key': '9ab0213a17msh00a1dc6e0dc0d7ap11abe4jsn40c075e5b5a1',
-    'x-rapidapi-host': 'exercisedb.p.rapidapi.com',
-    'Content-Type': 'application/json',
-  };
-
+  // ✅ WCZYTAJ PIERWSZE 100 ĆWICZEŃ Z JSON
   Future<List<Exercise>?> exerciseList({bool forceRefresh = false}) async {
-    print("⬇️ Pobieram ćwiczenia z API (cache wyłączony)...");
-
     try {
-      final exerciseResponse = await http.get(
-        Uri.parse("$_baseUrl$_exercisesEndpoint$_limit$_offset"),
-        headers: _headers,
-      );
+      final box = await Hive.openBox<Exercise>(_boxName);
 
-      if(exerciseResponse.statusCode != 200) {
-        print('❌ Błąd pobierania ćwiczeń: ${exerciseResponse.statusCode}');
-        throw Exception("Failed to load exercises: ${exerciseResponse.statusCode}");
-      }
+      // Jeśli nie ma danych lokalnie lub wymuszone odświeżenie
+      if (box.isEmpty || forceRefresh) {
+        print("📦 Ładowanie ćwiczeń z JSON...");
+        try {
+          final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
+          print("załadowano json długość ${jsonString.length}");
 
-      final List<dynamic> exerciseJson = json.decode(exerciseResponse.body);
-      final List<Exercise> exercises = [];
-       
-      // ✅ OPCJA 1: Pobierz wszystkie obrazki równolegle
-      final futures = <Future<String>>[];
-      final exerciseItems = <Exercise>[];
-      
-      for(int i = 0; i < exerciseJson.length; i++) {
-        final exerciseData = exerciseJson[i];
-        final exerciseItem = Exercise.fromJson(exerciseData);
-        exerciseItems.add(exerciseItem);
-        
-        // ✅ Dodaj zadanie pobierania obrazka do listy
-        futures.add(_getExerciseImageUrl(exerciseItem.id));
-      }
-      
-      // ✅ Poczekaj na wszystkie obrazki
-      print("🖼️ Pobieram ${futures.length} obrazków równolegle...");
-      final gifUrls = await Future.wait(futures);
-      
-      // ✅ Połącz ćwiczenia z obrazkami
-      for(int i = 0; i < exerciseItems.length; i++) {
-        final exerciseItem = exerciseItems[i];
-        final gifUrl = gifUrls[i];
-        
-        final finalExercise = Exercise(
-          id: exerciseItem.id,
-          name: exerciseItem.name,
-          bodyPart: exerciseItem.bodyPart,
-          equipment: exerciseItem.equipment,
-          gifUrl: gifUrl.isNotEmpty ? gifUrl : null, // ✅ Null gdy pusty
-          target: exerciseItem.target,
-          secondaryMuscles: exerciseItem.secondaryMuscles,
-          instructions: exerciseItem.instructions,
-          description: exerciseItem.description,
-          difficulty: exerciseItem.difficulty,
-          category: exerciseItem.category,
-        );
-        
-        exercises.add(finalExercise);
-        print("✅ ${exerciseItem.name} - ${gifUrl.isNotEmpty ? 'z obrazkiem' : 'bez obrazka'} (${i+1}/${exerciseItems.length})");
-      }
-      
-      print("✅ Pobrano ${exercises.length} ćwiczeń z API");
-      return exercises;
-      
-    } catch (e) {
-      print('❌ Błąd pobierania ćwiczeń: $e');
-      return [];
-    }
-  }
-
-  /// ✅ NOWA METODA: Pobiera URL obrazka dla konkretnego ćwiczenia
-  Future<String> _getExerciseImageUrl(String exerciseId) async {
-    try {
-      // ✅ Formatuj ID do 4 cyfr z zerami wiodącymi
-      final String formattedId = exerciseId.padLeft(4, '0');
-      
-      final imageResponse = await http.get(
-        Uri.parse("$_baseUrl$_imageEndpoint?exerciseId=$formattedId&resolution=180"),
-        headers: _headers,
-      );
-
-      if (imageResponse.statusCode == 200) {
-        // ✅ SPRAWDŹ Content-Type odpowiedzi
-        final contentType = imageResponse.headers['content-type'];
-        
-        if (contentType?.contains('json') == true) {
-          // ✅ API zwraca JSON z URL
-          final imageData = json.decode(imageResponse.body);
-          final url = imageData['url'] ?? imageData['image'] ?? imageData['gifUrl'] ?? '';
-          print("🔍 JSON response dla $formattedId: $imageData");
-          return url;
-          
-        } else if (imageResponse.body.startsWith('http')) {
-          // ✅ API zwraca bezpośrednio URL
-          final url = imageResponse.body.trim();
-          print("🔍 Direct URL dla $formattedId: $url");
-          return url;
-          
-        } else if (contentType?.startsWith('image/') == true) {
-          // ✅ API zwraca bezpośrednio obrazek
-          final bytes = imageResponse.bodyBytes;
-          final base64String = base64Encode(bytes);
-          final dataUrl = 'data:$contentType;base64,$base64String';
-          print("🔍 Image data dla $formattedId: ${dataUrl.length} znaków");
-          return dataUrl;
-          
-        } else {
-          print('⚠️ Nieoczekiwany format dla $formattedId: $contentType');
-          print('⚠️ Body: ${imageResponse.body.substring(0, 100)}...');
-          return '';
+          final List<dynamic> jsonList = json.decode(jsonString);
+          print("załadowano json długość listy ${jsonList.length}");
+        }catch (e) {
+          print("❌ Błąd ładowania JSON: $e");
+          return null;
         }
-      } else {
-        print('❌ Błąd pobierania obrazka dla $formattedId: ${imageResponse.statusCode}');
-        return '';
+        
+        // Wczytaj JSON z assets
+        final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
+        final List<dynamic> jsonList = json.decode(jsonString);
+        
+        // ✅ WEŹ TYLKO PIERWSZE 100 ĆWICZEŃ
+        final limitedJsonList = jsonList.take(100).toList();
+        
+        // Konwertuj na Exercise obiekty
+        final List<Exercise> exercises = limitedJsonList
+            .map((json) => Exercise.fromJson(json))
+            .where((exercise) => exercise.name.isNotEmpty) // Filtruj puste
+            .toList();
+
+        // Wyczyść box i zapisz nowe dane
+        await box.clear();
+        for (final exercise in exercises) {
+          await box.add(exercise);
+        }
+
+        print("✅ Zapisano ${exercises.length} ćwiczeń lokalnie");
+        return exercises;
       }
+
+      // Pobierz z lokalnej bazy
+      final exercises = box.values.toList();
+      print("📱 Wczytano ${exercises.length} ćwiczeń z lokalnej bazy");
+      return exercises;
+
     } catch (e) {
-      print('❌ Błąd pobierania obrazka dla $exerciseId: $e');
-      return '';
+      print("❌ Błąd ładowania ćwiczeń: $e");
+      return null;
     }
   }
 
-  // ✅ W exerciseService.dart - dodaj metodę do czyszczenia cache
-  Future<void> clearCache() async {
-    final box = await Hive.openBox('exerciseBox');
-    await box.clear();
-    print("🗑️ Cache ćwiczeń wyczyszczony");
+  // ✅ WYCZYŚĆ LOKALNĄ BAZĘ
+  Future<void> clearLocalExercises() async {
+    try {
+      final box = await Hive.openBox<Exercise>(_boxName);
+      await box.clear();
+      print("🗑️ Wyczyszczono lokalną bazę ćwiczeń");
+    } catch (e) {
+      print("❌ Błąd czyszczenia bazy: $e");
+    }
+  }
+
+  // ✅ DODAJ WIĘCEJ ĆWICZEŃ (np. następne 100)
+  Future<void> loadMoreExercises({int skip = 100, int take = 100}) async {
+    try {
+      final box = await Hive.openBox<Exercise>(_boxName);
+      
+      final String jsonString = await rootBundle.loadString('lib/data/exercises.json');
+      final List<dynamic> jsonList = json.decode(jsonString);
+      
+      // Weź następne ćwiczenia
+      final moreExercises = jsonList
+          .skip(skip)
+          .take(take)
+          .map((json) => Exercise.fromJson(json))
+          .where((exercise) => exercise.name.isNotEmpty)
+          .toList();
+
+      for (final exercise in moreExercises) {
+        await box.add(exercise);
+      }
+
+      print("✅ Dodano ${moreExercises.length} kolejnych ćwiczeń");
+    } catch (e) {
+      print("❌ Błąd ładowania kolejnych ćwiczeń: $e");
+    }
+  }
+
+  // ✅ POBIERZ STATYSTYKI
+  Future<Map<String, int>> getExerciseStats() async {
+    try {
+      final box = await Hive.openBox<Exercise>(_boxName);
+      final exercises = box.values.toList();
+
+      final Map<String, int> bodyPartCount = {};
+      final Map<String, int> equipmentCount = {};
+
+      for (final exercise in exercises) {
+        // Zlicz części ciała
+        for (final bodyPart in exercise.bodyParts) {
+          bodyPartCount[bodyPart] = (bodyPartCount[bodyPart] ?? 0) + 1;
+        }
+        
+        // Zlicz sprzęt
+        for (final equipment in exercise.equipments) {
+          equipmentCount[equipment] = (equipmentCount[equipment] ?? 0) + 1;
+        }
+      }
+
+      return {
+        'total': exercises.length,
+        'bodyParts': bodyPartCount.length,
+        'equipments': equipmentCount.length,
+      };
+    } catch (e) {
+      print("❌ Błąd pobierania statystyk: $e");
+      return {};
+    }
   }
 }
 

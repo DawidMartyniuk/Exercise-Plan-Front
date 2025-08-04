@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
+import 'package:work_plan_front/screens/exercises.dart';
 
 class SelectedExerciseList extends StatefulWidget {
   final List<Exercise> exercises;
@@ -74,13 +75,13 @@ Map<String, List<Map<String, String>>> getTableData() {
   return exerciseRows.map((exerciseId, data) {
     final rawRows = data["rows"] as List<dynamic>? ?? [];
     final exerciseName = data["exerciseName"]?.toString() ?? "Unknown Exercise";
-    final execiseNumber = exerciseId;
+    final exerciseNumber = exerciseId;
     final notes = data["notes"]?.toString() ?? "";
     final rows = rawRows.map((row) {
       final rowMap = Map<String, dynamic>.from(row);
       return {
         "exercise_name": exerciseName,
-        "exercise_number": execiseNumber, 
+        "exercise_number": exerciseNumber,
         "notes": notes,
         "colStep": rowMap["colStep"]?.toString() ?? "0",
         "colKg": rowMap["colKg"]?.toString() ?? "0",
@@ -357,6 +358,51 @@ _deleteExerciseForPlan(String exerciseId) {
         
       },
       
+    );
+  }
+}
+
+class PlanCreationScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Plan Creation'),
+      ),
+      body: Center(
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: TextButton(
+            onPressed: () async {
+              final newExercise = await Navigator.of(context).push<Exercise>(
+                MaterialPageRoute(
+                  builder: (ctx) => ExercisesScreen(
+                    isSelectionMode: true, // ✅ WŁĄCZ TRYB WYBORU
+                    title: 'Select Exercise for Plan', // ✅ OPCJONALNY TYTUŁ
+                  ),
+                ),
+              );
+              if (newExercise != null) {
+                print('Adding exercise: ${newExercise.name}');
+                // Tutaj dodaj logikę dodawania nowego ćwiczenia do planu
+              }
+            },
+            child: Text(
+              "Add Exercise", 
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface
+              ),
+            ),
+            style: TextButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(25.0),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

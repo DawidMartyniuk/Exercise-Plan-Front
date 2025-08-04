@@ -5,22 +5,22 @@ part 'exercise.g.dart';
 @HiveType(typeId: 0)
 class Exercise extends HiveObject {
   @HiveField(0)
-  final String id;
+  final String exerciseId; // ✅ ZMIANA: z 'id' na 'exerciseId'
 
   @HiveField(1)
   final String name;
 
   @HiveField(2)
-  final String bodyPart;
+  final List<String> bodyParts; // ✅ ZMIANA: z String na List<String>
 
   @HiveField(3)
-  final String equipment;
+  final List<String> equipments; // ✅ ZMIANA: z String na List<String>
 
   @HiveField(4)
-  final String? gifUrl; // ✅ Nullable, bo API nie zwraca tego pola
+  final String? gifUrl;
 
   @HiveField(5)
-  final String target;
+  final List<String> targetMuscles; // ✅ ZMIANA: z 'target' na 'targetMuscles'
 
   @HiveField(6)
   final List<String> secondaryMuscles;
@@ -28,63 +28,46 @@ class Exercise extends HiveObject {
   @HiveField(7)
   final List<String> instructions;
 
-  @HiveField(8)
-  final String? description; // ✅ DODAJ: nowe pola z API
-
-  @HiveField(9)
-  final String? difficulty; // ✅ DODAJ
-
-  @HiveField(10)
-  final String? category; // ✅ DODAJ
-
   Exercise({
-    required this.id,
+    required this.exerciseId,
     required this.name,
-    required this.bodyPart,
-    required this.equipment,
+    required this.bodyParts,
+    required this.equipments,
     this.gifUrl,
-    required this.target,
+    required this.targetMuscles,
     required this.secondaryMuscles,
     required this.instructions,
-    this.description, // ✅ DODAJ
-    this.difficulty,  // ✅ DODAJ
-    this.category,    // ✅ DODAJ
   });
 
-  // ✅ DODAJ: getter do formatowania bodyPart
-  String get formattedBodyPart {
-    return bodyPart.replaceAll('_', ' ').toUpperCase();
-  }
+  // ✅ GETTER dla kompatybilności
+  String get id => exerciseId;
+  String get bodyPart => bodyParts.isNotEmpty ? bodyParts.first : '';
+  String get equipment => equipments.isNotEmpty ? equipments.first : '';
+  String get target => targetMuscles.isNotEmpty ? targetMuscles.first : '';
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
-      id: json['id']?.toString() ?? '', // ✅ Obsługa null
+      exerciseId: json['exerciseId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      bodyPart: json['bodyPart']?.toString() ?? '',
-      equipment: json['equipment']?.toString() ?? '',
-      gifUrl: null, // ✅ API nie zwraca tego pola - ustawimy później
-      target: json['target']?.toString() ?? '',
+      bodyParts: List<String>.from(json['bodyParts'] ?? []),
+      equipments: List<String>.from(json['equipments'] ?? []),
+      gifUrl: json['gifUrl']?.toString(),
+      targetMuscles: List<String>.from(json['targetMuscles'] ?? []),
       secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? []),
       instructions: List<String>.from(json['instructions'] ?? []),
-      description: json['description']?.toString(), // ✅ DODAJ
-      difficulty: json['difficulty']?.toString(),   // ✅ DODAJ
-      category: json['category']?.toString(),       // ✅ DODAJ
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'exerciseId': exerciseId,
       'name': name,
-      'bodyPart': bodyPart,
-      'equipment': equipment,
+      'bodyParts': bodyParts,
+      'equipments': equipments,
       'gifUrl': gifUrl,
-      'target': target,
+      'targetMuscles': targetMuscles,
       'secondaryMuscles': secondaryMuscles,
       'instructions': instructions,
-      'description': description, // ✅ DODAJ
-      'difficulty': difficulty,   // ✅ DODAJ
-      'category': category,       // ✅ DODAJ
     };
   }
 }

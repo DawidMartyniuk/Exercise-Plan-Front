@@ -6,7 +6,14 @@ import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
-  const ExercisesScreen({super.key});
+  final bool isSelectionMode; // ✅ DODAJ TRY WYBORU
+  final String? title; // ✅ OPCJONALNY TYTUŁ
+
+  const ExercisesScreen({
+    super.key,
+    this.isSelectionMode = false,
+    this.title,
+  });
 
   @override
   ConsumerState<ExercisesScreen> createState() => _ExercisesScreenState();
@@ -19,9 +26,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   @override
   void initState() {
     super.initState();
-    ref
-        .read(exerciseProvider.notifier)
-        .fetchExercises( forceRefresh: true); // Force refresh to get latest data
+    Future.microtask(() {
+      ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+    });
   }
 
   List<Exercise> _filteredExercises(List<Exercise> exercises) {
@@ -44,7 +51,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         selectedBodyPart = bodyPart;
       }
     });
-    Navigator.of(context).pop(); // Zamknij BottomSheet
+    Navigator.of(context).pop();
   }
 
   void _openSelectBodyPart() {
@@ -58,27 +65,108 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercises = ref.watch(
-      exerciseProvider,
-    ); // Automatyczne pobieranie danych jako AsyncValue
+    final exercises = ref.watch(exerciseProvider);
 
     print('Exercises in build: $exercises');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Exercises'),
-       backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100), 
-        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant, ),
-      body:
-          exercises == null
-              ? const Center(child: CircularProgressIndicator()) // Ładowanie
-              : exercises.isEmpty
-              ? const Center(
-                child: Text('No exercises available.'),
-              ) // Brak danych
-              : Padding(
+      appBar: AppBar(
+        // ✅ ZMIEŃ TYTUŁ W ZALEŻNOŚCI OD TRYBU
+        title: Text(widget.isSelectionMode 
+            ? (widget.title ?? 'Select Exercise') 
+            : 'Exercises'),
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100), 
+        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        actions: [
+          // ✅ DODAJ PRZYCISK REFRESH
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: () {
+              ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+            },
+          ),
+        ],
+      ),
+      body: exercises.when(
+        loading: () => const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Loading exercises...'),
+            ],
+          ),
+        ),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error, size: 64, color: Colors.red),
+              SizedBox(height: 16),
+              Text('Error: $err'),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+                },
+                child: Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+        data: (exerciseList) => exerciseList.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.fitness_center, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text('No exercises available.'),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+                      },
+                      child: Text('Load Exercises'),
+                    ),
+                  ],
+                ),
+              )
+            : Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
                   children: [
+                    // ✅ POKAŻ INSTRUKCJĘ W TRYBIE WYBORU
+                    if (widget.isSelectionMode) ...[
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(12),
+                        margin: EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Tap an exercise to add it to your plan',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                    
                     Row(
                       children: [
                         Expanded(
@@ -119,9 +207,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                               selectedBodyPart == null
                                   ? 'Body part'
                                   : '${selectedBodyPart?.displayNameBodyPart()}',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleSmall!.copyWith(
+                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                               ),
@@ -140,9 +226,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                             onPressed: () {},
                             child: Text(
                               'Target',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.titleSmall!.copyWith(
+                              style: Theme.of(context).textTheme.titleSmall!.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                               ),
@@ -160,12 +244,18 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     const SizedBox(height: 10),
                     Expanded(
                       child: ExerciseList(
-                        exercise: _filteredExercises(exercises),
+                        exercise: _filteredExercises(exerciseList),
+                        isSelectionMode: widget.isSelectionMode, // ✅ PRZEKAŻ TRYB
+                        onExerciseSelected: (exercise) {
+                          // ✅ CALLBACK ZOSTANIE WYWOŁANY AUTOMATYCZNIE
+                          print('Selected exercise: ${exercise.name}');
+                        },
                       ),
                     ),
                   ],
                 ),
               ),
+      ),
     );
   }
 }

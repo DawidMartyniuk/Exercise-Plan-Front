@@ -601,15 +601,25 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                                         int.tryParse(firstRow.exercise_number),
                                     orElse:
                                         () => Exercise(
-                                          id: '',
-                                          name: 'Nieznane ćwiczenie',
-                                          bodyPart: '',
-                                          equipment: '',
+                                          exerciseId: '',
+                                          name: 'Unknown Exercise',
+                                          bodyParts: [],
+                                          equipments: [],
                                           gifUrl: '',
-                                          target: '',
+                                          targetMuscles: [],
                                           secondaryMuscles: [],
                                           instructions: [],
                                         ),
+                                        // Exercise(
+                                        //   id: '',
+                                        //   name: 'Nieznane ćwiczenie',
+                                        //   bodyPart: '',
+                                        //   equipment: '',
+                                        //   gifUrl: '',
+                                        //   target: '',
+                                        //   secondaryMuscles: [],
+                                        //   instructions: [],
+                                        // ),
                                   );
             
                               return PlanSelectedCard(

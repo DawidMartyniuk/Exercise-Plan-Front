@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
-import 'dart:convert'; // ✅ DODAJ dla base64
-import 'dart:typed_data'; // ✅ DODAJ
-import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ dla obrazków
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:work_plan_front/utils/imge_untils.dart';
 
 class ExerciseList extends StatelessWidget {
   final List<Exercise> exercise;
+  final bool isSelectionMode; // ✅ DODAJ TRYB WYBORU
+  final Function(Exercise)? onExerciseSelected; // ✅ CALLBACK DLA WYBORU
 
-  const ExerciseList({super.key, required this.exercise});
+  const ExerciseList({
+    super.key, 
+    required this.exercise,
+    this.isSelectionMode = false, // ✅ DOMYŚLNIE TRYB PRZEGLĄDANIA
+    this.onExerciseSelected,
+  });
 
   // ✅ NOWA METODA: Konwertuj base64 data URL na Uint8List
   Uint8List? _decodeBase64Image(String? gifUrl) {
@@ -37,11 +44,19 @@ class ExerciseList extends StatelessWidget {
           margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: InkWell(
             onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
-                ),
-              );
+              // ✅ SPRAWDŹ TRYB
+              if (isSelectionMode && onExerciseSelected != null) {
+                // TRYB WYBORU - WYBIERZ ĆWICZENIE I WRÓĆ
+                onExerciseSelected!(currentExercise);
+                Navigator.of(context).pop(currentExercise); // ✅ WRÓĆ Z WYBRANYM ĆWICZENIEM
+              } else {
+                // TRYB PRZEGLĄDANIA - POKAŻ SZCZEGÓŁY
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
+                  ),
+                );
+              }
             },
             borderRadius: BorderRadius.circular(8),
             child: Padding(
@@ -84,7 +99,7 @@ class ExerciseList extends StatelessWidget {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          currentExercise.formattedBodyPart,
+                          currentExercise.bodyParts.join(', '),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
                           ),
@@ -93,19 +108,13 @@ class ExerciseList extends StatelessWidget {
                     ),
                   ),
                   
-                  IconButton(
-                    icon: Icon(
-                      Icons.chevron_right,
-                      color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
-                      size: 24,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
-                        ),
-                      );
-                    },
+                  // ✅ ZMIEŃ IKONĘ W ZALEŻNOŚCI OD TRYBU
+                  Icon(
+                    isSelectionMode ? Icons.add_circle_outline : Icons.chevron_right,
+                    color: isSelectionMode 
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurface.withAlpha(100),
+                    size: 24,
                   ),
                 ],
               ),
