@@ -40,41 +40,48 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
   final result = <PerformedExercise>[];
   final currentPlan = currentWorkout?.plan;
   final currentExercises = currentWorkout?.exercises ?? [];
+  
   if (currentPlan != null) {
     print('currentPlan.rows: ${currentPlan.rows.length}');
+    
     for (final rowData in currentPlan.rows) {
       print('rowData.exercise_number: ${rowData.exercise_number}');
-      for (final ex in currentExercises) {
-        print(
-          'Porównuję ex.id: ${ex.id} z rowData.exercise_number: ${rowData.exercise_number}',
-        );
-      }
+      print('rowData.exercise_name: ${rowData.exercise_name}');
+      
+      // ✅ NAPRAW MAPOWANIE - użyj exercise_name zamiast exercise_number
       Exercise? exercise = currentExercises.firstWhereOrNull((ex) {
-        final exId = int.tryParse(ex.id ?? '');
-        final rowId = int.tryParse(rowData.exercise_number ?? '');
-        print('exId: $exId, rowId: $rowId');
-        return exId != null && rowId != null && exId == rowId;
+        print('Porównuję ex.name: "${ex.name}" z rowData.exercise_name: "${rowData.exercise_name}"');
+        return ex.name.toLowerCase().trim() == rowData.exercise_name.toLowerCase().trim();
       });
+      
+      // ✅ FALLBACK - jeśli nie znajdzie po nazwie, spróbuj po exercise_number jako string
+      if (exercise == null) {
+        exercise = currentExercises.firstWhereOrNull((ex) {
+          print('FALLBACK: Porównuję ex.exerciseId: "${ex.exerciseId}" z rowData.exercise_number: "${rowData.exercise_number}"');
+          return ex.exerciseId == rowData.exercise_number;
+        });
+      }
+      
       print('exercise znaleziony: ${exercise?.name}');
+      
       if (exercise != null) {
-        final sets =
-            rowData.data.where((row) => row.isChecked).map((row) {
-              print('getPerformedExercises: $row');
-              return ExerciseSet(
-                step: row.colStep,
-                rep: row.colRep,
-                kg: row.colKg,
-                isChecked: row.isChecked,
-                isFailure: row.isFailure,
-              );
-            }).toList();
+        final sets = rowData.data.where((row) => row.isChecked).map((row) {
+          print('getPerformedExercises: $row');
+          return ExerciseSet(
+            step: row.colStep,
+            rep: row.colRep,
+            kg: row.colKg,
+            isChecked: row.isChecked,
+            isFailure: row.isFailure,
+          );
+        }).toList();
 
         print('sets.length: ${sets.length}');
 
         if (sets.isNotEmpty) {
           result.add(
             PerformedExercise(
-              id: int.tryParse(exercise.id)?.toString() ?? exercise.id,
+              id: exercise.exerciseId, // ✅ UŻYJ exerciseId zamiast int.tryParse
               name: exercise.name,
               notes: rowData.notes,
               bodyPart: exercise.bodyPart,
@@ -83,17 +90,20 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
             ),
           );
         }
-      }
-    }
-    print('Zwracam ćwiczeń: ${result.length}');
-    for (final ex in result) {
-      for (final set in ex.sets) {
-        print(
-          'getPerformedExercises: set.step=${set.step}, isFailure=${set.isFailure}',
-        );
+      } else {
+        print('❌ Nie znaleziono ćwiczenia dla: "${rowData.exercise_name}" / "${rowData.exercise_number}"');
       }
     }
   }
+  
+  print('Zwracam ćwiczeń: ${result.length}');
+  for (final ex in result) {
+    print('✅ Exercise: ${ex.name} (ID: ${ex.id}), sets: ${ex.sets.length}');
+    for (final set in ex.sets) {
+      print('  - Set: step=${set.step}, kg=${set.kg}, reps=${set.rep}, isFailure=${set.isFailure}');
+    }
+  }
+  
   return result;
 }
 

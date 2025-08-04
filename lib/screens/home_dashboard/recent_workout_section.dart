@@ -23,8 +23,12 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
       try {
         await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
         await ref.read(exerciseProvider.notifier).fetchExercises();
+        
+        // ✅ DODAJ EXPLICITE WYWOŁANIE fetchSessions
+        await ref.read(completedTrainingSessionProvider.notifier).fetchSessions(forceRefresh: true);
+        
       } catch (e) {
-        print("❌ Błąd ładowania danych w plan.dart: $e");
+        print("❌ Błąd ładowania danych w recent_workout_section.dart: $e");
       }
     });
   }
@@ -82,14 +86,7 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              IconButton(
-                onPressed: () async {
-                  // ✅ ODŚWIEŻ PRZEZ fetchSessions
-                  await ref.read(completedTrainingSessionProvider.notifier).fetchSessions(forceRefresh: true);
-                },
-                icon: Icon(Icons.refresh),
-                tooltip: 'Refresh workouts',
-              ),
+             
             ],
           ),
         ),

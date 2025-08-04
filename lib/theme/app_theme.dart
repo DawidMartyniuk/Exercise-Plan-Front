@@ -93,29 +93,29 @@ final appTheme = ThemeData().copyWith(
   ),
   
   // Input Field
-  inputDecorationTheme: InputDecorationTheme(
-    filled: true,
-    fillColor: colorScheme.surface,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: colorScheme.outline),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: colorScheme.outline),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide(color: colorScheme.primary, width: 2),
-    ),
-    hintStyle: GoogleFonts.ubuntuCondensed(
-      color: Colors.white.withAlpha(153), // 60% opacity
-    ),
-    labelStyle: GoogleFonts.ubuntuCondensed(
-      color: colorScheme.primary,
-      fontWeight: FontWeight.w600,
-    ),
-  ),
+  // inputDecorationTheme: InputDecorationTheme(
+  //   filled: true,
+  //   fillColor: colorScheme.surface,
+  //   border: OutlineInputBorder(
+  //     borderRadius: BorderRadius.circular(8),
+  //     borderSide: BorderSide(color: colorScheme.outline),
+  //   ),
+  //   enabledBorder: OutlineInputBorder(
+  //     borderRadius: BorderRadius.circular(8),
+  //     borderSide: BorderSide(color: colorScheme.outline),
+  //   ),
+  //   focusedBorder: OutlineInputBorder(
+  //     borderRadius: BorderRadius.circular(8),
+  //     borderSide: BorderSide(color: colorScheme.primary, width: 2),
+  //   ),
+  //   hintStyle: GoogleFonts.ubuntuCondensed(
+  //     color: Colors.white.withAlpha(153), // 60% opacity
+  //   ),
+  //   labelStyle: GoogleFonts.ubuntuCondensed(
+  //     color: colorScheme.primary,
+  //     fontWeight: FontWeight.w600,
+  //   ),
+  // ),
   
   // List Tile
   listTileTheme: ListTileThemeData(

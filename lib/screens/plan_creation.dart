@@ -47,7 +47,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         return {
           "exercise_name": keyParts[0],
           
-         "exercise_number": int.tryParse(firstRow["exercise_number"] ?? "0") ?? 0,
+         "exercise_number": firstRow["exercise_number"],
           "notes": keyParts[1],
           "data": entry.value.map((row) {
             return {
@@ -192,7 +192,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
               onChanged: (value) {
                 setState(() {
                   exerciseTableTitle = value; // Aktualizuj zmienną klasy
-                  print("Updated exerciseTableTitle: $exerciseTableTitle");
                 });
               },
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(

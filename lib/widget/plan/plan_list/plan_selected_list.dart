@@ -416,6 +416,9 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.zero,
+                        hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface, // Półprzezroczysty biały
+                      ),
                       ),
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
@@ -441,6 +444,9 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                       hintText: text,
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
+                      hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,

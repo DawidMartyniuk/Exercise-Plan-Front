@@ -52,32 +52,45 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
         .fold(0, (sum, reps) => sum + reps);
   }
 
-  String _getWorkoutTitle() {
-    final exercisePlans = ref.watch(exercisePlanProvider);
+  String? _getWorkoutTitle() {
+  final exercisePlans = ref.watch(exercisePlanProvider);
+  
+  print("🔍 Szukam planu ID=${widget.trainingSession.exerciseTableId}");
+  print("🔍 Dostępne plany: ${exercisePlans.map((p) => 'ID=${p.id}:${p.exercise_table}').join(', ')}");
 
-    // ✅ DODAJ DEBUG
-    print("🔍 Szukam planu ID=${widget.trainingSession.exerciseTableId}");
-    print("🔍 Dostępne plany: ${exercisePlans.map((p) => 'ID=${p.id}:${p.exercise_table}').join(', ')}");
-
-    // Znajdź plan o tym samym ID
-    try {
-      final matchingPlan = exercisePlans.firstWhere(
-        (plan) => plan.id == widget.trainingSession.exerciseTableId,
-      );
-      print("✅ Znaleziono plan: ${matchingPlan.exercise_table}");
-      return matchingPlan.exercise_table;
-    } catch (e) {
-      // ✅ LEPSZE FALLBACK
-      print("❌ Nie znaleziono planu ID=${widget.trainingSession.exerciseTableId}: $e");
-      
-      if (widget.trainingSession.description.isNotEmpty) {
-        return widget.trainingSession.description;
-      }
-      
-      // ✅ POKAŻ ID PLANU W NAZWIE
-      return 'Deleted Plan (ID: ${widget.trainingSession.exerciseTableId})';
+  // ✅ JEŚLI BRAK PLANÓW - UŻYJ exercise_table_name Z SESJI
+  if (exercisePlans.isEmpty) {
+    print("⚠️ Brak planów - używam exercise_table_name z sesji");
+    if (widget.trainingSession.exercise_table_name!.isNotEmpty) {
+      return widget.trainingSession.exercise_table_name;
     }
+    return "Workout #${widget.trainingSession.id}";
   }
+
+  // Znajdź plan o tym samym ID
+  try {
+    final matchingPlan = exercisePlans.firstWhere(
+      (plan) => plan.id == widget.trainingSession.exerciseTableId,
+    );
+    print("✅ Znaleziono plan: ${matchingPlan.exercise_table}");
+    return matchingPlan.exercise_table;
+  } catch (e) {
+    print("❌ Nie znaleziono planu ID=${widget.trainingSession.exerciseTableId}: $e");
+    
+    // ✅ FALLBACK 1: Użyj exercise_table_name z sesji
+    if (widget.trainingSession.exercise_table_name!.isNotEmpty) {
+      return widget.trainingSession.exercise_table_name;
+    }
+    
+    // ✅ FALLBACK 2: Użyj description
+    if (widget.trainingSession.description.isNotEmpty) {
+      return widget.trainingSession.description;
+    }
+    
+    // ✅ FALLBACK 3: Generyczna nazwa
+    return 'Workout #${widget.trainingSession.id}';
+  }
+}
 
   String _getUserName() {
     final authResponse = ref.watch(authProviderLogin);
@@ -204,7 +217,7 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                 Row(
                   children: [
                     Text(
-                      _getWorkoutTitle(),
+                      _getWorkoutTitle() ?? "Workout",
                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -293,20 +306,30 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> {
                             ),
                           ),
                           SizedBox(width: 12),
-                          Text(
-                            "Sets: ${exercise.sets.length} ",
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                              _getExerciseName(
-                                exercise.exerciseId,
-                              ) ?? "Unknown Exercise",
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
+                            Expanded(
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Sets: ${exercise.sets.length} ",
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    
+                                    // ✅ NAPRAW - użyj Expanded dla nazwy ćwiczenia
+                                    Expanded(
+                                      child: Text(
+                                        _getExerciseName(exercise.exerciseId) ?? "Unknown Exercise",
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                        overflow: TextOverflow.ellipsis, // ✅ DODAJ ellipsis zamiast clip
+                                        maxLines: 1, // ✅ ZMIEŃ na 1 linię
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
                           SizedBox(width: 16),
                         ],
                       ),

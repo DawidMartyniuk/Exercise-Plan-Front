@@ -5,7 +5,7 @@ import 'package:work_plan_front/serwis/trainingSessions.dart';
 class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSession>> {
   CompletedTrainingSessionNotifier() : super([]) {
     print("🚀 KONSTRUKTOR: CompletedTrainingSessionNotifier tworzony!");
-    _autoLoad();
+    _autoLoad(); // ✅ To jest wywołane
   }
 
   final TrainingSessionService _service = TrainingSessionService();
@@ -14,7 +14,7 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
     print("🔄 _autoLoad: Rozpoczynam!");
     try {
       print("🔄 TrainingSessionNotifier: Auto-loading sessions...");
-      await fetchSessions();
+      await fetchSessions(); // ✅ UPEWNIJ SIĘ ŻE TO JEST TUTAJ!
       print("✅ TrainingSessionNotifier: Auto-load completed with ${state.length} sessions");
     } catch (e) {
       print("❌ Auto-load training sessions error: $e");
@@ -36,7 +36,6 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
     try {
       print("🔍 Provider: Rozpoczynam pobieranie sesji... (forceRefresh: $forceRefresh)");
       
-      // ✅ DODAJ TIMEOUT
       final sessions = await _service.getUserTrainingSessions().timeout(
         Duration(seconds: 10),
         onTimeout: () {

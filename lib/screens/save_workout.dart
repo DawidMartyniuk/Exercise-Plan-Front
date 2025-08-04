@@ -306,7 +306,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   }
   
   final completedExercises = performedExercises.map((ex) {
-    final exerciseId = int.tryParse(ex.id)?.toString() ?? ex.id;
+    final exerciseId = ex.id;
     return CompletedExercise(
       exerciseId: exerciseId,
       notes: ex.notes,

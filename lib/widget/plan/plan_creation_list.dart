@@ -72,22 +72,27 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
 }
 
 Map<String, List<Map<String, String>>> getTableData() {
+  int exerciseCounter = 1; // ✅ LICZNIK POZYCYJNY
+  
   return exerciseRows.map((exerciseId, data) {
     final rawRows = data["rows"] as List<dynamic>? ?? [];
     final exerciseName = data["exerciseName"]?.toString() ?? "Unknown Exercise";
-    final exerciseNumber = exerciseId;
+    final exerciseNumber = exerciseCounter.toString(); // ✅ UŻYJ LICZNIKA
     final notes = data["notes"]?.toString() ?? "";
+    
     final rows = rawRows.map((row) {
       final rowMap = Map<String, dynamic>.from(row);
       return {
         "exercise_name": exerciseName,
-        "exercise_number": exerciseNumber,
+        "exercise_number": exerciseId, 
         "notes": notes,
         "colStep": rowMap["colStep"]?.toString() ?? "0",
         "colKg": rowMap["colKg"]?.toString() ?? "0",
         "colRep": rowMap["colRep"]?.toString() ?? "0",
       };
     }).toList();
+    
+    exerciseCounter++; // ✅ ZWIĘKSZ LICZNIK
     return MapEntry(exerciseId, rows);
   });
 }
