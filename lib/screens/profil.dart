@@ -38,6 +38,10 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     final trainingSession = ref.watch(completedTrainingSessionProvider);
     return trainingSession.length;
   }
+  String _getProfileDescription() {
+  final authResponse = ref.watch(authProviderLogin);
+  return authResponse?.user.description ?? 'No description available';
+}
 
   Widget _buildAvatarImage() {
     final imageBase64 = _getProfileImage();
@@ -220,7 +224,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                         ),
                         SizedBox(height: 8), // tutaj będzie mały opis takie Bio
                         Text(
-                          'Welcome to your profile!',
+                          _getProfileDescription(),
                           style: TextStyle(
                             fontSize: 16,
                             color: Theme.of(

@@ -5,10 +5,14 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:work_plan_front/model/User.dart'; // ✅ Użyj spójnego importu z małą literą
+import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/profileServiseProvider.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
+
+
 
 class ProfileUserEdit extends ConsumerStatefulWidget {
   const ProfileUserEdit({super.key});
@@ -19,7 +23,7 @@ class ProfileUserEdit extends ConsumerStatefulWidget {
 class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
 
   File? _profileImage;
@@ -34,8 +38,8 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
       if (authResponse != null) {
         _nameController.text = authResponse.user.name ?? '';
         _emailController.text = authResponse.user.email ?? '';
-        _bioController.text = 'Enter your bio here';
-        _weightController.text = '70';
+        _descriptionController.text = authResponse.user.description ?? '';
+             _weightController.text = authResponse.user.weight?.toString() ?? '';
       }
     });
   }
@@ -44,7 +48,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
-    _bioController.dispose();
+    _descriptionController.dispose();
     _weightController.dispose();
     super.dispose();
   }
@@ -215,8 +219,8 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   Future<void> updateProfile(
     String name,
     String email,
-    String bio,
-    String weight,
+    String description,
+    int weight,
   ) async {
     final authResponse = ref.read(authProviderLogin);
     if (authResponse != null) {
@@ -225,7 +229,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
           context,
           customMessage: "Name field cannot be empty.",
         );
-        return;
+        return; // ✅ POZOSTAŃ NA STRONIE
       }
 
       if (email.trim().isEmpty || !email.contains('@')) {
@@ -233,10 +237,18 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
           context,
           customMessage: "Please enter a valid email address.",
         );
-        return;
+        return; // ✅ POZOSTAŃ NA STRONIE
       }
 
       try {
+        // ✅ POKAŻ LOADING TOAST
+        ToastUtils.showSuccessToast(
+          context: context,
+          title: "Updating...",
+          message: "Please wait while we update your profile.",
+          duration: Duration(seconds: 2),
+        );
+
         await ref
             .read(profileUpdateProvider.notifier)
             .updateProfile(
@@ -244,25 +256,32 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
               name: name,
               email: email,
               avatarFile: _profileImage,
-              bio: bio,
+              description: description, 
               weight: weight,
             );
+
         final updateState = ref.read(profileUpdateProvider);
 
         updateState.when(
           data: (user) {
             if (user != null) {
-              // ✅ TOAST SUKCESU
+              final currentAuth = ref.read(authProviderLogin);
+              if (currentAuth != null) {
+                // ✅ STWÓRZ NOWY OBIEKT BEZPOŚREDNIO
+                final updatedAuthResponse = AuthResponse(
+                  message: currentAuth.message,
+                  token: currentAuth.token,
+                  user: user, // ✅ BEZPOŚREDNIE PRZYPISANIE
+                );
+                ref.read(authProviderLogin.notifier).state = updatedAuthResponse;
+                print("✅ Zaktualizowano dane użytkownika w authProvider");
+              }
+              
+              // ✅ SUKCES - WYŚWIETL TOAST I WYJDŹ
               ToastUtils.showSaveSuccess(context, itemName: "Profile");
-              ToastUtils.showSuccessToast(
-                context: context,
-                title: "Profile Updated!",
-                message:
-                    "Your profile has been updated successfully. Changes will be visible immediately.",
-                duration: Duration(seconds: 4),
-              );
               Navigator.pop(context);
             } else {
+              // ❌ BŁĄD - POZOSTAŃ NA STRONIE
               ToastUtils.showErrorToast(
                 context: context,
                 title: "Update Failed",
@@ -271,39 +290,68 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
             }
           },
           error: (error, stack) {
+            // ❌ BŁĄD - POZOSTAŃ NA STRONIE
+            print("❌ Provider Error: $error");
+            
+            String errorMessage = "Failed to update profile. Please try again.";
+            
+            // ✅ OBSŁUŻ KONKRETNE BŁĘDY
+            if (error.toString().contains('email has already been taken')) {
+              errorMessage = "This email is already in use. Please use a different email address.";
+            } else if (error.toString().contains('connection') || 
+                       error.toString().contains('network') || 
+                       error.toString().contains('timeout')) {
+              errorMessage = "Network connection failed. Please check your internet and try again.";
+            } else if (error.toString().contains('401') || 
+                       error.toString().contains('unauthorized')) {
+              errorMessage = "Session expired. Please login again.";
+            } else if (error.toString().contains('422')) {
+              errorMessage = "Invalid data provided. Please check your input and try again.";
+            }
+            
             ToastUtils.showErrorToast(
               context: context,
               title: "Update Error",
-              message: "Failed to update profile: $error",
+              message: errorMessage,
+              duration: Duration(seconds: 5),
             );
+            // ❌ NIE WYWOŁUJ Navigator.pop()
           },
           loading: () {
             // Loading już pokazany wcześniej
           },
         );
       } catch (e) {
+        // ❌ BŁĄD - POZOSTAŃ NA STRONIE
         print("❌ Błąd aktualizacji profilu: $e");
 
-        // ✅ TOAST BŁĘDU POŁĄCZENIA
-        if (e.toString().contains('connection') ||
+        String errorMessage = "An unexpected error occurred. Please try again.";
+        
+        // ✅ OBSŁUŻ KONKRETNE BŁĘDY
+        if (e.toString().contains('email has already been taken')) {
+          errorMessage = "This email is already in use. Please use a different email address.";
+        } else if (e.toString().contains('connection') ||
             e.toString().contains('network') ||
             e.toString().contains('timeout')) {
-          ToastUtils.showConnectionError(context);
-        } else {
-          ToastUtils.showErrorToast(
-            context: context,
-            title: "Update Error",
-            message: "An unexpected error occurred. Please try again.",
-          );
+          errorMessage = "Network connection failed. Please check your internet and try again.";
         }
+
+        ToastUtils.showErrorToast(
+          context: context,
+          title: "Update Error", 
+          message: errorMessage,
+          duration: Duration(seconds: 5),
+        );
+        // ❌ NIE WYWOŁUJ Navigator.pop()
       }
     } else {
-      // ✅ TOAST BŁĘDU AUTORYZACJI
+      // ❌ BŁĄD AUTORYZACJI - POZOSTAŃ NA STRONIE
       ToastUtils.showErrorToast(
         context: context,
         title: "Authentication Error",
         message: "You are not logged in. Please login again.",
       );
+      // ❌ NIE WYWOŁUJ Navigator.pop()
     }
   }
 
@@ -353,7 +401,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
                   children: [
                     textEditConstructor('Name', _nameController),
                     textEditConstructor('Email', _emailController),
-                    textEditConstructor('Bio', _bioController),
+                    textEditConstructor('Bio', _descriptionController),
                     textEditConstructor('Weight', _weightController),
 
                     SizedBox(height: 30),
@@ -376,16 +424,17 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
                           updateProfile(
                             _nameController.text,
                             _emailController.text,
-                            _bioController.text,
-                            _weightController.text,
+                            _descriptionController.text,
+                          int.tryParse(_weightController.text) ?? 0, 
                           );
+                          
                           print('Name: ${_nameController.text}');
                           print('Email: ${_emailController.text}');
-                          print('Bio: ${_bioController.text}');
+                          print('Bio: ${_descriptionController.text}');
                           print('Weight: ${_weightController.text}');
 
-                          // ✅ POWRÓT DO PROFILU
-                          Navigator.pop(context);
+                          // ❌ USUŃ TO - Navigator.pop() będzie tylko przy sukcesie
+                          // Navigator.pop(context);
                         },
                         child: Text(
                           'Save Changes',

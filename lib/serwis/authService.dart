@@ -45,31 +45,44 @@ class Authservice {
   }
   }
 
-  Future<LoginResult?> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse("$_baseUrl$_loginUrl"),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
+Future<LoginResult?> login(String email, String password) async {
+  final response = await http.post(
+    Uri.parse("$_baseUrl$_loginUrl"),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email, 'password': password}),
+  );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print(response.body);
+  print("🔍 Login Response Status: ${response.statusCode}");
+  print("🔍 Login Response Body: ${response.body}");
+
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    try {
       final responseBody = json.decode(response.body);
-      if (responseBody.containsKey('token') && responseBody.containsKey('user')) 
-      {
-        final  authResponse = AuthResponse.fromJson(responseBody);
+      print("🔍 Parsed Response: $responseBody");
+      
+      if (responseBody.containsKey('token') && responseBody.containsKey('user')) {
+        // ✅ RĘCZNIE DODAJ MESSAGE JEŚLI BRAK
+        if (!responseBody.containsKey('message')) {
+          responseBody['message'] = 'Login successful';
+        }
+        
+        final authResponse = AuthResponse.fromJson(responseBody);
         await saveToken(authResponse.token); 
         return LoginResult(authResponse: authResponse, statusCode: response.statusCode);
       } else {
-        print("Brak tokenu lub użytkownika w odpowiedzi");
+        print("❌ Brak tokenu lub użytkownika w odpowiedzi");
         return LoginResult(authResponse: null, statusCode: response.statusCode);
       }
-    } else {
-      print('Błąd logowania: ${response.statusCode}');
-      return LoginResult(authResponse: null, statusCode: response.statusCode);
+    } catch (e, stackTrace) {
+      print("❌ Error parsing login response: $e");
+      print("❌ StackTrace: $stackTrace");
+      return LoginResult(authResponse: null, statusCode: 500);
     }
+  } else {
+    print('❌ Błąd logowania: ${response.statusCode}');
+    return LoginResult(authResponse: null, statusCode: response.statusCode);
   }
-
+}
   Future<AuthResponse?> register(
     String name,
     String email,

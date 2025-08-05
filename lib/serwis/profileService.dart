@@ -24,21 +24,15 @@ class ProfileService {
     required int userId,
     required String name,
     required String email,
-    String? bio,
+    String? description,
     String? weight,
     String? avatar,
   }) async {
-    final token = await getToken();
-
-    if (token == null) {
-      throw Exception("Brak tokena. Użytkownik nie jest zalogowany.");
-    }
-
     try {
       final requestBody = {
         'name': name,
         'email': email,
-        if (bio != null && bio.isNotEmpty) 'bio': bio,
+        if (description != null && description.isNotEmpty) 'description': description,
         if (weight != null && weight.isNotEmpty) 'weight': weight,
         if (avatar != null && avatar.isNotEmpty) 'avatar': avatar,
       };
@@ -47,10 +41,7 @@ class ProfileService {
 
       final response = await http.put(
         Uri.parse("$_baseUrl$_profile"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: await getHeaders(), // ✅ UŻYJ getHeaders() zamiast ręcznego tworzenia
         body: jsonEncode(requestBody),
       );
 
@@ -83,21 +74,12 @@ class ProfileService {
     }
   }
 
-  // ✅ AKTUALIZACJA AVATARA
+  // ✅ AKTUALIZACJA AVATARA - też użyj getHeaders()
   Future<User> updateAvatar(String base64Image) async {
-    final token = await getToken();
-
-    if (token == null) {
-      throw Exception("Brak tokena. Użytkownik nie jest zalogowany.");
-    }
-
     try {
       final response = await http.post(
         Uri.parse("$_baseUrl$_avatarUpdate"),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
+        headers: await getHeaders(), // ✅ UŻYJ getHeaders() zamiast ręcznego tworzenia
         body: jsonEncode({'avatar': base64Image}),
       );
 

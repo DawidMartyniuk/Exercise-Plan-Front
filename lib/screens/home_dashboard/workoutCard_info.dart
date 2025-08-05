@@ -83,7 +83,7 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
 
   String _getUserName() {
     final authResponse = ref.watch(authProviderLogin);
-    return authResponse?.user.name ?? 'User';
+    return authResponse!.user!.name ?? 'User';
   }
 
   @override

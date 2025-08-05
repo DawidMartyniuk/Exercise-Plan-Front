@@ -22,8 +22,8 @@ class ProfileUpdateNotifier extends StateNotifier<AsyncValue<User?>> {
     required String name,
     required String email,
     File? avatarFile,
-    String? bio,
-    String? weight,
+    String? description,
+    int? weight,
   }) async {
     state = const AsyncValue.loading();
 
@@ -40,8 +40,8 @@ class ProfileUpdateNotifier extends StateNotifier<AsyncValue<User?>> {
         userId: userId,
         name: name,
         email: email,
-        bio: bio,
-        weight: weight,
+        description: description, 
+        weight: weight?.toString(),
         avatar: avatarBase64, 
         
       );
