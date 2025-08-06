@@ -4,6 +4,7 @@ import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
@@ -96,6 +97,47 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+final authResponse = ref.watch(authProviderLogin);
+     if (authResponse == null) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withAlpha(127),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.login,
+                size: 48,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please log in',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Log in to see your training calendar',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final timer = ref.watch(workoutProvider);
     final timerController = ref.watch(workoutProvider.notifier);
     final exercisePlans = ref.watch(exercisePlanProvider);

@@ -7,6 +7,7 @@ import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/utils/imge_untils.dart';
 
 class WorkoutCardInfo extends ConsumerStatefulWidget {
   final TrainingSession trainingSession;
@@ -36,12 +37,6 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
     if (difference == 0) return "Today";
     if (difference == 1) return "Yesterday";
     return "$difference days ago";
-  }
-
-  // ✅ NOWA METODA: Formatowanie pełnej daty
-  String _formatFullDateTime(DateTime date) {
-    final formatter = DateFormat('yyyy-MM-dd HH:mm');
-    return formatter.format(date);
   }
 
   // ✅ ALTERNATYWNA METODA: Bardziej czytelny format
@@ -85,6 +80,49 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
     final authResponse = ref.watch(authProviderLogin);
     return authResponse!.user!.name ?? 'User';
   }
+  String? _getExerciseImage(String exerciseId) {
+    final exerciseState = ref.watch(exerciseProvider);
+
+    return exerciseState.when(
+      data: (allExercise) {
+        try {
+          final exercise = allExercise.firstWhere((ex) => ex.exerciseId == exerciseId);
+          return exercise.gifUrl!.isNotEmpty ? exercise.gifUrl : null;
+        } catch (e) {
+          print("❌ Nie znaleziono ćwiczenia o ID: $exerciseId");
+          return null;
+        }
+      },
+      error: (error, stackTrace) {
+        print("❌ Błąd podczas pobierania ćwiczeń: $error");
+        return null;
+      },
+      loading: () => "Loading...",
+    );
+  }
+
+  String? _getExerciseName(String exerciseId) {
+
+    final exerciseState = ref.watch(exerciseProvider);
+
+    return exerciseState.when(
+      data:  (allExercise) {
+        try {
+          final exercise = allExercise.firstWhere((ex) => ex.exerciseId == exerciseId);
+          //print("✅ Znaleziono ćwiczenie: ${exercise.name}");
+          return exercise.name;
+        } catch (e) {
+          print("❌ Nie znaleziono ćwiczenia o ID: $exerciseId");
+          return "Unknown Exercise ($exerciseId)";
+        }
+      },
+      error: (error, stackTrace) {
+        print("❌ Błąd podczas pobierania ćwiczeń: $error");
+        return null;
+      },
+      loading: () => "Loading...",
+      );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +134,7 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView( // ✅ DODAJ SCROLLING
           padding: EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,10 +193,14 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
               // ✅ SEKCJA 2: Tytuł treningu
               Row(
                 children: [
-                  Text(
-                    _getWorkoutTitle(),
-                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+                  Expanded( // ✅ DODAJ EXPANDED
+                    child: Text(
+                      _getWorkoutTitle(),
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
+                      maxLines: 2, // ✅ OGRANICZ LINIE
+                      overflow: TextOverflow.ellipsis, // ✅ DODAJ ELLIPSIS
                     ),
                   ),
                 ],
@@ -166,104 +208,155 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
               
               SizedBox(height: 8.0),
               
-              // ✅ SEKCJA 3: Statystyki
-              Padding(
-                padding: EdgeInsets.only(left: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    SizedBox(width: 16),
-                    _buildStatColumn(
-                      "Time",
-                      _formatDuration(widget.trainingSession.duration),
-                      context,
-                    ),
-                    SizedBox(width: 24),
-                    _buildStatColumn(
-                      "Volume",
-                      "${widget.trainingSession.totalWeight.toInt()}kg",
-                      context,
-                    ),
-                    SizedBox(width: 24),
-                    _buildStatColumn("Sets", "${_getTotalSets()}", context),
-                    SizedBox(width: 24),
-                    _buildStatColumn("Reps", "${_getTotalReps()}", context),
-                  ],
+              // ✅ SEKCJA 3: Statystyki - ZRÓB SCROLLOWALNE JEŚLI TRZEBA
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal, // ✅ HORIZONTAL SCROLL
+                child: Padding(
+                  padding: EdgeInsets.only(left: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(width: 16),
+                      _buildStatColumn(
+                        "Time",
+                        _formatDuration(widget.trainingSession.duration),
+                        context,
+                      ),
+                      SizedBox(width: 24),
+                      _buildStatColumn(
+                        "Volume",
+                        "${widget.trainingSession.totalWeight.toInt()}kg",
+                        context,
+                      ),
+                      SizedBox(width: 24),
+                      _buildStatColumn("Sets", "${_getTotalSets()}", context),
+                      SizedBox(width: 24),
+                      _buildStatColumn("Reps", "${_getTotalReps()}", context),
+                    ],
+                  ),
                 ),
               ),
               
               SizedBox(height: 8.0),
               
               Divider(color: Theme.of(context).dividerColor),
-              
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 16),
-                      Text(
-                        'Workout Summary',
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      
-                      // ✅ POPRAWIONE formatowanie daty
-                      _buildInfoRow('Start Workout', _formatReadableDateTime(widget.trainingSession.startedAt)),
-                      _buildInfoRow('Duration', _formatDuration(widget.trainingSession.duration)),
-                      _buildInfoRow('Total Weight', '${widget.trainingSession.totalWeight.toInt()}kg'),
-                      _buildInfoRow('Total Sets', '${_getTotalSets()}'),
-                      _buildInfoRow('Total Reps', '${_getTotalReps()}'),
-                      
-                      if (widget.trainingSession.description.isNotEmpty) ...[
-                        SizedBox(height: 16),
-                        _buildInfoRow('Description', widget.trainingSession.description),
-                      ],
-                      
-                      SizedBox(height: 24),
-                      
-                      // ✅ Lista ćwiczeń
-                      Text(
-                        'Exercises (${widget.trainingSession.exercises.length})',
-                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 12),
-                      
-                      ...widget.trainingSession.exercises.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final exercise = entry.value;
-                        return Card(
-                          margin: EdgeInsets.only(bottom: 8),
-                          child: Padding(
-                            padding: EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Exercise ${index + 1}',
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text('ID: ${exercise.exerciseId}'),
-                                Text('Sets: ${exercise.sets.length}'),
-                                if (exercise.notes.isNotEmpty)
-                                  Text('Notes: ${exercise.notes}'),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
+                  // ✅ WORKOUT SUMMARY
+              Text(
+                'Workout Summary',
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              SizedBox(height: 16),
+              
+              // ✅ POPRAWIONE formatowanie daty
+              _buildInfoRow('Start Workout', _formatReadableDateTime(widget.trainingSession.startedAt)),
+              _buildInfoRow('Duration', _formatDuration(widget.trainingSession.duration)),
+              _buildInfoRow('Total Weight', '${widget.trainingSession.totalWeight.toInt()}kg'),
+              _buildInfoRow('Total Sets', '${_getTotalSets()}'),
+              _buildInfoRow('Total Reps', '${_getTotalReps()}'),
+              
+              if (widget.trainingSession.description.isNotEmpty) ...[
+                SizedBox(height: 16),
+                _buildInfoRow('Description', widget.trainingSession.description),
+              ],
+              
+              SizedBox(height: 30), // ✅ DODATKOWY PADDING NA KOŃCU
+              
+              SizedBox(height: 16),
+              
+              // ✅ LISTA ĆWICZEŃ - USUŃ EXPANDED, UŻYWAJ shrinkWrap
+              ListView.builder(
+                shrinkWrap: true, // ✅ WAŻNE!
+                physics: NeverScrollableScrollPhysics(), // ✅ WYŁĄCZ WŁASNE SCROLLING
+                itemCount: widget.trainingSession.exercises.length,
+                itemBuilder: (context, index) {
+                  final exercise = widget.trainingSession.exercises[index];
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start, // ✅ DODAJ crossAxisAlignment
+                      children: [
+                        // ✅ Ikona na początku
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.onSecondary,
+                              width: 2,
+                            ),
+                            color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                          ),
+                          child: ClipOval(
+                            child: () {
+                              final imageUrl = _getExerciseImage(exercise.exerciseId);
+                              
+                              // ✅ JEŚLI BRAK OBRAZKA - POKAŻ IKONĘ
+                              if (imageUrl == null || imageUrl.isEmpty) {
+                                return Icon(
+                                  Icons.fitness_center,
+                                  size: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                );
+                              }
+                              
+                              // ✅ JEŚLI JEST OBRAZEK - POKAŻ OBRAZEK
+                              return ImageUtils.buildImage(
+                                imageUrl: imageUrl,
+                                context: context,
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.cover,
+                                placeholder: Icon(
+                                  Icons.fitness_center,
+                                  size: 20,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              );
+                            }(),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column( // ✅ UŻYJ COLUMN ZAMIAST ROW
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ✅ NAZWA ĆWICZENIA
+                              Text(
+                                _getExerciseName(exercise.exerciseId) ?? "Unknown Exercise",
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4),
+                              // ✅ LICZBA SETÓW
+                              Text(
+                                "Sets: ${exercise.sets.length}",
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              
+              SizedBox(height: 20), // ✅ DODAJ PADDING NA KOŃCU
+              
+          
             ],
           ),
         ),

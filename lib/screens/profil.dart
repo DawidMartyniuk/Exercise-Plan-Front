@@ -6,7 +6,10 @@ import 'package:animations/animations.dart';
 
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/screens/profile/profile_user_edit.dart';
+import 'package:work_plan_front/screens/profile/profile_appbar.dart';
+import 'package:work_plan_front/screens/profile/profile_calender_panel.dart';
+import 'package:work_plan_front/screens/profile/profile_edit/profile_user_edit.dart';
+import 'package:work_plan_front/screens/profile/profile_user_panel.dart';
 
 class ProfilScreen extends ConsumerStatefulWidget {
   @override
@@ -92,180 +95,64 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 150, 
-        leading: OpenContainer<bool>(
-          transitionType: ContainerTransitionType.fade,
-          transitionDuration: Duration(milliseconds: 600),
-          openColor: Theme.of(context).colorScheme.surface,
-          closedColor: Colors.transparent,
-          openShape: RoundedRectangleBorder(),
-          closedShape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          openElevation: 0,
-          closedElevation: 0,
-          
-          // ✅ PRZYCISK ZAMKNIĘTY (Edit Profile)
-          closedBuilder: (context, action) => Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 6), 
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondary,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: TextButton.icon(
-              onPressed: action, // ✅ UŻYWAJ ACTION ZAMIAST PUSTEJ FUNKCJI
-              style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              icon: Icon(
-                Icons.edit,
-                size: 16, 
-                color: Theme.of(context).colorScheme.onSecondary, // ✅ ZMIEŃ NA onSecondary
-              ),
-              label: Text(
-                'Edit Profile',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSecondary, // ✅ ZMIEŃ NA onSecondary
-                  fontSize: 14, 
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-          
-          // ✅ EKRAN OTWARTY (ProfileUserEdit)
-          openBuilder: (context, action) => ProfileUserEdit(),
-        ),
-        actions: [
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 6), 
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondary,
-              borderRadius: BorderRadius.circular(20), 
-             
-              boxShadow: [
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.secondary.withAlpha(100),
-                  blurRadius: 6,
-                  offset: Offset(0, 3),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.settings,
-                color: Theme.of(context).colorScheme.onSecondary,
-                size: 22, // ✅ ZWIĘKSZ ROZMIAR IKONY
-              ),
-              onPressed: () {},
-              style: IconButton.styleFrom(
-                padding: EdgeInsets.all(12),
-                minimumSize: Size(48, 48), 
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-            ),
-          ),
-        ],
-        title: Center(child: Text('Profile')),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 2,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              height: 100,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // ✅ AVATAR
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.onSecondary,
-                        width: 2,
-                      ),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withAlpha(50),
-                    ),
-                    child: ClipOval(child: _buildAvatarImage()),
-                  ),
 
-                  SizedBox(width: 16), // ✅ ODSTĘP MIĘDZY AVATAREM A TEKSTEM
-                  // ✅ TEKST
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          _getProfileName(),
-                          textAlign: TextAlign.start,
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        SizedBox(height: 8), // tutaj będzie mały opis takie Bio
-                        Text(
-                          _getProfileDescription(),
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withAlpha(180),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Workouts",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withAlpha(180),
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        _getTotalWorkouts().toString(),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+    final authResponse = ref.watch(authProviderLogin);
+     if (authResponse == null) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withAlpha(127),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.login,
+                size: 48,
+                color: Colors.grey,
               ),
-            ),
-            SizedBox(height: 20),
-            Expanded(child: Text('Here will be your profile details')),
-          ],
+              SizedBox(height: 8),
+              Text(
+                'Please log in',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Log in to see your training calendar',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Scaffold(
+      appBar:ProfileAppBar(title: "Profile"),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+                ProfileUserPanel(
+                  buildAvatarImage: _buildAvatarImage(),
+                  getProfileName: _getProfileName,
+                  getProfileDescription: _getProfileDescription,
+                  getTotalWorkouts: _getTotalWorkouts,
+                ),
+              SizedBox(height: 20),
+              ProfileCalenderPanel(),
+            ],
+          ),
         ),
       ),
     );

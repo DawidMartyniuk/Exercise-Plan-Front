@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/profileServiseProvider.dart';
+import 'package:work_plan_front/screens/profile/profile_edit/widget/image_source_dialog.dart';
+import 'package:work_plan_front/screens/profile/profile_edit/widget/text_edit_constructor.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 
 
@@ -56,79 +58,79 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
     return authResponse?.user.avatar ?? '';
   }
 
-  void _showImageSourceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          title: Center(
-            child: Text(
-              'Select Image Source',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(
-                  Icons.camera_alt,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(
-                  'Camera',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: Icon(
-                  Icons.photo_library,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(
-                  'Gallery',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  _pickImage(ImageSource.gallery);
-                },
-              ),
-            ],
-          ),
-          actions: [
-            Container(
-              width: double.infinity,
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text(
-                  'Cancel',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showImageSourceDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         backgroundColor: Theme.of(context).colorScheme.surface,
+  //         title: Center(
+  //           child: Text(
+  //             'Select Image Source',
+  //             textAlign: TextAlign.center,
+  //             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+  //           ),
+  //         ),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             ListTile(
+  //               leading: Icon(
+  //                 Icons.camera_alt,
+  //                 color: Theme.of(context).colorScheme.primary,
+  //               ),
+  //               title: Text(
+  //                 'Camera',
+  //                 style: TextStyle(
+  //                   color: Theme.of(context).colorScheme.onSurface,
+  //                 ),
+  //               ),
+  //               onTap: () {
+  //                 Navigator.of(context).pop();
+  //                 _pickImage(ImageSource.camera);
+  //               },
+  //             ),
+  //             ListTile(
+  //               leading: Icon(
+  //                 Icons.photo_library,
+  //                 color: Theme.of(context).colorScheme.primary,
+  //               ),
+  //               title: Text(
+  //                 'Gallery',
+  //                 style: TextStyle(
+  //                   color: Theme.of(context).colorScheme.onSurface,
+  //                 ),
+  //               ),
+  //               onTap: () {
+  //                 Navigator.of(context).pop();
+  //                 _pickImage(ImageSource.gallery);
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //         actions: [
+  //           Container(
+  //             width: double.infinity,
+  //             alignment: Alignment.centerRight,
+  //             child: TextButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //               },
+  //               child: Text(
+  //                 'Cancel',
+  //                 style: TextStyle(
+  //                   color: Theme.of(context).colorScheme.primary,
+  //                   fontWeight: FontWeight.bold,
+  //                   fontSize: 16,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -163,9 +165,6 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   }
 
   Widget _buildAvatarImage() {
-    //  nAJPIERW SPRAWDŹ CZY JEST LOKALNY OBRAZ
-
-     final authResponse = ref.watch(authProviderLogin);
     if (_profileImage != null) {
       return ClipOval(
         child: Image.file(
@@ -225,47 +224,8 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
   ) async {
     final authResponse = ref.read(authProviderLogin);
     if (authResponse != null) {
-    final currentUser = authResponse.user;
-     //zmiana 
-    
-     final changes = <String, dynamic>{};
-    
-    if (name != currentUser.name) {
-      changes['name'] = name;
-      print("🔄 Zmiana name: '${currentUser.name}' → '$name'");
-    }
-    if (email != currentUser.email) {
-      changes['email'] = email;
-      print("🔄 Zmiana email: '${currentUser.email}' → '$email'");
-    }
-    if (description != (currentUser.description ?? '')) {
-      changes['description'] = description;
-      print("🔄 Zmiana description: '${currentUser.description ?? ''}' → '$description'");
-    }
-    if (weight != (currentUser.weight?.toString() ?? '')) {
-      changes['weight'] = weight;
-      print("🔄 Zmiana weight: '${currentUser.weight?.toString() ?? ''}' → '$weight'");
-    }
-    if (_profileImage != null) {
-      changes['avatar'] = 'NEW_IMAGE';
-      print("🔄 Zmiana avatar: nowy obraz wybrany");
-    }
-    
-    if (changes.isEmpty) {
-      ToastUtils.showValidationError(
-        context,
-        customMessage: "No changes detected. Please modify at least one field.",
-      );
-      return;
-    }
-    
-    print("📋 Detected changes: ${changes.keys.join(', ')}");
-    }
-    
 
-     //zmaian 
-
-      final changes = <String, dynamic>{};
+     }
     if (authResponse != null) {
       if (name.trim().isEmpty) {
         ToastUtils.showValidationError(
@@ -358,19 +318,16 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
               message: errorMessage,
               duration: Duration(seconds: 5),
             );
-            // ❌ NIE WYWOŁUJ Navigator.pop()
           },
           loading: () {
-            // Loading już pokazany wcześniej
+            print("🔄 Aktualizacja profilu w toku...");
           },
         );
       } catch (e) {
-        // ❌ BŁĄD - POZOSTAŃ NA STRONIE
         print("❌ Błąd aktualizacji profilu: $e");
 
         String errorMessage = "An unexpected error occurred. Please try again.";
         
-        // ✅ OBSŁUŻ KONKRETNE BŁĘDY
         if (e.toString().contains('email has already been taken')) {
           errorMessage = "This email is already in use. Please use a different email address.";
         } else if (e.toString().contains('connection') ||
@@ -385,16 +342,13 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
           message: errorMessage,
           duration: Duration(seconds: 5),
         );
-        // ❌ NIE WYWOŁUJ Navigator.pop()
       }
     } else {
-      // ❌ BŁĄD AUTORYZACJI - POZOSTAŃ NA STRONIE
       ToastUtils.showErrorToast(
         context: context,
         title: "Authentication Error",
         message: "You are not logged in. Please login again.",
       );
-      // ❌ NIE WYWOŁUJ Navigator.pop()
     }
   }
 
@@ -418,7 +372,15 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
           children: [
             // ✅ AVATAR SECTION
             GestureDetector(
-              onTap: _showImageSourceDialog,
+              onTap: () {
+                ImageSourceDialog.show(
+                  context: context,
+                  onSourceSelected: (source) {
+                 
+                    _pickImage(source);
+                  },
+                );
+              },
               child: Container(
                 height: 120,
                 width: 120,
@@ -442,10 +404,22 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    textEditConstructor('Name', _nameController),
-                    textEditConstructor('Email', _emailController),
-                    textEditConstructor('Bio', _descriptionController),
-                    textEditConstructor('Weight', _weightController),
+                    TextEditConstructor(
+                      title: 'Name',
+                      controller: _nameController,
+                    ),
+                    TextEditConstructor(
+                      title: 'Email',
+                      controller: _emailController,
+                    ),
+                    TextEditConstructor(
+                      title: 'Bio',
+                      controller: _descriptionController,
+                    ),
+                    TextEditConstructor(
+                      title: 'Weight',
+                      controller: _weightController,
+                    ),
 
                     SizedBox(height: 30),
 
@@ -494,46 +468,6 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget textEditConstructor(String title, TextEditingController controller) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurface,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-
-          SizedBox(height: 8),
-          TextFormField(
-            controller: controller,
-            keyboardType: TextInputType.text,
-            decoration: InputDecoration(
-              hintText: 'Enter your $title',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 16,
-              ),
-            ),
-            onChanged: (value) {
-              // Handle change
-            },
-          ),
-        ],
       ),
     );
   }

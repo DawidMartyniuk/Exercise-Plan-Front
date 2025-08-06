@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
@@ -65,6 +66,47 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+ final authResponse = ref.watch(authProviderLogin);
+     if (authResponse == null) {
+      return Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withAlpha(127),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.login,
+                size: 48,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please log in',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Log in to see your training calendar',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final exercises = ref.watch(exerciseProvider);
 
     print('Exercises in build: $exercises');

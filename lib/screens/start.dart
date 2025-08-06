@@ -47,6 +47,10 @@ class _StartscreenState extends ConsumerState<Startscreen> {
 
   @override
   Widget build(BuildContext context) {
+
+  final authResponse = ref.watch(authProviderLogin);
+    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(loginStatus ?? "Start Screen"),
@@ -73,7 +77,45 @@ class _StartscreenState extends ConsumerState<Startscreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(child: RecentWorkoutsSection()),
+      body: 
+       authResponse == null
+      ? Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withAlpha(127),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.login,
+                size: 48,
+                color: Colors.grey,
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Please log in',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 16,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Log in to see your training calendar',
+                style: TextStyle(
+                  color: Colors.grey[500],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+      )
+    : SingleChildScrollView(child: RecentWorkoutsSection()),
     );
   }
 }
