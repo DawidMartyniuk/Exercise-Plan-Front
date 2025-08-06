@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:work_plan_front/model/exercise_plan.dart';
 
 class TrainingSession {
   final int? id;

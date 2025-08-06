@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'dart:convert'; // ✅ DODAJ
-import 'dart:typed_data';
-
 import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ
 
 class ExerciseInfoScreen extends ConsumerStatefulWidget {
@@ -19,68 +16,9 @@ class ExerciseInfoScreen extends ConsumerStatefulWidget {
 
 class _ExerciseInfoScreenState extends ConsumerState<ExerciseInfoScreen> {
   void setFavoriteExercise() {
-    // TODO: Implementacja dodawania do ulubionych
   }
 
-  // ✅ KOPIUJ metodę z exercises_list.dart
-  Uint8List? _decodeBase64Image(String? gifUrl) {
-    if (gifUrl == null || !gifUrl.startsWith('data:image')) {
-      return null;
-    }
 
-    try {
-      final base64String = gifUrl.split(',').last;
-      return base64Decode(base64String);
-    } catch (e) {
-      print("❌ Błąd dekodowania base64: $e");
-      return null;
-    }
-  }
-
-  // Widget _buildExerciseImage() {
-  //   final exercise = widget.exercise;
-  //   final imageBytes = _decodeBase64Image(exercise.gifUrl);
-
-  //   if (imageBytes != null) {
-  //     return Image.memory(
-  //       imageBytes,
-  //       width: double.infinity,
-  //       height: 300,
-  //       fit: BoxFit.cover,
-  //       errorBuilder: (context, error, stackTrace) {
-  //         print("❌ Błąd MemoryImage dla ${exercise.name}: $error");
-  //         return _buildPlaceholder();
-  //       },
-  //     );
-  //   } else if (exercise.gifUrl != null &&
-  //       exercise.gifUrl!.isNotEmpty &&
-  //       exercise.gifUrl!.startsWith('http')) {
-  //     return Image.network(
-  //       exercise.gifUrl!,
-  //       width: double.infinity,
-  //       height: 300,
-  //       fit: BoxFit.cover,
-  //       errorBuilder: (context, error, stackTrace) {
-  //         return _buildPlaceholder();
-  //       },
-  //     );
-  //   } else {
-  //     return _buildPlaceholder();
-  //   }
-  // }
-
-  // Widget _buildPlaceholder() {
-  //   return Container(
-  //     width: double.infinity,
-  //     height: 300,
-  //     color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
-  //     child: Icon(
-  //       Icons.fitness_center,
-  //       size: 100,
-  //       color: Theme.of(context).colorScheme.primary,
-  //     ),
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {

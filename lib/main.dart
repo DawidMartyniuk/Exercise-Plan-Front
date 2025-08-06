@@ -7,7 +7,6 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/theme/app_theme.dart'; // ✅ IMPORT THEME
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:work_plan_front/serwis/exercisePlan.dart' hide ExerciseService;
 import 'package:work_plan_front/serwis/exerciseService.dart';
 
 void main() async {

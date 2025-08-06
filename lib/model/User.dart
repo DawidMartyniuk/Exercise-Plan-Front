@@ -70,4 +70,29 @@ class User {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  // ✅ DODAJ NOWĄ METODĘ - merge tylko niepustych pól
+  User mergeWith(User updatedUser) {
+    return User(
+      id: this.id, // ID nie zmienia się
+      // ✅ Użyj nowej wartości tylko jeśli nie jest pusta/null
+      name: updatedUser.name.isNotEmpty ? updatedUser.name : this.name,
+      email: updatedUser.email.isNotEmpty ? updatedUser.email : this.email,
+      // ✅ Avatar: użyj nowy TYLKO jeśli nie jest null i nie jest pusty
+      avatar: (updatedUser.avatar != null && updatedUser.avatar!.isNotEmpty) 
+          ? updatedUser.avatar 
+          : this.avatar,
+      // ✅ Description: użyj nowy TYLKO jeśli backend go zwrócił
+      description: updatedUser.description != null 
+          ? updatedUser.description 
+          : this.description,
+      // ✅ Weight: użyj nowy TYLKO jeśli nie jest null
+      weight: updatedUser.weight != null 
+          ? updatedUser.weight 
+          : this.weight,
+      // ✅ Timestamps zawsze aktualizuj (backend zawsze je zwraca)
+      createdAt: updatedUser.createdAt.isNotEmpty ? updatedUser.createdAt : this.createdAt,
+      updatedAt: updatedUser.updatedAt.isNotEmpty ? updatedUser.updatedAt : this.updatedAt,
+    );
+  }
 }

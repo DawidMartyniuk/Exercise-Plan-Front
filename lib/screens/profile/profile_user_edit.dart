@@ -5,9 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:work_plan_front/model/User.dart'; // ✅ Użyj spójnego importu z małą literą
 import 'package:work_plan_front/model/authResponse.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/profileServiseProvider.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
@@ -166,6 +164,8 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
 
   Widget _buildAvatarImage() {
     //  nAJPIERW SPRAWDŹ CZY JEST LOKALNY OBRAZ
+
+     final authResponse = ref.watch(authProviderLogin);
     if (_profileImage != null) {
       return ClipOval(
         child: Image.file(
@@ -179,6 +179,7 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
 
     //  POTEM SPRAWDŹ BASE64 Z SERWERA
     final imageBase64 = _getProfileImage();
+    print("🔍 Avatar w profilu: '${imageBase64.substring(0, imageBase64.length > 50 ? 50 : imageBase64.length)}...'"); // ✅ DEBUG
     if (imageBase64.isNotEmpty) {
       try {
         String cleanBase64 = imageBase64;
@@ -223,6 +224,48 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
     int weight,
   ) async {
     final authResponse = ref.read(authProviderLogin);
+    if (authResponse != null) {
+    final currentUser = authResponse.user;
+     //zmiana 
+    
+     final changes = <String, dynamic>{};
+    
+    if (name != currentUser.name) {
+      changes['name'] = name;
+      print("🔄 Zmiana name: '${currentUser.name}' → '$name'");
+    }
+    if (email != currentUser.email) {
+      changes['email'] = email;
+      print("🔄 Zmiana email: '${currentUser.email}' → '$email'");
+    }
+    if (description != (currentUser.description ?? '')) {
+      changes['description'] = description;
+      print("🔄 Zmiana description: '${currentUser.description ?? ''}' → '$description'");
+    }
+    if (weight != (currentUser.weight?.toString() ?? '')) {
+      changes['weight'] = weight;
+      print("🔄 Zmiana weight: '${currentUser.weight?.toString() ?? ''}' → '$weight'");
+    }
+    if (_profileImage != null) {
+      changes['avatar'] = 'NEW_IMAGE';
+      print("🔄 Zmiana avatar: nowy obraz wybrany");
+    }
+    
+    if (changes.isEmpty) {
+      ToastUtils.showValidationError(
+        context,
+        customMessage: "No changes detected. Please modify at least one field.",
+      );
+      return;
+    }
+    
+    print("📋 Detected changes: ${changes.keys.join(', ')}");
+    }
+    
+
+     //zmaian 
+
+      final changes = <String, dynamic>{};
     if (authResponse != null) {
       if (name.trim().isEmpty) {
         ToastUtils.showValidationError(
