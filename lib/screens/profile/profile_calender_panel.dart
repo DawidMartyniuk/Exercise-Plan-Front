@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
-import 'package:work_plan_front/model/AuthResponse.dart';
+
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
@@ -294,18 +294,25 @@ class _ProfileCalenderState extends ConsumerState<ProfileCalenderPanel> {
   // ✅ OBSŁUGA KLIKNIĘCIA W DZIEŃ - UŻYJ WorkoutCardInfo
   void _handleDayTapped(DateTime date, List<TrainingSession> sessions) {
     final training = _getTrainingForDate(date, sessions);
+
+    final sessionsForDate =sessions.where((sessions)=>
+      sessions.startedAt.year == date.year &&
+      sessions.startedAt.month == date.month &&
+      sessions.startedAt.day == date.day,
+    ).toList();
     
-    if (training != null) {
-      // ✅ PRZEJDŹ DO WorkoutCardInfo (tej samej co w workoutCard.dart)
+       if (sessionsForDate.isNotEmpty) {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder:
-              (context) => WorkoutCardInfo(
-                trainingSession: training, // ✅ UŻYJ WorkoutCardInfo
+              (context) => WorkoutCard(
+                allSessionsForDate: sessionsForDate,
+                trainingSession: sessionsForDate.first, // ✅ UŻYJ WorkoutCardInfo
+                showAsFullScreen: true,  
               ),
         ),
       );
-      print("✅ Przechodzę do treningu: ${training.exercise_table_name} z dnia ${date.day}/${date.month}/${date.year}");
+      print("✅ Przechodzę do treningu: ${sessionsForDate.first.exercise_table_name} z dnia ${date.day}/${date.month}/${date.year}");
     } else {
       // ✅ POKAŻ INFO ŻE BRAK TRENINGU
       ScaffoldMessenger.of(context).showSnackBar(
@@ -363,7 +370,7 @@ class _ProfileCalenderState extends ConsumerState<ProfileCalenderPanel> {
           // Navigator.of(context).push(
           //   MaterialPageRoute(
           //     builder: (context) => WorkoutCard(
-          //    trainingSession: training, // ✅ UŻYJ WorkoutCard
+          //    trainingSession: training, 
           //     ),
           //   ),
           // );
