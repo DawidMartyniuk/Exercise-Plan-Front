@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_compact.dart';
 
 class RecentWorkoutsSection extends ConsumerStatefulWidget {
   const RecentWorkoutsSection({super.key});
