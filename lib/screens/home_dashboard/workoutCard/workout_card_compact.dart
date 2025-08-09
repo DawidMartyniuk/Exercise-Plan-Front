@@ -1,10 +1,13 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_helpers.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_header.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_stats.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_fullscreen.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard_info.dart';
 import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ IMPORT
@@ -106,73 +109,154 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> with WorkoutCardHelpe
       ),
     );
   }
+  // Widget _buildAvatarImage() {
+  //   final imageBase64 = getProfileImage(ref);
+
+  //   if (imageBase64.isEmpty) {
+  //     return Icon(
+  //       Icons.person,
+  //       size: 50,
+  //       color: Theme.of(context).colorScheme.primary,
+  //     );
+  //   }
+
+  //   try {
+  //     // ✅ USUŃ PREFIX JEŚLI ISTNIEJE (data:image/jpeg;base64,)
+  //     String cleanBase64 = imageBase64;
+  //     if (imageBase64.contains(',')) {
+  //       cleanBase64 = imageBase64.split(',').last;
+  //     }
+
+  //     // ✅ DEKODUJ BASE64
+  //     Uint8List imageBytes = base64Decode(cleanBase64);
+
+  //     // ✅ ZWRÓĆ OBRAZEK Z PAMIĘCI
+  //     return Image.memory(
+  //       imageBytes,
+  //       width: 35,
+  //       height: 35,
+  //       fit: BoxFit.cover,
+  //       errorBuilder: (context, error, stackTrace) {
+  //         // ✅ JEŚLI BŁĄD DEKODOWANIA - POKAŻ IKONĘ
+  //         return Icon(
+  //           Icons.person,
+  //           size: 24,
+  //           color: Theme.of(context).colorScheme.primary,
+  //         );
+  //       },
+  //     );
+  //   } catch (e) {
+     
+  //     print("❌ Błąd dekodowania base64: $e");
+  //     return Icon(
+  //       Icons.person,
+  //       size: 24,
+  //       color: Theme.of(context).colorScheme.primary,
+  //     );
+  //   }
+  // }
 
   Widget _buildExercisesList() {
-    return ListView.builder(
-      shrinkWrap: true,
-      itemCount: widget.trainingSession.exercises.take(2).length,
-      itemBuilder: (context, index) {
-        final exercise = widget.trainingSession.exercises[index];
-        return ListTile(
-          dense: true,
-          leading: Container(
-            width: 32, // ✅ WIĘKSZA IKONA
-            height: 32, // ✅ WIĘKSZA IKONA
+    return Container(
+      height: 80, // ✅ OGRANICZENIE WYSOKOŚCI
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withAlpha(50),
+          width: 1,
+        ),
+      ),
+      clipBehavior: Clip.hardEdge, // ✅ TWARDKIE OBCIĘCIE
+      child: ListView.builder(
+        padding: EdgeInsets.zero, // ✅ USUŃ DOMYŚLNY PADDING
+        shrinkWrap: true,
+        itemCount: widget.trainingSession.exercises.take(2).length,
+        itemBuilder: (context, index) {
+          final exercise = widget.trainingSession.exercises[index];
+          return Container(
+            // ✅ WŁASNY CONTAINER ZAMIAST LISTTILE (LEPSZĄ KONTROLA)
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            margin: EdgeInsets.only(bottom: 4),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Theme.of(context).colorScheme.primary, // ✅ WYRAŹNIEJSZE OBRAMOWANIE
-                width: 2, // ✅ GRUBSZE OBRAMOWANIE
-              ),
-              color: Theme.of(context).colorScheme.primary.withAlpha(50),
-              boxShadow: [ // ✅ DODAJ CIEŃ
-                BoxShadow(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(30),
-                  blurRadius: 4,
-                  offset: Offset(0, 2),
+              color: Theme.of(context).colorScheme.surface, // ✅ KONTROLOWANE TŁO
+            ),
+            child: Row(
+              children: [
+                // ✅ IKONA ĆWICZENIA
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 2,
+                    ),
+                    color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: () {
+                      final imageUrl = getExerciseImage(exercise.exerciseId, ref);
+                      
+                      if (imageUrl == null || imageUrl.isEmpty) {
+                        return Icon(
+                          Icons.fitness_center,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        );
+                      }
+                      
+                      return ImageUtils.buildImage(
+                        imageUrl: imageUrl,
+                        context: context,
+                        width: 32,
+                        height: 32,
+                        fit: BoxFit.cover,
+                        placeholder: Icon(
+                          Icons.fitness_center,
+                          size: 18,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      );
+                    }(),
+                  ),
+                ),
+                
+                SizedBox(width: 12),
+                
+                // ✅ TEKST
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${exercise.sets.length} sets",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        getExerciseName(exercise.exerciseId, ref) ?? "Exercise",
+                        style: Theme.of(context).textTheme.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            child: ClipOval(
-              child: () {
-                final imageUrl = getExerciseImage(exercise.exerciseId, ref);
-                
-                if (imageUrl == null || imageUrl.isEmpty) {
-                  return Icon(
-                    Icons.fitness_center,
-                    size: 18, // ✅ WIĘKSZA IKONA
-                    color: Theme.of(context).colorScheme.primary,
-                  );
-                }
-                
-                // ✅ DODAJ ImageUtils.buildImage
-                return ImageUtils.buildImage(
-                  imageUrl: imageUrl,
-                  context: context,
-                  width: 32,
-                  height: 32,
-                  fit: BoxFit.cover,
-                  placeholder: Icon(
-                    Icons.fitness_center,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                );
-              }(),
-            ),
-          ),
-          title: Text(
-            "${exercise.sets.length} sets",
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Text(
-            getExerciseName(exercise.exerciseId, ref) ?? "Exercise", 
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

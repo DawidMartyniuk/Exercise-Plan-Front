@@ -13,7 +13,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // ✅ INICJALIZACJA HIVE
-  if (kIsWeb) {
+  if (kIsWeb) {///
     await Hive.initFlutter();
   } else {
     final appDocumentDir = await getApplicationDocumentsDirectory();

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/avatar_widget.dart';
 
 class WorkoutHeader extends StatelessWidget {
   final String userName;
   final DateTime date;
   final bool showMoreIcon;
+ // final Widget buildAvatarImage;
 
   const WorkoutHeader({
     super.key,
     required this.userName,
     required this.date,
     this.showMoreIcon = true,
+    //required this.buildAvatarImage,
   });
 
   @override
@@ -28,10 +31,10 @@ class WorkoutHeader extends StatelessWidget {
             ),
             color: Theme.of(context).colorScheme.primary.withAlpha(50),
           ),
-          child: Icon(
-            Icons.person,
-            size: 20,
-            color: Theme.of(context).colorScheme.onSecondary,
+          child: AvatarWidget(
+            size: 40,
+            borderWidth: 2,
+            iconSize: 20,
           ),
         ),
         SizedBox(width: 16.0),

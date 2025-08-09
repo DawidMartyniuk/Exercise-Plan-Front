@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
@@ -95,4 +95,10 @@ mixin WorkoutCardHelpers {
       loading: () => '',
     );
   }
+
+  String getProfileImage(WidgetRef ref) {
+    final authResponse = ref.watch(authProviderLogin);
+    return authResponse?.user.avatar ?? '';
+  }
+  
 }

@@ -7,6 +7,7 @@ import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/avatar_widget.dart';
 import 'package:work_plan_front/utils/imge_untils.dart';
 
 class WorkoutCardInfo extends ConsumerStatefulWidget {
@@ -154,11 +155,7 @@ class _WorkoutCardInfoState extends ConsumerState<WorkoutCardInfo> {
                       ),
                       color: Theme.of(context).colorScheme.primary.withAlpha(50),
                     ),
-                    child: Icon(
-                      Icons.person,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSecondary,
-                    ),
+                    child: AvatarWidget(),
                   ),
                   SizedBox(width: 16.0),
                   Expanded(

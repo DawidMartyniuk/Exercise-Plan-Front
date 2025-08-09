@@ -35,7 +35,8 @@ class ProfileUserPanel extends ConsumerWidget {
                           context,
                         ).colorScheme.primary.withAlpha(50),
                       ),
-                      child: ClipOval(child: buildAvatarImage),
+                      child: 
+                      ClipOval(child: buildAvatarImage),
                     ),
         
                     SizedBox(width: 16), // ✅ ODSTĘP MIĘDZY AVATAREM A TEKSTEM

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_helpers.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_header.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_stats.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
 import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ IMPORT
 
 class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
