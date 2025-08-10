@@ -5,7 +5,7 @@ import 'package:work_plan_front/serwis/trainingSessions.dart';
 class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSession>> {
   CompletedTrainingSessionNotifier() : super([]) {
     print("🚀 KONSTRUKTOR: CompletedTrainingSessionNotifier tworzony!");
-    _autoLoad(); // ✅ To jest wywołane
+    _autoLoad(); 
   }
 
   final TrainingSessionService _service = TrainingSessionService();
@@ -14,7 +14,7 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
     print("🔄 _autoLoad: Rozpoczynam!");
     try {
       print("🔄 TrainingSessionNotifier: Auto-loading sessions...");
-      await fetchSessions(); // ✅ UPEWNIJ SIĘ ŻE TO JEST TUTAJ!
+      await fetchSessions(); 
       print("✅ TrainingSessionNotifier: Auto-load completed with ${state.length} sessions");
     } catch (e) {
       print("❌ Auto-load training sessions error: $e");
@@ -66,6 +66,15 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
       print('❌ Provider: Błąd pobierania sesji: $e');
       print('❌ Stack trace: $stackTrace');
       print("🔍 Provider: fetchSessions() WYJŚCIE - ERROR");
+    }
+  }
+  Future<void> deleteTrainingSessions(int id) async {
+    try{
+      await _service.deleteTrainingSession(id);
+      state = state.where((session) => session.id != id).toList();
+      print("✅ Sesja o ID $id została usunięta");
+    } catch (e) {
+      print("❌ Błąd podczas usuwania sesji: $e");
     }
   }
 

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-class PlanCardMoreOption extends StatelessWidget{
-  final VoidCallback onEdit;
+class CardMoreOption extends StatelessWidget{
+  final VoidCallback onInfo;
   final VoidCallback onDelete;
 
-  const PlanCardMoreOption({
+  const CardMoreOption({
     super.key,
-    required this.onEdit,
+    required this.onInfo,
     required this.onDelete,
   });
 
@@ -31,11 +31,11 @@ class PlanCardMoreOption extends StatelessWidget{
     menuChildren: [
       MenuItemButton(
         onPressed: () {
-          onEdit();
+          onInfo();
         },
         child: Icon(
-          Icons.edit,
-          color: Colors.blue,
+          Icons.info,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
       MenuItemButton(
@@ -44,7 +44,7 @@ class PlanCardMoreOption extends StatelessWidget{
         },
         child: Icon(
           Icons.delete,
-          color: Colors.red,
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     ],

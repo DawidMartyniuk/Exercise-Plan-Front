@@ -1,10 +1,9 @@
-import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_helpers.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
@@ -29,6 +28,59 @@ class WorkoutCard extends ConsumerStatefulWidget {
 }
 
 class _WorkoutCardState extends ConsumerState<WorkoutCard> with WorkoutCardHelpers {
+
+
+void _deleteTrainingSession(int sessionId) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Delete Workout'),
+        content: Text('Are you sure you want to delete this workout?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Zamknij dialog
+            },
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop(); // Zamknij dialog
+              
+              try {
+                // ✅ WYWOŁAJ PROVIDER DO USUNIĘCIA
+                await ref.read(completedTrainingSessionProvider.notifier)
+                    .deleteTrainingSessions(sessionId);
+                
+                // ✅ POKAŻ SUKCES
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Workout deleted successfully'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } catch (e) {
+                // ✅ POKAŻ BŁĄD
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to delete workout: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: Text(
+              'Delete',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     if (widget.showAsFullScreen) {
@@ -65,6 +117,20 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> with WorkoutCardHelpe
             WorkoutHeader(
               userName: getUserName(ref),
               date: session.startedAt,
+              onInfo: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WorkoutCardInfo(trainingSession: session),
+                  ),
+                );
+              },
+              onDelete: () {
+               if (session.id != null) {
+                 _deleteTrainingSession(session.id!);
+               }
+               
+              },
             ),
             
             SizedBox(height: 12),
@@ -109,52 +175,6 @@ class _WorkoutCardState extends ConsumerState<WorkoutCard> with WorkoutCardHelpe
       ),
     );
   }
-  // Widget _buildAvatarImage() {
-  //   final imageBase64 = getProfileImage(ref);
-
-  //   if (imageBase64.isEmpty) {
-  //     return Icon(
-  //       Icons.person,
-  //       size: 50,
-  //       color: Theme.of(context).colorScheme.primary,
-  //     );
-  //   }
-
-  //   try {
-  //     // ✅ USUŃ PREFIX JEŚLI ISTNIEJE (data:image/jpeg;base64,)
-  //     String cleanBase64 = imageBase64;
-  //     if (imageBase64.contains(',')) {
-  //       cleanBase64 = imageBase64.split(',').last;
-  //     }
-
-  //     // ✅ DEKODUJ BASE64
-  //     Uint8List imageBytes = base64Decode(cleanBase64);
-
-  //     // ✅ ZWRÓĆ OBRAZEK Z PAMIĘCI
-  //     return Image.memory(
-  //       imageBytes,
-  //       width: 35,
-  //       height: 35,
-  //       fit: BoxFit.cover,
-  //       errorBuilder: (context, error, stackTrace) {
-  //         // ✅ JEŚLI BŁĄD DEKODOWANIA - POKAŻ IKONĘ
-  //         return Icon(
-  //           Icons.person,
-  //           size: 24,
-  //           color: Theme.of(context).colorScheme.primary,
-  //         );
-  //       },
-  //     );
-  //   } catch (e) {
-     
-  //     print("❌ Błąd dekodowania base64: $e");
-  //     return Icon(
-  //       Icons.person,
-  //       size: 24,
-  //       color: Theme.of(context).colorScheme.primary,
-  //     );
-  //   }
-  // }
 
   Widget _buildExercisesList() {
     return Container(

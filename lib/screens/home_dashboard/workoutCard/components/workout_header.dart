@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/avatar_widget.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/card_more_options.dart';
+import 'package:work_plan_front/utils/toast_untils.dart';
 
 class WorkoutHeader extends StatelessWidget {
   final String userName;
   final DateTime date;
   final bool showMoreIcon;
+  final VoidCallback? onInfo;
+  final VoidCallback? onDelete;
  // final Widget buildAvatarImage;
 
   const WorkoutHeader({
@@ -12,7 +16,8 @@ class WorkoutHeader extends StatelessWidget {
     required this.userName,
     required this.date,
     this.showMoreIcon = true,
-    //required this.buildAvatarImage,
+    this.onInfo,
+    this.onDelete,
   });
 
   @override
@@ -57,10 +62,17 @@ class WorkoutHeader extends StatelessWidget {
           ),
         ),
         if (showMoreIcon)
-          Icon(
-            Icons.more_horiz,
-            size: 24,
-            color: Theme.of(context).colorScheme.onSurface,
+          CardMoreOption(
+            onInfo: onInfo ?? () {
+
+            },
+            onDelete: onDelete ?? () {
+               print("No delete callback provided");
+               ToastUtils.showDeleteSuccess(
+                 context,
+                 itemName: "Workout", 
+               );
+            },
           ),
       ],
     );

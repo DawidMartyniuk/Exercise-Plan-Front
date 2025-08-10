@@ -58,6 +58,20 @@ class TrainingSessionService {
       rethrow;
     }
   }
+  Future<void> deleteTrainingSession(int sessionsId) async {
+
+    final url = Uri.parse("$_baseUrl$_trainingUrl/$sessionsId");
+    final response = await http.delete(
+      url,
+      headers: await getHeaders(),
+    );
+    if (response.statusCode == 200) {
+      print("Training session deleted successfully!");
+    } else {
+      throw Exception("Failed to delete training session: ${response.body}");
+    }
+  }
+
 
   // Pobierz sesje treningowe dla zalogowanego użytkownika
   Future<List<TrainingSession>> getUserTrainingSessions() async {

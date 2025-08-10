@@ -84,31 +84,4 @@ class ExerciseService {
       throw Exception("Failed to delete exercise: ${response.body}");
     }
   }
-
-  // Future<String?> _getUserIdFromToken() async {
-  //   final token = await getToken();
-  //   if (token == null) {
-  //     throw Exception("No token found. User is not logged in.");
-  //   }
-
-  //   try {
-  //     final decodedToken = JwtDecoder.decode(token);
-  //     return decodedToken['sub']; // Zakładamy, że `sub` zawiera `user_id`
-  //   } catch (e) {
-  //     throw Exception("Failed to decode token: $e");
-  //   }
-  // }
-
-  // Pobierz nagłówki z tokenem
-  // Future<Map<String, String>> _getHeaders() async {
-  //   final token = await getToken();
-  //   if (token == null) {
-  //     throw Exception("No token found. User is not logged in.");
-  //   }
-  //   return {
-  //     "Content-Type": "application/json",
-  //     "Accept": "application/json",
-  //     "Authorization": "Bearer $token",
-  //   };
-  // }
 }
