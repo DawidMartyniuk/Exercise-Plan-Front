@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// ignore: depend_on_referenced_packages
-import 'package:intl/intl.dart'; // ✅ Import for DateFormat
- // ✅ DODAJ IMPORT dla formatowania dat
+import 'package:intl/intl.dart'; 
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/avatar_widget.dart';
-import 'package:work_plan_front/utils/imge_untils.dart';
+import 'package:work_plan_front/utils/image_untils.dart';
 
 class WorkoutCardInfo extends ConsumerStatefulWidget {
   final TrainingSession trainingSession;

@@ -9,7 +9,7 @@ import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/wo
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_fullscreen.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard_info.dart';
-import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ IMPORT
+import 'package:work_plan_front/utils/image_untils.dart'; // ✅ DODAJ IMPORT
 
 class WorkoutCard extends ConsumerStatefulWidget {
   final TrainingSession trainingSession;

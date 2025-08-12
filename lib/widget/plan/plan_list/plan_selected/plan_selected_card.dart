@@ -1,144 +1,118 @@
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../helpers/plan_helpers.dart';
+import 'components/exercise_image.dart';
+import 'components/notes_field.dart';
 
-class PlanSelectedCard extends StatelessWidget {
-  final VoidCallback? infoExercise;
-  final NetworkImage exerciseGif;
+class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
+  final String exerciseId;
   final String exerciseName;
   final Widget headerCellTextStep;
   final Widget headerCellTextKg;
   final Widget headerCellTextReps;
- final List<TableRow> exerciseRows;
+  final List<TableRow> exerciseRows;
   final String notes;
-  
+  final Function(String)? onNotesChanged;
+  final VoidCallback? onTap; // Dodaj opcjonalne onTap
 
   const PlanSelectedCard({
     super.key,
-    required this.infoExercise,
-    required this.exerciseGif,
+    required this.exerciseId,
     required this.exerciseName,
     required this.headerCellTextStep,
     required this.headerCellTextKg,
     required this.headerCellTextReps,
-    required this.notes,
     required this.exerciseRows,
-    //List<ExerciseRow>? exerciseRows,
-    });
+    required this.notes,
+    this.onNotesChanged,
+    this.onTap,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
-      color: Theme.of(
-        context,
-      ).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    infoExercise?.call();
-                  },
-                  child: ClipOval(
-                    child:
-                        exerciseGif.url.isNotEmpty
-                            ? Image.network(
-                              exerciseGif.url,
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                            )
-                            : Container(
-                              width: 50,
-                              height: 50,
-                              color: Colors.grey[300],
-                              alignment: Alignment.center,
-                              child: const Text(
-                                "brak",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    exerciseName,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
+        color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ HEADER Z OBRAZKIEM I NAZWĄ
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: onTap, 
+                    child: ExerciseImage(
+                      exerciseId: exerciseId,
+                      size: 50,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-              child: TextField(
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface, // tekst wpisywany
-                  fontSize: 16, // dopasuj do reszty tekstów
-                ),
-                decoration: InputDecoration(
-                  hintText: "notes",
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), // podpowiedź lekko jaśniejsza
-                    fontSize: 16,
-                  ),
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.all(8),
-                ),
-                minLines: 1,
-                maxLines: 3,
-                onChanged: (value) {
-                  // obsługa notatki
-                },
-              ),
-            ),
-            Table(
-              border: TableBorder.symmetric(
-                inside: BorderSide.none,
-                outside: BorderSide.none,
-              ),
-              columnWidths: const {
-                0: FlexColumnWidth(1),
-                1: FlexColumnWidth(1),
-                2: FlexColumnWidth(1),
-                3: FlexColumnWidth(1),
-              },
-              children: [
-                TableRow(
-                  children: [
-                    headerCellTextStep,
-                    headerCellTextKg,
-                    headerCellTextReps,
-                    Container(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Icon(
-                        Icons.check,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      exerciseName,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // ✅ NOTES FIELD
+              if (onNotesChanged != null)
+                NotesField(
+                  notes: notes,
+                  onChanged: onNotesChanged!,
+                )
+              else if (notes.isNotEmpty) ...[
+                Text(
+                  'Notes: $notes',
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                  ),
                 ),
-                ...exerciseRows, // <-- używasz przekazanej listy TableRow
+                const SizedBox(height: 12),
               ],
-            ),
-          ],
+              
+              // ✅ TABELA ĆWICZEŃ
+              Table(
+                border: TableBorder.all(
+                  color: Theme.of(context).colorScheme.outline.withAlpha(50),
+                  width: 1,
+                ),
+                children: [
+                  TableRow(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                    ),
+                    children: [
+                      headerCellTextStep,
+                      headerCellTextKg,
+                      headerCellTextReps,
+                      Container(
+                        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          'Done',
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ...exerciseRows,
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    
   }
 }

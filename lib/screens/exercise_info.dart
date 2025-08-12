@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/utils/imge_untils.dart'; // ✅ DODAJ
+import 'package:work_plan_front/utils/image_untils.dart'; // ✅ DODAJ
 
 class ExerciseInfoScreen extends ConsumerStatefulWidget {
   const ExerciseInfoScreen({super.key, required this.exercise});

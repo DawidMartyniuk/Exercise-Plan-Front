@@ -113,7 +113,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        // ✅ ZMIEŃ TYTUŁ W ZALEŻNOŚCI OD TRYBU
+      
         title: Text(widget.isSelectionMode 
             ? (widget.title ?? 'Select Exercise') 
             : 'Exercises'),

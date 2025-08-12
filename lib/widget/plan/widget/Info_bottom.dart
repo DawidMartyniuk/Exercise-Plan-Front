@@ -16,7 +16,8 @@ class InfoBottomSheet extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.onSurface, size: 48),
+          Icon(
+            Icons.info_outline, color: Theme.of(context).colorScheme.onSurface, size: 48),
           const SizedBox(height: 16),
           Text(
             textInfo,

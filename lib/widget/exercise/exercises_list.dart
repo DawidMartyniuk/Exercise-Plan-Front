@@ -3,7 +3,7 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:work_plan_front/utils/imge_untils.dart';
+import 'package:work_plan_front/utils/image_untils.dart';
 
 class ExerciseList extends StatelessWidget {
   final List<Exercise> exercise;

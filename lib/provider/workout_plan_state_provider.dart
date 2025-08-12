@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
+import 'package:work_plan_front/model/exercise_plan.dart';
+
 class WorkoutPlanState {
 
   final Map<int, List<ExerciseRowState>> plans;
@@ -84,6 +86,24 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     }
   }
 
+  void clearPlan(int planId) {
+    final updatedPlans = Map<int, List<ExerciseRowState>>.from(state.plans);
+    updatedPlans.remove(planId);
+    
+    state = state.copyWith(plans: updatedPlans);
+    _saveToPrefs();
+    
+    print("🗑️ Wyczyszczono workout state dla planu ID: $planId");
+  }
+
+  void updatePlan(int planId, List<ExerciseRowState> updatedRows) {
+    final updatedPlans = Map<int, List<ExerciseRowState>>.from(state.plans);
+    updatedPlans[planId] = updatedRows;
+    state = state.copyWith(plans: updatedPlans);
+    _saveToPrefs();
+    print("✅ Zaktualizowano plan ID: $planId");
+  }
+
   Future<void> _saveToPrefs() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('workout_plan_state', json.encode(state.toJson()));
@@ -118,12 +138,12 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     return state.plans[planId] ?? [];
   }
 
-  void clearPlan(int planId) {
-    final newPlans = {...state.plans};
-    newPlans.remove(planId);
-    state = state.copyWith(plans: newPlans);
-    _saveToPrefs();
-  }
+  // void clearPlan(int planId) {
+  //   final newPlans = {...state.plans};
+  //   newPlans.remove(planId);
+  //   state = state.copyWith(plans: newPlans);
+  //   _saveToPrefs();
+  // }
 }
 
 final workoutPlanStateProvider = StateNotifierProvider<WorkoutPlanStateNotifier, WorkoutPlanState>(

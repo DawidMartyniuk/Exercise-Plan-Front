@@ -328,13 +328,9 @@ final authResponse = ref.watch(authProviderLogin);
                                 textAlign: TextAlign.left,
                               ),
                             ),
-                            PlanCardMoreOption(
-                              onEdit: () {
-                                editPlan(plan, context);
-                              },
-                              onDelete: () {
-                                deletePlan(plan, context, plan.id);
-                              },
+                            PlanCardMoreOption( 
+                              onDeletePlan: () => deletePlan(plan, context, plan.id),
+                              plan: plan,
                             ),
                           ],
                         ),

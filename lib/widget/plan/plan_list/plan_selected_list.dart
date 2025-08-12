@@ -1,9 +1,6 @@
 import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/main.dart';
 import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
@@ -11,15 +8,17 @@ import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
-import 'package:expandable/expandable.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
+import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout.dart';
-import 'package:work_plan_front/utils/imge_untils.dart';
-import 'package:work_plan_front/utils/workout_utils.dart';// ✅ DODAJ IMPORT
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_appBar.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_card.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_selected_details.dart';
-import 'package:work_plan_front/widget/plan/widget/Info_bottom.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
+import 'helpers/plan_helpers.dart';
+import 'helpers/exercise_calculator.dart';
+import 'components/plan_stats.dart';
+import 'components/exercise_table_helpers.dart';
+import 'plan_selected/plan_selected_card.dart';
+import 'plan_selected/plan_selected_appBar.dart';
+import 'plan_selected/plan_selected_details.dart';
 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -34,277 +33,91 @@ class PlanSelectedList extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() {
-    return _PlanSelectedListState();
-  }
+  ConsumerState<ConsumerStatefulWidget> createState() => _PlanSelectedListState();
 }
 
-class _PlanSelectedListState extends ConsumerState<PlanSelectedList> {
+class _PlanSelectedListState extends ConsumerState<PlanSelectedList> 
+    with PlanHelpers, ExerciseCalculations {
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   ScrollController? _scrollController;
-  Map<int, bool> _expandedCards = {};
-  bool _workoutStarted = false;
   Timer? _timer;
-  int totalSteps = 0;
 
-  final Map<String, TextEditingController> _kgControllers = {};
- final Map<String, TextEditingController> _repControllers = {};
-
-  void _openInfoExercise(Exercise exercise) {
-    showModalBottomSheet(
-      useSafeArea: true,
-      isScrollControlled: true,
-      context: context,
-      builder: (ctx) => (ExerciseInfoScreen(exercise: exercise)),
-    );
-  }
+  late ExerciseTable _originalPlan;
+  late List<Exercise> _originalExercises;
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
 
+    _originalPlan = _deepCopyPlan(widget.plan);
+    _originalExercises = List<Exercise>.from(widget.exercises);
+    _initializePlanData();
+  }
+
+  void _initializePlanData() {
     final planId = widget.plan.id;
     final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
-    debugPrint('Odczytano z providera: $savedRows');
-   
-
-
+    
     if (savedRows.isNotEmpty) {
-      for (final rowData in widget.plan.rows) {
-        for (final row in rowData.data) {
-          final match = savedRows.firstWhere(
-            (e) =>
-                e.colStep == row.colStep &&
-                e.exerciseNumber == rowData.exercise_number,
-            orElse:
-                () => ExerciseRowState(
-                  colStep: row.colStep,
-                  colKg: row.colKg,
-                  colRep: row.colRep,
-                  isChecked: row.isChecked,
-                  isFailure:row.isFailure,
-                  exerciseNumber: rowData.exercise_number,
-                ),
-          );
-          // print('initState: match dla row $row: $match');
-          row.colKg = match.colKg;
-          row.colRep = match.colRep;
-          row.isChecked = match.isChecked;
-          row.isFailure = match.isFailure;
-          row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
-        }
-      }
-    } 
+      _applyUserProgress(savedRows);
+    }
+  }
+   ExerciseTable _deepCopyPlan(ExerciseTable plan) {
+    final copiedRows = plan.rows.map((rowData) {
+      final copiedData = rowData.data.map((row) => ExerciseRow(
+        colStep: row.colStep,
+        colKg: row.colKg,
+        colRep: row.colRep,
+        isChecked: false, // ✅ RESETUJ STATUS
+        isFailure: false, // ✅ RESETUJ STATUS
+        rowColor: Colors.transparent,
+      )).toList();
+      
+      return ExerciseRowsData(
+        exercise_number: rowData.exercise_number,
+        exercise_name: rowData.exercise_name,
+        data: copiedData,
+        notes: rowData.notes,
+      );
+    }).toList();
+    
+    return ExerciseTable(
+      id: plan.id,
+      exercise_table: plan.exercise_table,
+      rows: copiedRows,
+    );
   }
 
-  void _toogleRowChecked(ExerciseRow row, String exerciseNumber) {
-    setState(() {
-      row.isChecked = !row.isChecked;
-      row.rowColor = row.isChecked ? const Color.fromARGB(255, 103, 189, 106) : Colors.transparent;
-   //print('TOGGLE: $row');
-    });
-    ref
-        .read(workoutPlanStateProvider.notifier)
-        .updateRow(
-          widget.plan.id,
-          ExerciseRowState(
-            colStep: row.colStep,
-            colKg: row.colKg,
-            colRep: row.colRep,
-            isChecked: row.isChecked,
-            isFailure: row.isFailure,
-            exerciseNumber: exerciseNumber,
-          ),
-        );
-    // Stwórz głęboką kopię planu z nowymi danymi
-final newRows = widget.plan.rows
-    .map((rowData) => rowData.copyWithData(
-          rowData.data
-              .map((row) => ExerciseRow(
-                    colStep: row.colStep,
-                    colKg: row.colKg,
-                    colRep: row.colRep,
-                    isChecked: row.isChecked,
-                    isFailure: row.isFailure,
-                    rowColor: row.rowColor,
-                  ))
-              .toList(),
-        ))
-    .toList();
-
-final newPlan = widget.plan.copyWithRows(newRows);
-
-ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
-  plan: newPlan,
-  exercises: widget.exercises,
-);
-    //print('Zmieniono checkbox: $row, isChecked: ${row.isChecked}');
-    debugPrint('Zmieniono checkbox: $row');
-    debugPrint('Zmieniono checkbox: $row, exerciseNumber: $exerciseNumber');
-  }
-
-  // void _endWorkout(BuildContext context) {
-  //   endWorkoutGlobal(
-  //   context: context,ref: ref
-  //   );
-   
-  // }
-
-  // Dodaj obsługę zmiany wartości kg/reps
-  void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
-    setState(() {
-      row.colKg = int.tryParse(value) ?? row.colKg;
-    });
-    ref
-        .read(workoutPlanStateProvider.notifier)
-        .updateRow(
-          widget.plan.id,
-          ExerciseRowState(
-            colStep: row.colStep,
-            colKg: row.colKg,
-            colRep: row.colRep,
-            isChecked: row.isChecked,
-            isFailure: row.isFailure,
-            exerciseNumber: exerciseNumber,
-          ),
-        );
-  }
-
-  void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
-    setState(() {
-      row.colRep = int.tryParse(value) ?? row.colRep;
-    });
-    ref
-        .read(workoutPlanStateProvider.notifier)
-        .updateRow(
-          widget.plan.id,
-          ExerciseRowState(
-            colStep: row.colStep,
-            colKg: row.colKg,
-            colRep: row.colRep,
-            isChecked: row.isChecked,
-            isFailure: row.isFailure,
-            exerciseNumber: exerciseNumber,
-          ),
-        );
-  }
-
-  void _saveAllRowsToProvider() {
-    final planId = widget.plan.id;
-    final rowStates = <ExerciseRowState>[];
+  void _applyUserProgress(List<ExerciseRowState> savedRows) {
     for (final rowData in widget.plan.rows) {
       for (final row in rowData.data) {
-        rowStates.add(
-          ExerciseRowState(
+        final match = savedRows.firstWhere(
+          (e) => e.colStep == row.colStep && e.exerciseNumber == rowData.exercise_number,
+          orElse: () => ExerciseRowState(
             colStep: row.colStep,
             colKg: row.colKg,
             colRep: row.colRep,
             isChecked: row.isChecked,
             isFailure: row.isFailure,
-            exerciseNumber: rowData.exercise_number, // <-- poprawka!
+            exerciseNumber: rowData.exercise_number,
           ),
         );
+        
+        row.colKg = match.colKg;
+        row.colRep = match.colRep;
+        row.isChecked = match.isChecked;
+        row.isFailure = match.isFailure;
+        row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
       }
     }
-    ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
-    debugPrint('Zapisano stan checkboxów do providera: $rowStates');
-    //Navigator.of(context).pop();
-  }
-
-   void _endWorkout(BuildContext context) {
-    final currentWorkout = ref.read(currentWorkoutPlanProvider);
-    if (currentWorkout?.plan != null) {
-      // Resetuj plan w providerze z listą planów
-      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
-
-      // Resetuj plan w currentWorkout (lokalnie)
-      resetPlanRows(currentWorkout.plan!);
-       for (final controller in _kgControllers.values) {
-      controller.clear();
-      }
-      for (final controller in _repControllers.values) {
-        controller.clear();
-      }
-
-    }
-    endWorkoutGlobal(context: context, ref: ref);
-     Navigator.of(context).pop();
-  }
-
- 
-  
-  int getAllReps() {
-  return widget.plan.rows.fold(
-    0,
-    (sum, rowData) => sum + rowData.data
-    .where((row) => row.isChecked)
-    .fold( 0, (innerSum, row) => innerSum + row.colRep,
-    ),
-  );
-}
-
- double getAllWeight() {
-  return widget.plan.rows.fold(
-    0,
-    (sum, rowData) => sum + rowData.data
-    .where((row) => row.isChecked)
-    .fold(0,(innerSum, row) => innerSum + row.colKg * row.colRep,
-    ),
-  );
-}
-  void _savePlan() {
-    final exerciseNames = widget.exercises.map((e) => e.name).toList();
-    final timerController = ref.read(workoutProvider.notifier);
-
-
-   final startHour  = timerController.startHour ?? 0; 
-   final startMinute = timerController.startMinute ?? 0;
-
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(
-      builder: (ctx) => SaveWorkout(
-        allTime: ref.read(workoutProvider.notifier).currentTime,
-        allReps:getAllReps(),
-        allWeight: getAllWeight(),
-        startHour: startHour,
-        startMinute: startMinute,
-        planName: widget.plan.exercise_table,
-        onEndWorkout: () => _endWorkout(context),
-    )));
-  }
-
-  String getTime(BuildContext context) {
-    final timerController = ref.watch(workoutProvider.notifier);
-    final time = timerController.currentTime;
-    final duration = Duration(seconds: time);
-
-    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-    final minutes = duration.inMinutes % 60;
-    final hours = duration.inHours;
-
-    String formattedMinutes =
-        minutes < 10 ? '$minutes' : minutes.toString().padLeft(2, '0');
-    String formattedTime;
-
-    if (hours == 0 && minutes == 0) {
-      formattedTime = "$seconds";
-    } else if (hours == 0) {
-      formattedTime = "$formattedMinutes:$seconds";
-    } else {
-      formattedTime = "$hours:$formattedMinutes:$seconds";
-    }
-    return formattedTime;
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
+    _startTimer();
   }
 
   @override
@@ -314,394 +127,426 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
     super.dispose();
   }
 
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  // ✅ EXERCISE INTERACTIONS
+  void _openInfoExercise(Exercise exercise) {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) => ExerciseInfoScreen(exercise: exercise),
+    );
+  }
+
+  // ✅ ROW INTERACTIONS
+  void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
+    setState(() {
+      row.isChecked = !row.isChecked;
+      row.rowColor = row.isChecked 
+          ? const Color.fromARGB(255, 103, 189, 106) 
+          : Colors.transparent;
+    });
+    _updateRowInProvider(row, exerciseNumber);
+    _updateCurrentWorkoutPlan();
+  }
+
+  void _onToggleRowFailure(ExerciseRow row, String exerciseNumber) {
+    if (!row.isChecked) return;
+    
+    setState(() {
+      row.isFailure = !row.isFailure;
+      row.rowColor = row.isFailure 
+          ? const Color.fromARGB(255, 12, 107, 15)
+          : const Color.fromARGB(255, 103, 189, 106);
+    });
+    _updateRowInProvider(row, exerciseNumber);
+  }
+
+  void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
+    setState(() {
+      row.colKg = int.tryParse(value) ?? row.colKg;
+    });
+    _updateRowInProvider(row, exerciseNumber);
+  }
+
+  void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
+    setState(() {
+      row.colRep = int.tryParse(value) ?? row.colRep;
+    });
+    _updateRowInProvider(row, exerciseNumber);
+  }
+
+  void _updateRowInProvider(ExerciseRow row, String exerciseNumber) {
+    ref.read(workoutPlanStateProvider.notifier).updateRow(
+      widget.plan.id,
+      ExerciseRowState(
+        colStep: row.colStep,
+        colKg: row.colKg,
+        colRep: row.colRep,
+        isChecked: row.isChecked,
+        isFailure: row.isFailure,
+        exerciseNumber: exerciseNumber,
+      ),
+    );
+  }
+
+  void _updateCurrentWorkoutPlan() {
+    final newRows = widget.plan.rows.map((rowData) => 
+      rowData.copyWithData(
+        rowData.data.map((row) => ExerciseRow(
+          colStep: row.colStep,
+          colKg: row.colKg,
+          colRep: row.colRep,
+          isChecked: row.isChecked,
+          isFailure: row.isFailure,
+          rowColor: row.rowColor,
+        )).toList(),
+      )
+    ).toList();
+
+    final newPlan = widget.plan.copyWithRows(newRows);
+    ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+      plan: newPlan,
+      exercises: widget.exercises,
+    );
+  }
+
+  // ✅ PLAN MANAGEMENT
+  void _saveAllRowsToProvider() {
+    final planId = widget.plan.id;
+    final rowStates = <ExerciseRowState>[];
+    
+    for (final rowData in widget.plan.rows) {
+      for (final row in rowData.data) {
+        rowStates.add(ExerciseRowState(
+          colStep: row.colStep,
+          colKg: row.colKg,
+          colRep: row.colRep,
+          isChecked: row.isChecked,
+          isFailure: row.isFailure,
+          exerciseNumber: rowData.exercise_number,
+        ));
+      }
+    }
+    
+    ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
+  }
+
+  void _savePlan() {
+    final timerController = ref.read(workoutProvider.notifier);
+    final startHour = timerController.startHour ?? 0;
+    final startMinute = timerController.startMinute ?? 0;
+
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (ctx) => SaveWorkout(
+        allTime: timerController.currentTime,
+        allReps: calculateTotalReps(widget.plan),
+        allWeight: calculateTotalVolume(widget.plan),
+        startHour: startHour,
+        startMinute: startMinute,
+        planName: widget.plan.exercise_table,
+        onEndWorkout: () => _endWorkout(context),
+      ),
+    ));
+  }
+
+  void _endWorkout(BuildContext context) {
+    // ✅ PRZYWRÓĆ ORYGINALNY PLAN
+    _restoreOriginalPlan();
+    
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    if (currentWorkout?.plan != null) {
+      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+      resetPlanRows(currentWorkout.plan!);
+    }
+    
+    endWorkoutGlobal(context: context, ref: ref);
+    Navigator.of(context).pop();
+  }
+
+  // ✅ NOWA METODA - PRZYWRÓĆ ORYGINALNY PLAN
+  void _restoreOriginalPlan() {
+    try {
+      // ✅ PRZYWRÓĆ ORYGINALNY STAN PLANU W PROVIDERZE
+      final planIndex = ref.read(exercisePlanProvider).indexWhere(
+        (plan) => plan.id == widget.plan.id
+      );
+      
+      if (planIndex != -1) {
+        // ✅ ZASTĄP BIEŻĄCY PLAN ORYGINALNYM
+        final currentPlans = List<ExerciseTable>.from(ref.read(exercisePlanProvider));
+        currentPlans[planIndex] = _originalPlan;
+        
+        // ✅ ZAKTUALIZUJ PROVIDER
+        ref.read(exercisePlanProvider.notifier).state = currentPlans;
+        
+        print("✅ Przywrócono oryginalny plan: ${_originalPlan.exercise_table}");
+        print("✅ Oryginalny plan ma ${_originalPlan.rows.length} ćwiczeń");
+        print("✅ Tymczasowy plan miał ${widget.plan.rows.length} ćwiczeń");
+      }
+      
+      // ✅ WYCZYŚĆ WORKOUT STATE
+      ref.read(workoutPlanStateProvider.notifier).clearPlan(widget.plan.id);
+      
+    } catch (e) {
+      print("❌ Błąd przywracania oryginalnego planu: $e");
+    }
+  }
+
+  // ✅ TIME FORMATTING
+  String getTime(BuildContext context) {
+    final timerController = ref.watch(workoutProvider.notifier);
+    final time = timerController.currentTime;
+    final duration = Duration(seconds: time);
+
+    return formatDuration(duration);
+  }
+
+  Future<void> _addExerciseToPlan(Exercise exercise) async {
+  setState(() {
+    // ✅ UTWÓRZ NOWY WIERSZ ĆWICZENIA Z DOMYŚLNYMI SERIAMI
+    final newExerciseRow = ExerciseRowsData(
+      exercise_number: exercise.exerciseId.isNotEmpty ? exercise.exerciseId : exercise.id,
+      exercise_name: exercise.name,
+      data: [
+        // ✅ DODAJ 3 DOMYŚLNE SERIE
+        ExerciseRow(
+          colStep: 1,
+          colKg: 0,
+          colRep: 0,
+          isChecked: false,
+          isFailure: false,
+          rowColor: Colors.transparent,
+        ),
+      ],
+      notes: "",
+    );
+    
+    // ✅ DODAJ DO PLANU
+    widget.plan.rows.add(newExerciseRow);
+    
+    // ✅ DODAJ ĆWICZENIE DO LISTY ĆWICZEŃ (jeśli nie istnieje)
+    final exerciseExists = widget.exercises.any((ex) => 
+        ex.exerciseId == exercise.exerciseId || ex.id == exercise.id);
+    
+    if (!exerciseExists) {
+      widget.exercises.add(exercise);
+    }
+  });
+  
+  // ✅ ZAKTUALIZUJ CURRENT WORKOUT PLAN
+  _updateCurrentWorkoutPlan();
+
+  
+  print("✅ Dodano ćwiczenie: ${exercise.name} do planu");
+}
+
   @override
   Widget build(BuildContext context) {
-    final totalSteps = widget.plan.rows.fold(
-      0,
-      (sum, rowData) => sum + rowData.data.length,
+    final groupedData = ExerciseTableHelpers.groupExercisesByName(
+      widget.plan,
+      widget.exercises,
     );
 
-    int getCurrentStep() {
-      // Liczba zaznaczonych checkboxów (isChecked == true) w AKTUALNYCH WIERSZACH PLANU
-      return widget.plan.rows
-          .expand((rowData) => rowData.data)
-          .where((row) => row.isChecked)
-          .length;
-      
-    }
+    final totalSteps = ExerciseTableHelpers.calculateTotalSteps(widget.plan);
+    final currentStep = ExerciseTableHelpers.calculateCurrentStep(widget.plan);
 
-    final groupedData = <String, List<ExerciseRowsData>>{};
-    for (final row in widget.plan.rows) {
-      groupedData.putIfAbsent(row.exercise_name, () => []).add(row);
-    }
-
-    Widget headerCellText(BuildContext context, String text) {
     return Container(
-      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-      padding: const EdgeInsets.all(8.0),
-      child: GestureDetector(
-        onTap: () {
-          showModalBottomSheet(
-            context: context,
-            builder: (ctx) {
-              if (text == "Step") {
-                return InfoBottomSheet(textInfo: "Here you have the set or step number for this exercise.");
-              } else if (text == "Weight") {
-                return InfoBottomSheet(textInfo: "Enter the weight you plan to use for this set.");
-              } else if (text == "Reps") {
-                return InfoBottomSheet(textInfo: "Type the number of repetitions for this set.");
-              }
-              return SizedBox.shrink();
-            },
-          );
-        },
-        child: Text(
-          text,
-          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          textAlign: TextAlign.center,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const Drawer(child: PlanSelectedDetails()),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: Stack(
+          children: [
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    // ✅ APP BAR
+                    PlanSelectedAppBar(
+                      onBack: () {
+                        _saveAllRowsToProvider();
+                        Navigator.pop(context);
+                      },
+                      planName: widget.plan.exercise_table,
+                      getTime: getTime,
+                      getCurrentStep: () => currentStep,
+                      onSavePlan: _savePlan,
+                    ),
+                    
+                    const SizedBox(height: 10),
+                    
+                    // ✅ PROGRESS BAR
+                    _buildProgressBar(totalSteps, currentStep),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // ✅ STATS
+                    //PlanStats(plan: widget.plan, isCompact: true),
+                    
+                    const SizedBox(height: 16),
+                    
+                    // ✅ EXERCISE CARDS
+                    Expanded(
+                      child: ListView(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          ..._buildExerciseCards(groupedData),
+                          const SizedBox(height: 24),
+                          _buildActionButtons(),
+                          const SizedBox(height: 24),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // ✅ DRAWER BUTTON
+            _buildDrawerButton(),
+          ],
         ),
       ),
     );
   }
 
-    Widget cellText(
-      BuildContext context,
-      String text,
-      String subject, {
-      bool bold = false,
-      required ExerciseRow row,
-      required String exerciseNumber,
-    }) {
-      final key = subject == "weight" 
-      ? '${exerciseNumber}_${row.colStep}_kg'
-      : '${exerciseNumber}_${row.colStep}_rep';
-      final controller = subject == "weight" 
-      ? _kgControllers[key]
-      : _repControllers[key];
-
-
-      if(row.isChecked) {
-        if(controller != null && controller.text.isEmpty){
-          controller.text = text; // Ustaw tekst tylko jeśli pole jest puste
-        }
-      } else {
-        if(controller !=null && controller.text.isNotEmpty) {
-          controller.clear(); // Wyczyść pole, jeśli checkbox nie jest zaznaczony
-        }
-      } 
-
-
-     // print('cellText: $text, subject: $subject, row: $row, exerciseNumber: $exerciseNumber');
-      return Padding(
-        
-        padding: const EdgeInsets.all(8.0),
-        child:
-            subject == "step"
-                ? GestureDetector(
-                  onTap:  () {
-                      setState(() {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (ctx) => InfoBottomSheet(textInfo: "Step or set number"),
-                        );
-                      });
-                    },
-                  child: TextField(
-                      controller: TextEditingController(text: text),
-                      readOnly: true,
-                      enabled: false,
-                      textAlign: TextAlign.center,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.zero,
-                        hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface, // Półprzezroczysty biały
-                      ),
-                      ),
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                )
-                :TextField(
-                    controller: row.isChecked == false
-                        ? null
-                        : subject == "weight"
-                            ? _kgControllers['${exerciseNumber}_${row.colStep}_kg']
-                            : _repControllers['${exerciseNumber}_${row.colStep}_rep'],
-                    onChanged: (value) {
-                      if (subject == "weight") {
-                        _onKgChanged(row, value, exerciseNumber);
-                      } else if (subject == "reps") {
-                        _onRepChanged(row, value, exerciseNumber);
-                      }
-                    },
-                    textAlign: TextAlign.center,
-                    decoration: InputDecoration( 
-                      hintText: text,
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: bold ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                );
-
-    }
-
-    List<TableRow> buildExerciseTableRows(List<ExerciseRowsData> exerciseRows) {
-      final List<TableRow> rows = [];
-      for (final exerciseRowsData in exerciseRows) {
-        for (int idx = 0; idx < exerciseRowsData.data.length; idx++) {
-          final row = exerciseRowsData.data[idx];
-          final rowId = idx + 1;
-
-          final kgKey = '${exerciseRowsData.exercise_number}_${row.colStep}_kg';
-          final repKey = '${exerciseRowsData.exercise_number}_${row.colStep}_rep';
-
-          _kgControllers[kgKey]?.text = row.colKg.toString();
-          _repControllers[repKey]?.text = row.colRep.toString();
-          rows.add(
-            TableRow(
-              decoration: BoxDecoration(color: row.rowColor),
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-               
-                    });
-                  },
-                  child: cellText(
-                    context,
-                    "$rowId",
-                    "step",
-                    row: row,
-                    exerciseNumber: exerciseRowsData.exercise_number,
-                  ),
-                ),
-                cellText(
-                  context,
-                  "${row.colKg}",
-                  "weight",
-                  row: row,
-                  exerciseNumber: exerciseRowsData.exercise_number,
-                ),
-                cellText(
-                  context,
-                  "${row.colRep}",
-                  "reps",
-                  row: row,
-                  exerciseNumber: exerciseRowsData.exercise_number,
-                ),
-                GestureDetector(
-                  onDoubleTap: () {
-                    setState(() {
-                      if (row.isChecked) {
-                        if (row.isFailure && row.rowColor == const Color.fromARGB(255, 12, 107, 15)) {
-                          row.rowColor = const Color.fromARGB(255, 103, 189, 106);
-                          row.isFailure = false;
-                        } else {
-                          row.rowColor = const Color.fromARGB(255, 12, 107, 15);
-                          row.isFailure = true;
-                        }
-                        
-                        ref.read(workoutPlanStateProvider.notifier).updateRow(
-                          widget.plan.id,
-                          ExerciseRowState(
-                            colStep: row.colStep,
-                            colKg: row.colKg,
-                            colRep: row.colRep,
-                            isChecked: row.isChecked,
-                            isFailure: row.isFailure,
-                            exerciseNumber: exerciseRowsData.exercise_number,
-                          ),
-                        );
-                        final planId = widget.plan.id;
-                        final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
-                       // print('Po DOUBLE TAP, stan w providerze: $savedRows');
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: IconButton(
-                      onPressed: () => _toogleRowChecked(row, exerciseRowsData.exercise_number),
-                      icon: Icon(
-                        row.isChecked ? Icons.check_box : Icons.check_box_outline_blank,
-                        color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-      }
-      return rows;
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Widget _buildProgressBar(int totalSteps, int currentStep) {
+    return LinearProgressIndicator(
+      minHeight: 8,
+      value: totalSteps > 0 ? currentStep / totalSteps : 0,
+      backgroundColor: Colors.red,
+      valueColor: AlwaysStoppedAnimation<Color>(
+        Theme.of(context).colorScheme.primary.withOpacity(0.2),
       ),
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: const Drawer(
-          child: PlanSelectedDetails(),
-        ),
-        resizeToAvoidBottomInset: false,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: Stack(
-          children: [
-            ExpandableNotifier(
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    children: [
-                      PlanSelectedAppBar(
-                        onBack: () {
-                          _saveAllRowsToProvider();
-                          Navigator.pop(context);
-                        },
-                        planName: widget.plan.exercise_table,
-                        getTime: getTime,
-                        getCurrentStep: getCurrentStep,
-                       // endWorkout: () => _endWorkout(context),
-                        onSavePlan: () => _savePlan(),
-                      ),
-                      SizedBox(height: 10),
-                      LinearProgressIndicator(
-                        minHeight: 8,
-                        value: getCurrentStep() / totalSteps,
-                        color: Colors.red,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withOpacity(0.2),
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          children: [
-                            ...groupedData.entries.map((entry) {
-                              final exerciseName = entry.key;
-                              final exerciseRows = entry.value;
-                              final firstRow = exerciseRows.first;
-            
-                              final matchingExercise = widget.exercises
-                                  .firstWhere(
-                                    (ex) =>
-                                        int.tryParse(ex.id) ==
-                                        int.tryParse(firstRow.exercise_number),
-                                    orElse:
-                                        () => Exercise(
-                                          exerciseId: '',
-                                          name: 'Unknown Exercise',
-                                          bodyParts: [],
-                                          equipments: [],
-                                          gifUrl: '',
-                                          targetMuscles: [],
-                                          secondaryMuscles: [],
-                                          instructions: [],
-                                        ),
-                                        // Exercise(
-                                        //   id: '',
-                                        //   name: 'Nieznane ćwiczenie',
-                                        //   bodyPart: '',
-                                        //   equipment: '',
-                                        //   gifUrl: '',
-                                        //   target: '',
-                                        //   secondaryMuscles: [],
-                                        //   instructions: [],
-                                        // ),
-                                  );
-            
-                              return PlanSelectedCard(
-                                infoExercise:
-                                    () => _openInfoExercise(matchingExercise),
-                                // ✅ UŻYJ NetworkImage bezpośrednio
-                                exerciseGif: ImageUtils.createImageProvider(matchingExercise.gifUrl),
-                                exerciseName: exerciseName,
-                                headerCellTextStep: headerCellText(
-                                  context,
-                                  "Step",
-                                ),
-                                headerCellTextKg: headerCellText(
-                                  context,
-                                   "Weight",
-                                   ),
-                                headerCellTextReps: headerCellText(
-                                  context,
-                                  "Reps",
-                                ),
-                                notes: firstRow.notes,
-                                exerciseRows: buildExerciseTableRows(
-                                  exerciseRows,
-                                ),
-                              );
-                            }),
-                            const SizedBox(height: 24),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: Dodaj akcję dodawania ćwiczenia
-                              },
-                              icon: Icon(Icons.add),
-                              label: Text("Add Exercise"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () => _endWorkout(context),
-                              child: Text("End Workout"),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                                foregroundColor: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+    );
+  }
+
+ List<Widget> _buildExerciseCards(Map<String, List<ExerciseRowsData>> groupedData) {
+  return groupedData.entries.map((entry) {
+    final exerciseName = entry.key;
+    final exerciseRows = entry.value;
+    final firstRow = exerciseRows.first;
+
+    final matchingExercise = widget.exercises.firstWhere(
+      (ex) => int.tryParse(ex.id) == int.tryParse(firstRow.exercise_number),
+      orElse: () => Exercise(
+        exerciseId: '',
+        name: exerciseName,
+        bodyParts: [],
+        equipments: [],
+        gifUrl: '',
+        targetMuscles: [],
+        secondaryMuscles: [],
+        instructions: [],
+      ),
+    );
+
+    return PlanSelectedCard(
+      exerciseId: firstRow.exercise_number,
+      exerciseName: exerciseName,
+      headerCellTextStep: ExerciseTableHelpers.buildHeaderCell(context, "Step"),
+      headerCellTextKg: ExerciseTableHelpers.buildHeaderCell(context, "Weight"),
+      headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(context, "Reps"),
+      notes: firstRow.notes,
+      exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
+        exerciseRows,
+        context,
+        onKgChanged: (row, value, exerciseNumber) => _onKgChanged(row, value, exerciseNumber),
+        onRepChanged: (row, value, exerciseNumber) => _onRepChanged(row, value, exerciseNumber),
+        onToggleChecked: (row, exerciseNumber) => _onToggleRowChecked(row, exerciseNumber),
+        onToggleFailure: (row, exerciseNumber) => _onToggleRowFailure(row, exerciseNumber),
+      ),
+      onNotesChanged: (value) {
+         setState(() {
+    // ✅ UTWÓRZ NOWY OBIEKT ZAMIAST UŻYWAĆ copyWith
+    final updatedRow = ExerciseRowsData(
+      exercise_name: exerciseName,
+      exercise_number: firstRow.exercise_number,
+      data: firstRow.data,
+      notes: value, // ✅ TYLKO NOTES SIĘ ZMIENIA
+    );
+    
+    final index = groupedData[exerciseName]!.indexOf(firstRow);
+    if (index != -1) {
+      groupedData[exerciseName]![index] = updatedRow;
+    }
+  });
+      },
+      onTap: () => _openInfoExercise(matchingExercise), // ✅ DODANE
+    );
+  }).toList();
+}
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        // ✅ ADD EXERCISE BUTTON
+        ElevatedButton.icon(
+          onPressed: () async {
+            final newExercise = await Navigator.of(context).push<Exercise>(
+              MaterialPageRoute(
+                builder: (ctx) => ExercisesScreen(
+                  isSelectionMode: true,
+                  title: 'Select Exercise for Plan',
                 ),
               ),
-            ),
-             Positioned(
-          left: 0,
-          top: MediaQuery.of(context).size.height / 2 - 24,
-          child: GestureDetector(
-            onTap: () {
-              _scaffoldKey.currentState?.openDrawer();
-            },
-            child: Container(
-              width: 32,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: const BorderRadius.horizontal(right: Radius.circular(24)),
-              ),
-              child: const Icon(Icons.arrow_forward_ios),
-            ),
+            );
+
+            if(newExercise != null) {
+              await _addExerciseToPlan(newExercise);
+            }
+          },
+          icon: const Icon(Icons.add),
+          label: const Text("Add Exercise"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            foregroundColor: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-          ],
+        
+        const SizedBox(height: 8),
+        
+        // ✅ END WORKOUT BUTTON
+        ElevatedButton(
+          onPressed: () => _endWorkout(context),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red,
+            foregroundColor: Theme.of(context).colorScheme.onSurface,
+          ),
+          child: const Text("End Workout"),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDrawerButton() {
+    return Positioned(
+      left: 0,
+      top: MediaQuery.of(context).size.height / 2 - 24,
+      child: GestureDetector(
+        onTap: () => _scaffoldKey.currentState?.openDrawer(),
+        child: Container(
+          width: 32,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.grey[300],
+            borderRadius: const BorderRadius.horizontal(
+              right: Radius.circular(24),
+            ),
+          ),
+          child: const Icon(Icons.arrow_forward_ios),
         ),
       ),
     );
@@ -712,137 +557,4 @@ ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
 // import 'package:work_plan_front/model/exercise_plan.dart';
 // import 'package:work_plan_front/utils/image_utils.dart'; // ✅ DODAJ IMPORT
 
-class PlanSelectedCard extends StatelessWidget {
-  final VoidCallback? infoExercise;
-  final ImageProvider? exerciseGif; // ✅ ZMIANA: ImageProvider? zamiast NetworkImage
-  final String exerciseName;
-  final Widget headerCellTextStep;
-  final Widget headerCellTextKg;
-  final Widget headerCellTextReps;
-  final List<TableRow> exerciseRows;
-  final String notes;
 
-  const PlanSelectedCard({
-    super.key,
-    required this.infoExercise,
-    this.exerciseGif, // ✅ ZMIANA: Opcjonalny ImageProvider
-    required this.exerciseName,
-    required this.headerCellTextStep,
-    required this.headerCellTextKg,
-    required this.headerCellTextReps,
-    required this.notes,
-    required this.exerciseRows,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    infoExercise?.call();
-                  },
-                  child: ClipOval(
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
-                      ),
-                      child: exerciseGif != null
-                          ? Image(
-                              image: exerciseGif!,
-                              width: 50,
-                              height: 50,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return _buildPlaceholder(context);
-                              },
-                            )
-                          : _buildPlaceholder(context),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    exerciseName,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (notes.isNotEmpty) ...[
-              Text(
-                'Notes: $notes',
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-                ),
-              ),
-              const SizedBox(height: 12),
-            ],
-            Table(
-              border: TableBorder.all(
-                color: Theme.of(context).colorScheme.outline.withAlpha(50),
-                width: 1,
-              ),
-              children: [
-                TableRow(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withAlpha(20),
-                  ),
-                  children: [
-                    headerCellTextStep,
-                    headerCellTextKg,
-                    headerCellTextReps,
-                    Container(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Done',
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-                ...exerciseRows,
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ✅ DODAJ: Placeholder widget
-  Widget _buildPlaceholder(BuildContext context) {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
-      ),
-      child: Icon(
-        Icons.fitness_center,
-        color: Theme.of(context).colorScheme.primary,
-        size: 24,
-      ),
-    );
-  }
-}

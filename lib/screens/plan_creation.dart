@@ -4,7 +4,7 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/widget/plan/plan_creation_list.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/plan_creation_list.dart';
 import 'package:collection/collection.dart';
 
 class PlanCreation extends ConsumerStatefulWidget {
