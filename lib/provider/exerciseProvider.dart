@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/serwis/exerciseService.dart';
+import 'package:work_plan_front/theme/app_constants.dart';
 
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   ExerciseNotifier() : super(const AsyncValue.loading());
@@ -25,16 +26,22 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
       print("❌ Provider: Błąd ładowania ćwiczeń: $e");
     }
   }
-
+  
   Future<void> loadMoreExercises() async {
     try {
       final currentState = state;
       if (currentState is AsyncData<List<Exercise>>) {
         final currentCount = currentState.value.length;
         
+        // ✅ SPRAWDŹ CZY NIE PRZEKROCZONO LIMITU
+        if (currentCount >= AppConstants.exerciseMaxLimit) {
+          print("⚠️ Osiągnięto maksymalny limit ćwiczeń: ${AppConstants.exerciseMaxLimit}");
+          return;
+        }
+        
         await _exerciseService.loadMoreExercises(
           skip: currentCount,
-          take: 100,
+          take: AppConstants().exerciseBatchSize,
         );
         
         // Odśwież dane

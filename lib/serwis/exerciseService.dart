@@ -2,50 +2,53 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:hive/hive.dart';
+import "package:work_plan_front/theme/app_constants.dart";
 
 class ExerciseService {
-  static const String _boxName = 'exerciseBox';
+  static const String _boxName = AppConstants.exerciseBoxName; // ✅ UŻYJ STAŁEJ
 
-  // ✅ WCZYTAJ PIERWSZE 100 ĆWICZEŃ Z JSON
+  // ✅ WCZYTAJ ĆWICZENIA Z DYNAMICZNYMI LIMITAMI
   Future<List<Exercise>?> exerciseList({bool forceRefresh = false}) async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
+      final appConstants = AppConstants(); // ✅ POBIERZ INSTANCJĘ
 
-      // Jeśli nie ma danych lokalnie lub wymuszone odświeżenie
+     
       if (box.isEmpty || forceRefresh) {
         print("📦 Ładowanie ćwiczeń z JSON...");
+        
         try {
           final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
           print("załadowano json długość ${jsonString.length}");
 
           final List<dynamic> jsonList = json.decode(jsonString);
           print("załadowano json długość listy ${jsonList.length}");
-        }catch (e) {
+
+          // ✅ UŻYJ DYNAMICZNYCH WARTOŚCI Z AppConstants
+          final limitedJsonList = jsonList
+              .skip(appConstants.exerciseStart)  // ✅ DYNAMICZNY START
+              .take(appConstants.exerciseBatchSize)  // ✅ DYNAMICZNY ROZMIAR
+              .toList();
+
+          // Konwertuj na Exercise obiekty
+          final List<Exercise> exercises = limitedJsonList
+              .map((json) => Exercise.fromJson(json))
+              .where((exercise) => exercise.name.isNotEmpty) // Filtruj puste
+              .toList();
+
+          // Wyczyść box i zapisz nowe dane
+          await box.clear();
+          for (final exercise in exercises) {
+            await box.add(exercise);
+          }
+
+          print("✅ Zapisano ${exercises.length} ćwiczeń lokalnie (${appConstants.exerciseStart}-${appConstants.exerciseLimit})");
+          return exercises;
+          
+        } catch (e) {
           print("❌ Błąd ładowania JSON: $e");
           return null;
         }
-        
-        // Wczytaj JSON z assets
-        final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
-        final List<dynamic> jsonList = json.decode(jsonString);
-        
-        // ✅ WEŹ TYLKO PIERWSZE 100 ĆWICZEŃ
-        final limitedJsonList = jsonList.take(100).toList();
-        
-        // Konwertuj na Exercise obiekty
-        final List<Exercise> exercises = limitedJsonList
-            .map((json) => Exercise.fromJson(json))
-            .where((exercise) => exercise.name.isNotEmpty) // Filtruj puste
-            .toList();
-
-        // Wyczyść box i zapisz nowe dane
-        await box.clear();
-        for (final exercise in exercises) {
-          await box.add(exercise);
-        }
-
-        print("✅ Zapisano ${exercises.length} ćwiczeń lokalnie");
-        return exercises;
       }
 
       // Pobierz z lokalnej bazy
@@ -59,7 +62,7 @@ class ExerciseService {
     }
   }
 
-  // ✅ WYCZYŚĆ LOKALNĄ BAZĘ
+  // ✅ POZOSTAŁE METODY BEZ ZMIAN...
   Future<void> clearLocalExercises() async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
@@ -70,18 +73,21 @@ class ExerciseService {
     }
   }
 
-  // ✅ DODAJ WIĘCEJ ĆWICZEŃ (np. następne 100)
-  Future<void> loadMoreExercises({int skip = 100, int take = 100}) async {
+  Future<void> loadMoreExercises({int? skip, int? take}) async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
+      final appConstants = AppConstants();
       
-      final String jsonString = await rootBundle.loadString('lib/data/exercises.json');
+      final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
       final List<dynamic> jsonList = json.decode(jsonString);
+
+      final skipCount = skip ?? box.length;
+      final takeCount = take ?? appConstants.exerciseBatchSize;
       
       // Weź następne ćwiczenia
       final moreExercises = jsonList
-          .skip(skip)
-          .take(take)
+          .skip(skipCount)
+          .take(takeCount)
           .map((json) => Exercise.fromJson(json))
           .where((exercise) => exercise.name.isNotEmpty)
           .toList();
@@ -96,31 +102,17 @@ class ExerciseService {
     }
   }
 
-  // ✅ POBIERZ STATYSTYKI
   Future<Map<String, int>> getExerciseStats() async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
       final exercises = box.values.toList();
-
-      final Map<String, int> bodyPartCount = {};
-      final Map<String, int> equipmentCount = {};
-
-      for (final exercise in exercises) {
-        // Zlicz części ciała
-        for (final bodyPart in exercise.bodyParts) {
-          bodyPartCount[bodyPart] = (bodyPartCount[bodyPart] ?? 0) + 1;
-        }
-        
-        // Zlicz sprzęt
-        for (final equipment in exercise.equipments) {
-          equipmentCount[equipment] = (equipmentCount[equipment] ?? 0) + 1;
-        }
-      }
+      final appConstants = AppConstants();
 
       return {
         'total': exercises.length,
-        'bodyParts': bodyPartCount.length,
-        'equipments': equipmentCount.length,
+        'configuredLimit': appConstants.exerciseLimit,
+        'configuredStart': appConstants.exerciseStart,
+        'batchSize': appConstants.exerciseBatchSize,
       };
     } catch (e) {
       print("❌ Błąd pobierania statystyk: $e");

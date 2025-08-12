@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/theme/app_constants.dart';
 import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
+import 'package:work_plan_front/widget/exercise/exercise_limit_upload.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
-  final bool isSelectionMode; // ✅ DODAJ TRY WYBORU
-  final String? title; // ✅ OPCJONALNY TYTUŁ
+  final bool isSelectionMode; 
+  final String? title; 
 
   const ExercisesScreen({
     super.key,
@@ -62,6 +64,32 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       context: context,
       builder: (ctx) => BodyPartSelected(onBodyPartSelected: _bodyPartSelected),
     );
+  }
+  void _showExrciseLimitUpload() async{
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) => ExerciseLimitUpload(
+        exerciseStart: AppConstants().exerciseStart,  // ✅ UŻYJ INSTANCJI
+        exerciseLimit: AppConstants().exerciseBatchSize,  // ✅ BATCH SIZE
+      ),
+    );
+    if (result != null && result['update'] == true) {
+      // Zaktualizuj wartości w AppConstants
+    print("✅ Zakres został zaktualizowany: ${result['start']} - ${result['limit']}");
+    ref.read(exerciseProvider.notifier).fetchExercises(
+        forceRefresh: true,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Exercises reloaded with new range: ${result['start']} - ${result['limit']}"),
+            backgroundColor: Colors.blue,
+          ),
+        );
+    } else {
+      print("❌ Nie zaktualizowano zakresu ćwiczeń");
+    }
   }
 
   @override
@@ -120,13 +148,23 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100), 
         foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
         actions: [
-          // ✅ DODAJ PRZYCISK REFRESH
-          IconButton(
-            icon: Icon(Icons.refresh),
+          TextButton(
             onPressed: () {
-              ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+              _showExrciseLimitUpload();  
             },
-          ),
+             child: Text("current number of exercises : ${AppConstants().exerciseBatchSize}",
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+             ),
+          )
+          // ✅ DODAJ PRZYCISK REFRESH
+          // IconButton(
+          //   icon: Icon(Icons.refresh),
+          //   onPressed: () {
+          //     ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+          //   },
+          // ),
         ],
       ),
       body: exercises.when(
