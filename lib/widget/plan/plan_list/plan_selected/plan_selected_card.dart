@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected/exercise_card_more_options.dart';
 import '../helpers/plan_helpers.dart';
 import 'components/exercise_image.dart';
 import 'components/notes_field.dart';
@@ -13,7 +14,8 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
   final List<TableRow> exerciseRows;
   final String notes;
   final Function(String)? onNotesChanged;
-  final VoidCallback? onTap; // Dodaj opcjonalne onTap
+  final VoidCallback? onTap; 
+  final VoidCallback deleteExerciseCard;
 
   const PlanSelectedCard({
     super.key,
@@ -25,6 +27,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
     required this.exerciseRows,
     required this.notes,
     this.onNotesChanged,
+    required this.deleteExerciseCard,
     this.onTap,
   });
 
@@ -57,12 +60,15 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                       ),
                     ),
                   ),
+                  ExerciseCardMoreOptions(
+                    onDeleteCard: () {
+                      deleteExerciseCard();
+                    },
+                  ),
                 ],
               ),
               
               const SizedBox(height: 16),
-              
-              // ✅ NOTES FIELD
               if (onNotesChanged != null)
                 NotesField(
                   notes: notes,

@@ -3,6 +3,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 
 mixin PlanHelpers {
+
   // ✅ FORMATOWANIE
   String formatTime(int minutes) {
     final hours = minutes ~/ 60;
@@ -49,6 +50,7 @@ mixin PlanHelpers {
       loading: () => null,
     );
   }
+  
 
   // ✅ OBLICZENIA PLANU
   int getTotalSets(ExerciseTable plan) {

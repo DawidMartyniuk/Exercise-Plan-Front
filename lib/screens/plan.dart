@@ -9,7 +9,7 @@ import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/plan_card_more_option.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_card_more_option.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
 import 'dart:async' show scheduleMicrotask, Timer;
 

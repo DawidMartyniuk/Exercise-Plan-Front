@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
-import '../components/plan_validation.dart';
+import 'components/plan_validation.dart';
 
 class PlanCardMoreOption extends ConsumerWidget {
   final ExerciseTable plan;

@@ -269,8 +269,37 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
     endWorkoutGlobal(context: context, ref: ref);
     Navigator.of(context).pop();
   }
+   void _deleteExerciseFromPlan(String exerciseNumber){
+    setState(() {
+      widget.plan.rows.removeWhere((rowData) =>
+       rowData.exercise_number == exerciseNumber);
 
-  // ✅ NOWA METODA - PRZYWRÓĆ ORYGINALNY PLAN
+         print("🗑️ Usunięto ćwiczenie o numerze: $exerciseNumber z planu");
+    });
+    _updateCurrentWorkoutPlan();
+
+     _removeExerciseFromWorkoutState(exerciseNumber);
+
+      if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Exercise removed from current workout"),
+        backgroundColor: Colors.orange,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  };
+  }
+  void _removeExerciseFromWorkoutState(String exerciseNumber){
+    final planId = widget.plan.id;
+    final currentRows = ref.read(workoutPlanStateProvider).getRows(planId);
+
+    final filteredRows = currentRows.where((row)=>
+    row.exerciseNumber != exerciseNumber).toList();
+
+    ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, filteredRows);
+  }
+
   void _restoreOriginalPlan() {
     try {
       // ✅ PRZYWRÓĆ ORYGINALNY STAN PLANU W PROVIDERZE
@@ -471,7 +500,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
       ),
       onNotesChanged: (value) {
          setState(() {
-    // ✅ UTWÓRZ NOWY OBIEKT ZAMIAST UŻYWAĆ copyWith
+           // ✅ UTWÓRZ NOWY OBIEKT ZAMIAST UŻYWAĆ copyWith
     final updatedRow = ExerciseRowsData(
       exercise_name: exerciseName,
       exercise_number: firstRow.exercise_number,
@@ -485,7 +514,9 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
     }
   });
       },
-      onTap: () => _openInfoExercise(matchingExercise), // ✅ DODANE
+      onTap: () => _openInfoExercise(matchingExercise), 
+      deleteExerciseCard: () =>  _deleteExerciseFromPlan(firstRow.exercise_number),
+      // ✅ DODANE
     );
   }).toList();
 }
@@ -552,9 +583,5 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
     );
   }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:work_plan_front/model/exercise_plan.dart';
-// import 'package:work_plan_front/utils/image_utils.dart'; // ✅ DODAJ IMPORT
 
 
