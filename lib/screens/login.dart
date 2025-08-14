@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/register.dart';
+import 'package:work_plan_front/screens/reset_password.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/utils/toast_untils.dart'; // ✅ DODAJ IMPORT
 
@@ -313,6 +314,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               );
                             },
                           ),
+                          SizedBox(height: 15),
+                          
                           
                           // ✅ FORGOT PASSWORD z ToastUtils
                           TweenAnimationBuilder<double>(
@@ -326,9 +329,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                   children: [
                                     TextButton(
                                       onPressed: () {
-                                        // ✅ UŻYJ ToastUtils
-                                        ToastUtils.showFeatureComingSoon(context, 
-                                          featureName: "Password reset");
+                                       Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (ctx) => ResetPasswordScreen(),
+                                          ),
+                                        );
                                       },
                                       child: Text(
                                         "Forgot Password",

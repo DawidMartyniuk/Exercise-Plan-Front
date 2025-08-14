@@ -21,6 +21,34 @@ class Authservice {
   final String _loginUrl = "/login";
   final String _registerUrl = "/register";
   final String _logoutUrl = "/logout";
+  final String _resetPasswordUrl = "/reset-request";
+
+  Future<bool> resetRequest(String email) async {
+
+    try {
+  final response = await http.post(
+    Uri.parse("$_baseUrl$_resetPasswordUrl"),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({'email': email}),
+  );
+  
+  if (response.statusCode == 200) {
+    print("Reset request sent successfully");
+    return true;
+  } else {
+    print("Failed to send reset request: ${response.statusCode}");
+     if (response.body.isNotEmpty) {
+          final errorBody = json.decode(response.body);
+          print("❌ Error details: $errorBody");
+        }
+    return false;
+  }
+} catch (e) {
+  print("Error occurred while sending reset request: $e");
+  return false;
+}
+  }
+
 
   Future<AuthResponse?> logout() async {
     final token = await getToken();
