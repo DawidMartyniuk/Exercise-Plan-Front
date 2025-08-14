@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/screens/home_dashboard/recent_workout_section.dart';
-import 'package:work_plan_front/screens/login.dart';
+import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/utils/tokenStorage.dart';
 
 class Startscreen extends ConsumerStatefulWidget {

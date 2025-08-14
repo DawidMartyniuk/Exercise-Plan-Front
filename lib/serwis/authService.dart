@@ -1,4 +1,3 @@
-//  odpowiada za komunikację z backendem.
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/LoginResult.dart';
@@ -22,9 +21,44 @@ class Authservice {
   final String _registerUrl = "/register";
   final String _logoutUrl = "/logout";
   final String _resetPasswordUrl = "/reset-request";
+  final String _resetPasswordConfirmUrl = "/reset-password";
+
+  Future<bool> resetPassword(
+    String email,
+    String token,
+    String newPassword,
+    String repeatPassword,
+  ) async {
+    try {
+      final response = await http.post(
+        Uri.parse("$_baseUrl$_resetPasswordConfirmUrl"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'token': token,
+          'new_password': newPassword,
+          'repeat_password': repeatPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print("Password reset successfully");
+        return true;
+      } else {
+      print("❌ Failed to confirm reset: ${response.statusCode}");
+      if (response.body.isNotEmpty) {
+        final errorBody = json.decode(response.body);
+        print("❌ Error details: $errorBody");
+      }
+      return false;
+      }
+    } catch (e) {
+      print("Error occurred while resetting password: $e");
+      return false;
+    }
+  }
 
   Future<bool> resetRequest(String email) async {
-
     try {
   final response = await http.post(
     Uri.parse("$_baseUrl$_resetPasswordUrl"),

@@ -34,6 +34,28 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
+  Future<bool> confirmPasswordReset({
+  required String email,
+  required String token,
+  required String newPassword,
+  required String confirmPassword,
+}) async {
+  final authService = Authservice();
+  
+  try {
+    final result = await authService.resetPassword(
+      email,
+      token,
+      newPassword,
+      confirmPassword,
+    );
+    return result;
+  } catch (e) {
+    print("❌ Error in confirmPasswordReset: $e");
+    return false;
+  }
+}
+
 
   Future<void> register(String name, String email, String password, String repeatPassword) async {
     //final authService = Authservice();

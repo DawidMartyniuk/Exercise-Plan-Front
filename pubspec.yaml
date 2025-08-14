@@ -52,6 +52,7 @@ dependencies:
   intl: ^0.20.2
   calendar_date_picker2: ^2.0.1
   flutter_calendar_carousel: ^2.5.4
+  app_links: ^6.4.1
 
 
 dev_dependencies:

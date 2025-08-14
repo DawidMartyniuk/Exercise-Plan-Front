@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/screens/login.dart';
+import 'package:work_plan_front/screens/auth/login.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart'; // ✅ DODAJ
 
