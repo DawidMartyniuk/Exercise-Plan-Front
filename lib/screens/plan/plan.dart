@@ -7,7 +7,9 @@ import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/provider/planGroupsNotifier.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
+import 'package:work_plan_front/screens/plan/plan_group_widget.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_card_more_option.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
@@ -22,27 +24,32 @@ class PlanScreen extends ConsumerStatefulWidget {
   }
 }
 
-void openPlanCreation(BuildContext context) {
-  Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => PlanCreation()));
-}
+// void openPlanCreation(BuildContext context) {
+//   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => PlanCreation()));
+// }
 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   Timer? _timer;
   bool isTimerRunning = false;
   int seconds = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    scheduleMicrotask(() async {
-      try {
-        await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
-        await ref.read(exerciseProvider.notifier).fetchExercises();
-      } catch (e) {
-        print("❌ Błąd ładowania danych w plan.dart: $e");
-      }
-    });
-  }
+    bool _hasInitializedGroups = false;
+
+@override
+void initState() {
+  super.initState();
+  scheduleMicrotask(() async {
+    try {
+      await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+      await ref.read(exerciseProvider.notifier).fetchExercises();
+      
+   
+      
+    } catch (e) {
+      print("❌ Błąd ładowania danych w plan.dart: $e");
+    }
+  });
+}
 
   void OpenShowPlanScreen(BuildContext context, ExerciseTable plan, List<Exercise> filteredExercises) {
     Navigator.of(context).push(
@@ -72,12 +79,48 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
 }
 
   void deletePlan(ExerciseTable plan, BuildContext context, int planID) {
-    ref.read(exercisePlanProvider.notifier).deleteExercisePlan(planID);
+  // ✅ NAJPIERW USUŃ Z GRUP
+  ref.read(planGroupsProvider.notifier).removePlanFromGroups(plan, '');
+  
+  // ✅ POTEM USUŃ Z BACKENDU
+  ref.read(exercisePlanProvider.notifier).deleteExercisePlan(planID).then((_) {
+    // ✅ SUKCES - plan usunięty
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Plan ${plan.exercise_table} deleted successfully."),
+        backgroundColor: Colors.green,
       ),
     );
+  }).catchError((error) {
+    // ✅ BŁĄD - przywróć plan do grup
+    print("❌ Błąd usuwania planu: $error");
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Failed to delete plan: $error"),
+        backgroundColor: Colors.red,
+      ),
+    );
+    
+    // TODO: Przywróć plan do oryginalnej grupy
+  });
+}
+  void openPlanCreation(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (ctx) => PlanCreation())
+    ).then((_) {
+      // ✅ PO POWROCIE RESETUJ FLAGĘ I WYMUŚ SPRAWDZENIE NOWYCH PLANÓW
+      print("🔄 Powrót z tworzenia planu - resetuję flagę");
+      _hasInitializedGroups = false;
+      
+      // ✅ DELAY, ŻEBY DANE ZDĄŻYŁY SIĘ ZAŁADOWAĆ
+      Future.delayed(Duration(milliseconds: 500), () {
+        final exercisePlans = ref.read(exercisePlanProvider);
+        if (exercisePlans.isNotEmpty) {
+          ref.read(planGroupsProvider.notifier).initializeWithPlans(exercisePlans);
+          _hasInitializedGroups = true;
+        }
+      });
+    });
   }
 
   void editPlan(ExerciseTable plan, BuildContext context) {
@@ -204,6 +247,37 @@ final authResponse = ref.watch(authProviderLogin);
     dynamic timer,
     dynamic timerController,
   ) {
+  final planGroups = ref.watch(planGroupsProvider);
+
+  // ✅ DODAJ LISTENER TUTAJ - W BUILD METHOD
+  // ref.listen<List<ExerciseTable>>(exercisePlanProvider, (previous, next) {
+  //   print("🔄 Plany się zmieniły: ${previous?.length} -> ${next.length}");
+    
+  //  // ✅ ZAWSZE ODŚWIEŻ GRUPY PO ZMIANIE PLANÓW
+  //   Future.microtask(() {
+  //     print("🔄 Inicjalizuję grupy z ${next.length} planami...");
+  //     ref.read(planGroupsProvider.notifier).initializeWithPlans(next);
+  //   });
+  // });
+  if (!_hasInitializedGroups && exercisePlans.isNotEmpty) {
+      print("📋 Jednorazowa inicjalizacja grup z ${exercisePlans.length} planami...");
+      
+      Future.microtask(() {
+        ref.read(planGroupsProvider.notifier).initializeWithPlans(exercisePlans);
+      });
+      
+      _hasInitializedGroups = true;
+      print("✅ Flaga inicjalizacji ustawiona na true");
+    }
+
+  // ✅ PROSTSZE SPRAWDZENIE - inicjalizuj jeśli brak grup ale są plany
+  if (planGroups.isEmpty && exercisePlans.isNotEmpty) {
+    print("📋 Pierwsza inicjalizacja grup...");
+    Future.microtask(() {
+      ref.read(planGroupsProvider.notifier).initializeWithPlans(exercisePlans);
+    });
+  }
+
     void showPlanBottomSheet(
       BuildContext context,
       ExerciseTable plan,
@@ -274,18 +348,29 @@ final authResponse = ref.watch(authProviderLogin);
             ),
           ),
           SizedBox(height: 20),
-          Center(
-            child: Text(
-              "Your plans",
-              textAlign: TextAlign.left,
-              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+          
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Your plans (${exercisePlans.length})", // ✅ POKAŻ LICZBĘ PLANÓW
+                style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
-            ),
+              TextButton.icon(
+                onPressed: () => _showAddGroupDialog(context),
+                icon: Icon(Icons.add, size: 18),
+                label: Text("Add Group"),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 20),
 
-          // ✅ WYŚWIETLANIE LISTY PLANÓW
+          // ✅ WYŚWIETLANIE GRUP PLANÓW Z DEBUGOWANIEM
           if (exercisePlans.isEmpty)
             Center(
               child: Column(
@@ -301,82 +386,133 @@ final authResponse = ref.watch(authProviderLogin);
                 ],
               ),
             )
+          else if (planGroups.isEmpty)
+          // ✅ DODAJ FALLBACK - POKAŻ LOADING PODCZAS INICJALIZACJI GRUP
+          Center(
+            child: Column(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Organizing plans into groups..."),
+                SizedBox(height: 8),
+                Text("Plans loaded: ${exercisePlans.length}", 
+                  style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          )
           else
             ListView.builder(
-              itemCount: exercisePlans.length,
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
+              itemCount: planGroups.length,
               itemBuilder: (context, index) {
-                final plan = exercisePlans[index];
-                return Card(
-                  color: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20.0,
-                      horizontal: 16.0,
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                plan.exercise_table,
-                                style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                  color: Theme.of(context).colorScheme.onSurface,
-                                ),
-                                textAlign: TextAlign.left,
-                              ),
-                            ),
-                            PlanCardMoreOption( 
-                              onDeletePlan: () => deletePlan(plan, context, plan.id),
-                              plan: plan,
-                            ),
-                          ],
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            plan.rows.map((row) => row.exercise_name).join(", "),
-                            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withAlpha((0.5 * 255).toInt()),
-                            ),
-                            textAlign: TextAlign.left,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextButton(
-                            style: TextButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(25.0),
-                              ),
-                            ),
-                            onPressed: () {
-                              timerController.startTimer();
-                              final filteredExercises = getFilteredExercise(plan, allExercises);
-                              ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
-                                plan: plan,
-                                exercises: filteredExercises,
-                              );
-                              showPlanBottomSheet(context, plan, allExercises);
-                            },
-                            child: Text(
-                              "Start workout",
-                              style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                final group = planGroups[index];
+                return PlanGroupWidget(
+                  group: group,
+                  allExercises: allExercises,
+                  onStartWorkout: (plan, filteredExercises) {
+                    timerController.startTimer();
+                    ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+                      plan: plan,
+                      exercises: filteredExercises,
+                    );
+                    showPlanBottomSheet(context, plan, allExercises);
+                  },
+                  onDeletePlan: deletePlan,
                 );
               },
             ),
+        ],
+      ),
+    );
+  }
+
+
+
+  // ✅ DODAJ METODĘ DODAWANIA GRUP
+    void _showAddGroupDialog(BuildContext context) {
+    final controller = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Add New Group'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'Group name',
+                border: UnderlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            SizedBox(height: 16),
+            // ✅ PRZYCISK DEBUGOWANIA/ODŚWIEŻANIA
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    final planGroups = ref.read(planGroupsProvider);
+                    final exercisePlans = ref.read(exercisePlanProvider);
+                    
+                    print("🔍 DEBUG INFO:");
+                    print("📊 Exercise Plans: ${exercisePlans.length}");
+                    print("📊 Plan Groups: ${planGroups.length}");
+                    print("📊 Flag inicjalizacji: $_hasInitializedGroups");
+                    
+                    for (var group in planGroups) {
+                      print("   Grupa '${group.name}': ${group.plans.length} planów");
+                      for (var plan in group.plans) {
+                        print("     - ${plan.exercise_table} (ID: ${plan.id})");
+                      }
+                    }
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Debug info printed to console'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Text('Debug', style: TextStyle(fontSize: 12)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    // ✅ WYMUŚ PONOWNĄ INICJALIZACJĘ
+                    _hasInitializedGroups = false;
+                    final exercisePlans = ref.read(exercisePlanProvider);
+                    ref.read(planGroupsProvider.notifier).initializeWithPlans(exercisePlans);
+                    
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Groups refreshed'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Text('Refresh', style: TextStyle(fontSize: 12)),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                ref.read(planGroupsProvider.notifier).addGroup(controller.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Add'),
+          ),
         ],
       ),
     );
