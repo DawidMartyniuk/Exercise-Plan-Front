@@ -4,13 +4,14 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/planGroup.dart';
 import 'package:work_plan_front/provider/planGroupsNotifier.dart';
-import 'package:work_plan_front/screens/plan/plan_item_widget.dart';
+import 'package:work_plan_front/screens/plan/widget/plan_item_widget.dart';
 
 class PlanGroupWidget extends ConsumerStatefulWidget {
   final PlanGroup group;
   final List<Exercise> allExercises;
   final Function(ExerciseTable, List<Exercise>) onStartWorkout;
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
+  final VoidCallback? onCreateNewPlan; // ✅ DODAJ NOWY PARAMETR
 
   const PlanGroupWidget({
     Key? key,
@@ -18,6 +19,7 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
     required this.allExercises,
     required this.onStartWorkout,
     required this.onDeletePlan,
+    this.onCreateNewPlan, // ✅ OPCJONALNY CALLBACK
   }) : super(key: key);
 
   @override
@@ -88,7 +90,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
       
       child: Column(
         children: [
-          // ✅ HEADER GRUPY
+          // ✅ HEADER GRUPY (pozostaje bez zmian)
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -217,7 +219,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
             ),
           ),
           
-          // ✅ LISTA PLANÓW (ROZWIJANA)
+          // ✅ LISTA PLANÓW + PRZYCISK DODAWANIA (ROZWIJANA)
           if (widget.group.isExpanded)
             DragTarget<ExerciseTable>(
               builder: (context, candidateData, rejectedData) {
@@ -236,43 +238,54 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                     )
                        : null,
                   ),
-                  child: widget.group.plans.isEmpty
-                      ? Container(
-                          padding: EdgeInsets.all(25),
-                          child: Center(
-                            child: Text(
-                              'Drop plans here or tap to add',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface.withAlpha(128),
+                  child: Column(
+                    children: [
+                      // ✅ LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
+                      widget.group.plans.isEmpty
+                          ? Container(
+                              padding: EdgeInsets.all(25),
+                              child: Center(
+                                child: Text(
+                                  'Drop plans here or create new one',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurface.withAlpha(128),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        )
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.all(8),
-                          itemCount: widget.group.plans.length,
-                          separatorBuilder: (context, index) => SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final plan = widget.group.plans[index];
-                            return PlanItemWidget(
-                              plan: plan,
-                              allExercises: widget.allExercises,
-                              onStartWorkout: widget.onStartWorkout,
-                              onDeletePlan: (planToDelete, context, planId) {
-                               
-                               // ref.read(planGroupsProvider.notifier).removePlanFromGroups(planToDelete, widget.group.id);
-
-                                widget.onDeletePlan(
-                                  planToDelete,
-                                  context,
-                                  planId,
+                            )
+                          : ListView.separated(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              padding: EdgeInsets.all(8),
+                              itemCount: widget.group.plans.length,
+                              separatorBuilder: (context, index) => SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final plan = widget.group.plans[index];
+                                return PlanItemWidget(
+                                  plan: plan,
+                                  allExercises: widget.allExercises,
+                                  onStartWorkout: widget.onStartWorkout,
+                                  onDeletePlan: (planToDelete, context, planId) {
+                                    widget.onDeletePlan(
+                                      planToDelete,
+                                      context,
+                                      planId,
+                                    );
+                                  }
                                 );
-                              }
-                            );
-                          },
+                              },
+                            ),
+                      
+                      // ✅ PRZYCISK DODAWANIA NOWEGO PLANU - ZAWSZE NA DOLE
+                      if (widget.onCreateNewPlan != null)
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(8, 
+                            widget.group.plans.isEmpty ? 0 : 16, // ✅ Mniejszy padding gdy grupa pusta
+                            8, 8),
+                          child: _buildCreateNewPlanButton(context),
                         ),
+                    ],
+                  ),
                 );
               },
               onWillAcceptWithDetails: (data) => data != null,
@@ -291,11 +304,35 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
     );
   }
 
+  // ✅ DODAJ METODĘ TWORZĄCĄ PRZYCISK
+  Widget _buildCreateNewPlanButton(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: widget.onCreateNewPlan,
+        icon: Icon(Icons.add),
+        style: TextButton.styleFrom(
+          backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        ),
+        label: Text(
+          "Create exercise plan",
+          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showDeleteGroupDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Delete Group'),
+        title: Center(child: Text('Delete Group')),
         content: Text('Are you sure you want to delete "${widget.group.name}"?\n\nAll plans will be moved to another group.'),
         actions: [
           TextButton(

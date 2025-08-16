@@ -72,10 +72,7 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
   void removePlanFromGroups(ExerciseTable plan, String targetGroupId) {
   print("🗑️ Usuwanie planu '${plan.exercise_table}' ze wszystkich grup");
 
-  // ❌ BŁĄD: p.id != p.id zawsze zwraca false!
-  // final updatedPlans = group.plans.where((p) => p.id != p.id).toList();
 
-  // ✅ POPRAWKA: Usuń plan o konkretnym ID
   state = state.map((group) {
     final originalCount = group.plans.length;
     final updatedPlans = group.plans.where((p) => p.id != plan.id).toList(); // ✅ POPRAWIONE
@@ -86,14 +83,6 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
 
     return group.copyWith(plans: updatedPlans);
   }).toList();
-
-  // ✅ NIE DODAWAJ PONOWNIE DO GRUPY PRZY USUWANIU!
-  // state = state.map((group) {
-  //   if(group.id == targetGroupId) {
-  //     return group.copyWith(plans: [...group.plans, plan]);
-  //   }
-  //   return group;
-  // }).toList();
 
   final totalPlans = state.expand((g) => g.plans).length;
   final duplicates = state.expand((g) => g.plans).map((p) => p.id).toList();
@@ -149,9 +138,9 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
   }
 
   void deleteGroup(String groupId) {
-    if (state.length <= 1) return; // ✅ ZAWSZE ZOSTAW PRZYNAJMNIEJ JEDNĄ GRUPĘ
+    if (state.length <= 1) return; // ZAWSZE ZOSTAW PRZYNAJMNIEJ JEDNĄ GRUPĘ
 
-    // ✅ PRZENIEŚ PLANY DO PIERWSZEJ DOSTĘPNEJ GRUPY
+    //  PRZENIEŚ PLANY DO PIERWSZEJ DOSTĘPNEJ GRUPY
     final groupToDelete = state.firstWhere((g) => g.id == groupId);
     final targetGroup = state.firstWhere((g) => g.id != groupId);
 
@@ -181,7 +170,7 @@ void initializeWithPlans(List<ExerciseTable> plans) {
   } else {
     print("📋 Sprawdzanie istniejących planów w grupach");
     
-    // ✅ SPRAWDŹ WSZYSTKIE PLANY WE WSZYSTKICH GRUPACH
+    // SPRAWDŹ WSZYSTKIE PLANY WE WSZYSTKICH GRUPACH
     final allExistingPlanIds = state
         .expand((group) => group.plans)
         .map((p) => p.id)
