@@ -24,7 +24,7 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
         await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
         await ref.read(exerciseProvider.notifier).fetchExercises();
         
-        // ✅ DODAJ EXPLICITE WYWOŁANIE fetchSessions
+  
         await ref.read(completedTrainingSessionProvider.notifier).fetchSessions(forceRefresh: true);
         
       } catch (e) {

@@ -36,6 +36,9 @@ mixin WorkoutCardHelpers {
             .fold(0, (sum, reps) => sum + reps))
         .fold(0, (sum, reps) => sum + reps);
   }
+  int getTotalExercises(TrainingSession session) {
+    return session.exercises.length;
+  }
 
   // ✅ POBIERANIE DANYCH
   String getUserName(WidgetRef ref) {
@@ -100,5 +103,21 @@ mixin WorkoutCardHelpers {
     final authResponse = ref.watch(authProviderLogin);
     return authResponse?.user.avatar ?? '';
   }
+
+  // int getTotalSets(TrainingSession trainingSession) {
+  //   return trainingSession.exercises
+  //       .map((ex) => ex.sets.length)
+  //       .fold(0, (sum, sets) => sum + sets);
+  // }
+
+  // int getTotalReps(TrainingSession trainingSession) {
+  //   return trainingSession.exercises
+  //       .map(
+  //         (ex) => ex.sets
+  //             .map((set) => set.actualReps)
+  //             .fold(0, (sum, reps) => sum + reps),
+  //       )
+  //       .fold(0, (sum, reps) => sum + reps);
+  // }
   
 }

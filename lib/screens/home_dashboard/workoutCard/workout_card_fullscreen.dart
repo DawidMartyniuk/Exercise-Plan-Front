@@ -77,7 +77,7 @@ class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
             SizedBox(height: 16),
             Divider(),
             
-            // ✅ PEŁNA LISTA ĆWICZEŃ - WIĘKSZE IKONY Z GIFAMI
+            
             ...session.exercises.map((exercise) => 
               ListTile(
                 leading: Container(

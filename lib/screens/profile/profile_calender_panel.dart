@@ -6,7 +6,7 @@ import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_compact.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard_info.dart'; // ✅ IMPORT WorkoutCardInfo
+import 'package:work_plan_front/screens/home_dashboard/workout_info/workoutCard_info.dart'; // ✅ IMPORT WorkoutCardInfo
 
 class ProfileCalenderPanel extends ConsumerStatefulWidget {
   const ProfileCalenderPanel({super.key});
