@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:work_plan_front/widget/plan/widget/weight_selected.dart';
 
 class ExerciseTable extends StatefulWidget {
   final String exerciseId;
@@ -108,6 +109,20 @@ class _ExerciseTableState extends State<ExerciseTable> {
     }
     super.dispose();
   }
+  void _showWeightBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.5, 
+      ),
+      builder: (context) => const WeightSelected(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +142,7 @@ class _ExerciseTableState extends State<ExerciseTable> {
           child: Row(
             children: [
               SizedBox(
-                width: 40,
+                width: 60,
                 child: Text(
                   "Set",
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -138,16 +153,29 @@ class _ExerciseTableState extends State<ExerciseTable> {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  "Kg",
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  textAlign: TextAlign.center,
+           Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () {
+              print("Kg button clicked!"); // DEBUG
+              _showWeightBottomSheet();
+            },
+            icon: const Icon(Icons.scale, size: 16),
+            label: const Text("Kg"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+              minimumSize: const Size(0, 32),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(4),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                 ),
               ),
+            ),
+          ),
+                  ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

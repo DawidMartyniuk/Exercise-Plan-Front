@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:work_plan_front/widget/plan/widget/reps_selected.dart';
+import 'package:work_plan_front/widget/plan/widget/weight_selected.dart';
 
 class BuildSetsTable extends StatelessWidget{
   final String exerciseId;
@@ -15,6 +17,38 @@ class BuildSetsTable extends StatelessWidget{
     this.kgControllers,
     this.repControllers,
   }) : super(key: key);
+
+   void _showWeightBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.5, 
+      ),
+      builder: (context) => const WeightSelected(),
+    );
+  }
+  void _showRepsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height * 0.4,
+        maxHeight: MediaQuery.of(context).size.height * 0.6, 
+      ),
+      builder: (context) => const RepsSelected(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,24 +85,66 @@ class BuildSetsTable extends StatelessWidget{
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    "Kg",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  child: GestureDetector(
+                    onTap: () {
+                      print("Kg header clicked!"); // ✅ DEBUG LOG
+                      _showWeightBottomSheet(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Weight",
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 16,
+                          ),
+                        ],
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    "Reps",
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  child: GestureDetector(
+                    onTap: () {
+                      print("Reps header clicked!"); // ✅ DEBUG LOG
+                      _showRepsBottomSheet(context);
+                    },
+                    child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Reps",
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Icon(
+                             Icons.arrow_drop_down,
+                              color: Theme.of(context).colorScheme.primary,
+                             size: 16,
+                          ),
+                        ],
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
               ],
