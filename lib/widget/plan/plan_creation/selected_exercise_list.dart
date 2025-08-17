@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
-import 'package:work_plan_front/widget/plan/plan_creation/components/exercise_row_builder.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/build_sets_table.dart';
 import 'package:work_plan_front/widget/plan/plan_list/plan_selected/components/exercise_image.dart';
 
@@ -9,12 +8,14 @@ class SelectedExerciseList extends StatefulWidget {
   final List<Exercise> exercises;
   final void Function(Exercise exercise) onDelete;
   final void Function(Map<String, List<Map<String, String>>> Function()) onGetTableData;
+  final void Function(List<Exercise>)? onExercisesReordered;
 
   const SelectedExerciseList({
     Key? key,
     required this.exercises,
     required this.onDelete,
     required this.onGetTableData,
+    this.onExercisesReordered,
   }) : super(key: key);
 
   @override
@@ -27,9 +28,13 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
   final Map<String, List<TextEditingController>> _kgControllers = {};
   final Map<String, List<TextEditingController>> _repControllers = {};
 
+  List<Exercise> _reorderedExercises=[];
+  int? _draggedIndex;
+
   @override
   void initState() {
     super.initState();
+    _reorderedExercises = List.from(widget.exercises.toList());
  
     for (final exercise in widget.exercises) {
       _initializeExerciseData(exercise);
@@ -41,6 +46,11 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
   @override
   void didUpdateWidget(SelectedExerciseList oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+       if (widget.exercises.length != _reorderedExercises.length ||
+        !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
+      _reorderedExercises = List.from(widget.exercises);
+    }
     
     // Jeśli lista ćwiczeń się zmieniła, zaktualizuj dane
     for (final exercise in widget.exercises) {
@@ -83,6 +93,19 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
     
     // Przekaż zaktualizowaną funkcję pobierania danych
     widget.onGetTableData(getTableData);
+  }
+
+  void _reorderExercises(int oldIndex,int newIndex) {
+   setState(() {
+     if(newIndex > oldIndex) {
+       newIndex -= 1;
+     }
+     final exercise = _reorderedExercises.removeAt(oldIndex);
+     _reorderedExercises.insert(newIndex, exercise);
+   });
+   if(widget.onExercisesReordered != null) {
+     widget.onExercisesReordered!(_reorderedExercises);
+   }
   }
 
   void _initializeExerciseData(Exercise exercise) {
@@ -282,8 +305,35 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return ReorderableListView.builder(
+      onReorder: _reorderExercises,
       itemCount: widget.exercises.length,
+      proxyDecorator: (child, index, animation){
+        return AnimatedBuilder(
+          animation: animation,
+          builder: (context, child) {
+            return Material(
+              elevation: 8,
+              borderRadius: BorderRadius.circular(14),
+               child: Container(
+                 decoration: BoxDecoration(
+                   borderRadius: BorderRadius.circular(14),
+                   color: Theme.of(context).colorScheme.primary.withAlpha(25),
+                   border: Border.all(
+                     color: Theme.of(context).colorScheme.primary,
+                     width: 1,
+                   ), 
+                 ),
+                 
+                 child: child,
+               ),
+            );
+          },
+          child: child,
+        );
+      },
+
+      
       itemBuilder: (context, index) {
         final exercise = widget.exercises[index];
         final exerciseId = exercise.id;
@@ -294,6 +344,7 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
         }
 
         return Card(
+          key: ValueKey(exerciseId),
           margin: const EdgeInsets.symmetric(vertical: 8),
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -308,7 +359,17 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                 // Header z nazwą ćwiczenia i akcjami
                 Row(
                   children: [
-                 
+                      ReorderableDragStartListener(
+                        index: index,
+                        child:  Container(
+                          child: Icon(
+                            Icons.drag_handle,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                            ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                     Container(
                       width: 48,
                       height: 48,

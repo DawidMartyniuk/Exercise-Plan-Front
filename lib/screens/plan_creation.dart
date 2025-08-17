@@ -183,6 +183,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     });
   }
 
+  /// ✅ NOWA METODA - OBSŁUGA ZMIANY KOLEJNOŚCI ĆWICZEŃ
+  void _onExercisesReordered(List<Exercise> reorderedExercises) {
+    setState(() {
+      selectedExercise = reorderedExercises;
+    });
+    print("🔄 Zmieniono kolejność ćwiczeń: ${reorderedExercises.map((e) => e.name).join(', ')}");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,18 +199,18 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _handleBackPress,
         ),
-        title: const Text("Plan Creation "),
+        title: const Text("Plan Creation"),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextButton(
-              onPressed: _savePlanData,
+              onPressed: _isPlanReadToSave ? _savePlanData : null,
               child: Text(
                 "Save",
                 style: TextStyle(
-                  color: _isPlanReadToSave
-                    ?Theme.of(context).colorScheme.primary
-                    : Colors.grey,
+                  color: _isPlanReadToSave 
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
                 ),
@@ -223,6 +231,40 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             ),
             
             const SizedBox(height: 20),
+
+            // ✅ DODAJ INSTRUKCJĘ O PRZECIĄGANIU (opcjonalnie)
+            if (selectedExercise.length > 1) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.drag_handle,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Przeciągnij ćwiczenia aby zmienić ich kolejność w planie",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             
             // Lista wybranych ćwiczeń lub komunikat o braku ćwiczeń
             Expanded(
@@ -237,6 +279,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                       },
                       exercises: selectedExercise,
                       onDelete: _removeExerciseFromPlan,
+                      onExercisesReordered: _onExercisesReordered, // ✅ DODAJ CALLBACK
                     ),
             ),
             
