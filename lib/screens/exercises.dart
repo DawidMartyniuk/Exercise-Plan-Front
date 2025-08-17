@@ -11,11 +11,13 @@ import 'package:work_plan_front/widget/exercise/exercises_list.dart';
 class ExercisesScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode; 
   final String? title; 
+  final Function(List<Exercise>)? onMultipleExercisesSelected; // ✅ CALLBACK DLA WYBORU ĆWICZENIA
 
   const ExercisesScreen({
     super.key,
     this.isSelectionMode = false,
     this.title,
+    this.onMultipleExercisesSelected,
   });
 
   @override
@@ -330,6 +332,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                           // ✅ CALLBACK ZOSTANIE WYWOŁANY AUTOMATYCZNIE
                           print('Selected exercise: ${exercise.name}');
                         },
+                        onMultipleExercisesSelected: widget.onMultipleExercisesSelected  != null
+                          ? (exercises) {
+                            widget.onMultipleExercisesSelected!(exercises);
+                            print('Selected ${exercises.length} exercises');
+                          }
+                          : null 
                       ),
                     ),
                   ],

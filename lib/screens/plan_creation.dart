@@ -4,8 +4,12 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/widget/plan/plan_creation/plan_creation_list.dart';
-import 'package:collection/collection.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/selected_exercise_list.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/widgets/plan_title_field.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/widgets/exercise_selection_button.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/helpers/data_formatter.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/components/plan_creation_validation.dart';
+import 'package:work_plan_front/utils/toast_untils.dart';
 
 class PlanCreation extends ConsumerStatefulWidget {
   const PlanCreation({super.key});
@@ -19,152 +23,165 @@ class PlanCreation extends ConsumerStatefulWidget {
 class _StatePlanCreation extends ConsumerState<PlanCreation> {
   List<Exercise> selectedExercise = [];
   Map<String, List<Map<String, String>>> Function()? _getTableData;
-
-  var exerciseLenght = 0;
   String exerciseTableTitle = ""; 
 
-  void addExercise() async {}
-
-  void _saveTabelData() async {
-    if (_getTableData != null) {
-      final tableData = _getTableData!();
-
-      final allRows = tableData.entries
-          .expand((entry) => entry.value)
-          .where((row) => row["exercise_name"] != null && row["exercise_name"]!.trim().isNotEmpty)
-          .toList();
-
-      final grouped = groupBy<Map<String, String>, String>(
-        allRows,
-        (row) => "${row["exercise_name"]}|||${row["notes"]}",
-      );
-
-      final groupedList = grouped.entries.map((entry) {
-        final keyParts = entry.key.split("|||");
-        final firstRow = entry.value.first;
-        print("Raw exercise_number: ${firstRow["exercise_number"]}");
-
-        return {
-          "exercise_name": keyParts[0],
-          
-         "exercise_number": firstRow["exercise_number"],
-          "notes": keyParts[1],
-          "data": entry.value.map((row) {
-            return {
-              "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
-              "colKg": int.tryParse(row["colKg"] ?? "0") ?? 0,
-              "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
-            };
-          }).toList(),
-        };
-      }).toList();
-
-      // Poprawna konstrukcja payloadu
-      final payload = {
-        "exercises": [
-          {
-            "exercise_table": exerciseTableTitle.isNotEmpty ? exerciseTableTitle : "Default Title",
-            "rows": groupedList,
-          },
-        ],
-      };
-
-      print("Payload wysyłany do backendu: $payload");
-
-      final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
-      await exercisePlanNotifier.initializeExercisePlan(payload);
-    
-
-      try {
-        final statusCode = await exercisePlanNotifier.saveExercisePlan(onlyThis: exercisePlanNotifier.state.last);
-        if (statusCode == 200 || statusCode == 201) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Plan zapisany pomyślnie!"),
-                backgroundColor: Colors.green,
-              ),
-            );
-             await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
-             
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TabsScreen(selectedPageIndex: 2),
-              ),
-            );
-          }
-        } else {
-          print("Nie udało się zapisać planu ćwiczeń: Status $statusCode");
-          errorScaffoldMessage("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie.", Colors.red);
-        }
-      } catch (e) {
-        errorScaffoldMessage("Nie udało się zapisać planu ćwiczeń. Spróbuj ponownie", Colors.red);
-        print("Nie udało się zapisać planu ćwiczeń: $e");
-      }
-    } else {
-      errorScaffoldMessage("Brak dostępnych dancyh tabeli", Colors.red);
-    }
-  }
-  void errorScaffoldMessage(String message, Color color) {
-    print(message);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
+  bool get _isPlanReadToSave{
+    return PlanCreationValidation.validatePlanData(
+      exerciseTableTitle,
+      selectedExercise,
     );
   }
-  void _backScreen() {
-  if (selectedExercise.isNotEmpty || exerciseTableTitle.isNotEmpty || selectedExercise.isEmpty) {
+
+  /// Zapisuje dane planu treningowego
+  void _savePlanData() async {
+    if (!_isPlanReadToSave) {
+      ToastUtils.showValidationError(context, 
+        customMessage: "Wypełnij tytuł planu i dodaj przynajmniej jedno ćwiczenie");
+      return;
+    }
+
+    if (_getTableData == null) {
+      ToastUtils.showErrorToast(context: context, message: "Brak danych tabeli");
+      return;
+    }
+
+    try {
+      // Formatowanie danych
+      final payload = DataFormatter.formatPlanData(
+        tableData: _getTableData!(),
+        planTitle: exerciseTableTitle,
+      );
+
+      // Zapisywanie planu
+      final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
+      await exercisePlanNotifier.initializeExercisePlan(payload);
+
+      final statusCode = await exercisePlanNotifier.saveExercisePlan(
+        onlyThis: exercisePlanNotifier.state.last
+      );
+
+      if (statusCode == 200 || statusCode == 201) {
+        await _handleSaveSuccess();
+      } else {
+        _handleSaveError("Status: $statusCode");
+      }
+    } catch (e) {
+      _handleSaveError(e.toString());
+    }
+  }
+
+  /// Obsługuje pomyślne zapisanie planu
+  Future<void> _handleSaveSuccess() async {
+    ToastUtils.showSaveSuccess(context, itemName: "Plan treningowy");
+    await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+    
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TabsScreen(selectedPageIndex: 2),
+        ),
+      );
+    }
+  }
+
+  /// Obsługuje błąd podczas zapisywania
+  void _handleSaveError(String error) {
+    ToastUtils.showErrorToast(
+      context: context,
+      message: "Nie udało się zapisać planu. Spróbuj ponownie.",
+    );
+    print("Błąd zapisywania planu: $error");
+  }
+
+  /// Obsługuje powrót z ekranu z walidacją zmian
+  void _handleBackPress() {
+    if (selectedExercise.isNotEmpty || exerciseTableTitle.isNotEmpty) {
+      _showUnsavedChangesDialog();
+    } else {
+      Navigator.of(context).pop();
+    }
+  }
+
+  /// Pokazuje dialog o niezapisanych zmianach
+  void _showUnsavedChangesDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface, 
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           "Czy na pewno chcesz wrócić?",
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: Text(
-          "Nie zapisano zmian.",
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+          "Wprowadzone zmiany nie zostały zapisane.",
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: Text(
               "Anuluj",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Zamknij dialog
+              Navigator.of(context).pop(); // Wróć do poprzedniego ekranu
             },
             child: Text(
-              "Tak",
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+              "Wróć bez zapisywania",
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
           ),
         ],
       ),
     );
-  } else {
-    Navigator.of(context).pop();
   }
-}
 
+  /// Dodaje nowe ćwiczenie do planu
+  Future<void> _addExerciseToPlan() async {
+    final result = await Navigator.of(context).push<dynamic>(
+      MaterialPageRoute(
+        builder: (ctx) => ExercisesScreen(
+          isSelectionMode: true,
+          title: 'Wybierz ćwiczenie do planu',
+          onMultipleExercisesSelected: (exercises) {
+              print('Otrzymano ${exercises.length} ćwiczeń');
+          },
+        ),
+      ),
+    );
+
+     if (result != null) {
+      setState(() {
+        if (result is List<Exercise>) {
+          // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE
+          for (final exercise in result) {
+            if (!selectedExercise.any((existing) => existing.id == exercise.id)) {
+              selectedExercise.add(exercise);
+            }
+          }
+          print('Dodano ${result.length} ćwiczeń do planu');
+        } else if (result is Exercise) {
+          // ✅ POJEDYNCZE ĆWICZENIE - DODAJ JEDNO
+          if (!selectedExercise.any((existing) => existing.id == result.id)) {
+            selectedExercise.add(result);
+          }
+          print('Dodano ćwiczenie: ${result.name}');
+        }
+      });
+    }
+
+  }
+
+  /// Usuwa ćwiczenie z planu
+  void _removeExerciseFromPlan(Exercise exercise) {
+    setState(() {
+      selectedExercise.remove(exercise);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -172,126 +189,95 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            _backScreen();
-          
-          },
+          onPressed: _handleBackPress,
         ),
-        title: Text("log workout"),
+        title: const Text("Plan Creation "),
         actions: [
-          IconButton(onPressed: _saveTabelData, icon: const Icon(Icons.save)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextButton(
+              onPressed: _savePlanData,
+              child: Text(
+                "Save",
+                style: TextStyle(
+                  color: _isPlanReadToSave
+                    ?Theme.of(context).colorScheme.primary
+                    : Colors.grey,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  exerciseTableTitle = value; // Aktualizuj zmienną klasy
-                });
-              },
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              decoration: InputDecoration(
-                labelText: "Plan Title",
-                labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                border: OutlineInputBorder(),
-              ),
-            ),      
+            // Pole tytułu planu
+            PlanTitleField(
+              initialValue: exerciseTableTitle,
+              onChanged: (value) => setState(() => exerciseTableTitle = value),
+            ),
+            
             const SizedBox(height: 20),
+            
+            // Lista wybranych ćwiczeń lub komunikat o braku ćwiczeń
             Expanded(
               child: selectedExercise.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No exercises added yet.",
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge!.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                      ),
-                    )
+                  ? _buildEmptyState()
                   : SelectedExerciseList(
                       onGetTableData: (getterFunction) {
-                        _getTableData = () {
-                          final tableData = getterFunction();
-                          final updatedTitle =
-                              exerciseTableTitle; // upewniamy się, że pobieramy aktualny tytuł
-                          return tableData.map((exerciseId, rows) {
-                            return MapEntry(exerciseId, [
-                              {"exercise_table": updatedTitle},
-                              ...rows,
-                            ]);
-                          });
-                        };
+                        _getTableData = () => DataFormatter.formatTableData(
+                          tableData: getterFunction(),
+                          planTitle: exerciseTableTitle,
+                        );
                       },
                       exercises: selectedExercise,
-                      onDelete: (exercise) {
-                        setState(() {
-                          selectedExercise.remove(exercise);
-                        });
-                      },
+                      onDelete: _removeExerciseFromPlan,
                     ),
             ),
-            Center(
-              child: SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: TextButton(
-                  onPressed: () async {
-                    final newExercise = await Navigator.of(
-                      context,
-                    ).push<Exercise>(
-                      MaterialPageRoute(
-                        builder: (ctx) => ExercisesScreen(
-                          isSelectionMode: true, // ✅ DODAJ TO!
-                          title: 'Select Exercise for Plan', // ✅ DODAJ TO!
-                        ),
-                      ),
-                    );
-                    if (newExercise != null) {
-                      print('Adding exercise: ${newExercise.name}');
-                      setState(() {
-                        selectedExercise.add(newExercise);
-                      });
-                    }
-                  },
-                  child: Text("Add Exercise", style:
-                   Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface),
-                    ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(
-                      context,
-                    ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25.0),
-                    ),
-                  ),
-                ),
-              ),
+            
+            // Przycisk dodawania ćwiczeń
+            ExerciseSelectionButton(
+              onPressed: _addExerciseToPlan,
             ),
           ],
         ),
       ),
     );
   }
-}
 
-extension GroupByExtension<E> on List<E> {
-  Map<K, List<E>> groupFoldBy<K>(K Function(E) keyFn) {
-    final map = <K, List<E>>{};
-    for (var element in this) {
-      final key = keyFn(element);
-      map.putIfAbsent(key, () => []).add(element);
-    }
-    return map;
+  /// Buduje stan pusty gdy brak ćwiczeń
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.fitness_center,
+            size: 64,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Brak dodanych ćwiczeń",
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Użyj przycisku poniżej, aby dodać pierwsze ćwiczenie",
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }
