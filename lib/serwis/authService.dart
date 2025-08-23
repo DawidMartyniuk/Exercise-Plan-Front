@@ -29,31 +29,62 @@ class Authservice {
     String newPassword,
     String repeatPassword,
   ) async {
+    print("🔑 Reset Password Request:");
+    print("  - Email: $email");
+    print("  - Token: ${token.substring(0, 10)}...");
+    print("  - URL: $_baseUrl$_resetPasswordConfirmUrl");
+
     try {
+      // ✅ POPRAWKA - UŻYJ STANDARDOWYCH NAZW LARAVEL
+      final requestBody = {
+        'email': email,
+        'token': token,
+        'password': newPassword, // ✅ ZMIEŃ Z 'new_password' NA 'password'
+        'password_confirmation': repeatPassword, // ✅ ZMIEŃ Z 'repeat_password' NA 'password_confirmation'
+      };
+
+      print("📤 Request body: ${jsonEncode(requestBody)}");
+
       final response = await http.post(
         Uri.parse("$_baseUrl$_resetPasswordConfirmUrl"),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'token': token,
-          'new_password': newPassword,
-          'repeat_password': repeatPassword,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(requestBody),
       );
 
-      if (response.statusCode == 200) {
-        print("Password reset successfully");
+      print("📥 Response status: ${response.statusCode}");
+      print("📥 Response headers: ${response.headers}");
+      print("📥 Response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Password reset successful");
         return true;
+      } else if (response.statusCode == 422) {
+        print("❌ Validation error (422)");
+        try {
+          final errorBody = json.decode(response.body);
+          print("❌ Validation errors: $errorBody");
+          
+          // ✅ WYCIĄGNIJ SZCZEGÓŁOWE BŁĘDY
+          if (errorBody['errors'] != null) {
+            final errors = errorBody['errors'] as Map<String, dynamic>;
+            errors.forEach((field, messages) {
+              print("❌ Field '$field': ${messages.join(', ')}");
+            });
+          }
+        } catch (e) {
+          print("❌ Could not parse error response: ${response.body}");
+        }
+        return false;
       } else {
-      print("❌ Failed to confirm reset: ${response.statusCode}");
-      if (response.body.isNotEmpty) {
-        final errorBody = json.decode(response.body);
-        print("❌ Error details: $errorBody");
-      }
-      return false;
+        print("❌ Failed to confirm reset: ${response.statusCode}");
+        print("❌ Response body: ${response.body}");
+        return false;
       }
     } catch (e) {
-      print("Error occurred while resetting password: $e");
+      print("❌ Exception in resetPassword: $e");
       return false;
     }
   }

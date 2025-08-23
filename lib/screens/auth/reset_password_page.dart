@@ -7,7 +7,7 @@ import 'package:work_plan_front/utils/toast_untils.dart';
 class ResetPasswordPage extends ConsumerStatefulWidget {
   final String email;
   final String token;
-  
+
   const ResetPasswordPage({
     super.key,
     required this.email,
@@ -20,7 +20,6 @@ class ResetPasswordPage extends ConsumerStatefulWidget {
 
 class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     with TickerProviderStateMixin {
-  
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -83,7 +82,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     });
 
     try {
-    //  ✅ TUTAJ DODASZ LOGIKĘ RESETU HASŁA PÓŹNIEJ
+      //  ✅ TUTAJ DODASZ LOGIKĘ RESETU HASŁA PÓŹNIEJ
       final success = await ref
           .read(authProviderResetPassword.notifier)
           .confirmPasswordReset(
@@ -94,27 +93,29 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
           );
 
       // ✅ TYMCZASOWO SYMULUJ SUKCES (USUŃ PO DODANIU LOGIKI)
-     // await Future.delayed(Duration(seconds: 2));
-     // final success = true; // Zmień na rzeczywisty wynik
+      // await Future.delayed(Duration(seconds: 2));
+      // final success = true; // Zmień na rzeczywisty wynik
 
       if (success) {
         ToastUtils.showSuccessToast(
           context: context,
           title: "Password Reset Successful!",
-          message: "Your password has been reset successfully. You can now login with your new password.",
+          message:
+              "Your password has been reset successfully. You can now login with your new password.",
           duration: Duration(seconds: 4),
         );
-        
+
         Future.delayed(Duration(seconds: 2), () {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (ctx) => const LoginScreen()),
           );
         });
-      }else {
+      } else {
         ToastUtils.showErrorToast(
           context: context,
           title: "Password Reset Failed",
-          message: "There was an error resetting your password. Please try again.",
+          message:
+              "There was an error resetting your password. Please try again.",
           duration: Duration(seconds: 4),
         );
       }
@@ -125,6 +126,12 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
         _isLoading = false;
       });
     }
+  }
+
+  String _getSafeTokenPreview(String token) {
+    if (token.isEmpty) return "No token";
+    if (token.length <= 10) return token;
+    return "${token.substring(0, 10)}...";
   }
 
   @override
@@ -140,7 +147,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
               position: _slideAnimation,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.surfaceContainerHighest.withAlpha(50),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -166,18 +175,21 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 20),
-                          
+
                           // ✅ ANIMOWANY TYTUŁ
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 1200),
-                            tween: Tween(begin: 0.0, end: 1.0),
+                            tween: Tween(begin: 0.0, end: 4.0),
                             builder: (context, value, child) {
                               return Transform.scale(
                                 scale: value,
                                 child: Text(
                                   "Set New Password",
-                                  style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge!.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
                                     fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -185,9 +197,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 10),
-                          
+
                           // ✅ INFORMACJA O EMAIL
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 600),
@@ -196,15 +208,25 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               return Opacity(
                                 opacity: value,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withAlpha(50),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
                                     "Reset password for: ${widget.email}",
-                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodyMedium!.copyWith(
+                                      color:
+                                          Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -212,9 +234,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 30),
-                          
+
                           // ✅ ANIMOWANE POLE NOWE HASŁO
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 800),
@@ -231,51 +253,76 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.outline,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.outline,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                           width: 2,
                                         ),
                                       ),
                                       prefixIcon: Icon(
                                         Icons.lock,
-                                        color: _isLoading 
-                                            ? Colors.grey 
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        color:
+                                            _isLoading
+                                                ? Colors.grey
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                       ),
                                       suffixIcon: IconButton(
-                                        onPressed: _isLoading ? null : () {
-                                          setState(() {
-                                            _isPasswordVisible = !_isPasswordVisible;
-                                          });
-                                        },
+                                        onPressed:
+                                            _isLoading
+                                                ? null
+                                                : () {
+                                                  setState(() {
+                                                    _isPasswordVisible =
+                                                        !_isPasswordVisible;
+                                                  });
+                                                },
                                         icon: Icon(
                                           _isPasswordVisible
                                               ? Icons.visibility
                                               : Icons.visibility_off,
-                                          color: _isLoading 
-                                              ? Colors.grey 
-                                              : Theme.of(context).colorScheme.onSurface,
+                                          color:
+                                              _isLoading
+                                                  ? Colors.grey
+                                                  : Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
                                         ),
                                       ),
                                       labelText: "New Password",
                                       labelStyle: TextStyle(
-                                        color: _isLoading 
-                                            ? Colors.grey 
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        color:
+                                            _isLoading
+                                                ? Colors.grey
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                       ),
                                       filled: true,
-                                      fillColor: _isLoading
-                                          ? Colors.grey.withAlpha(50)
-                                          : Theme.of(context).colorScheme.surface,
+                                      fillColor:
+                                          _isLoading
+                                              ? Colors.grey.withAlpha(50)
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.surface,
                                     ),
                                     style: TextStyle(
-                                      color: _isLoading 
-                                          ? Colors.grey 
-                                          : Theme.of(context).colorScheme.onSurface,
+                                      color:
+                                          _isLoading
+                                              ? Colors.grey
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
                                     ),
                                     obscureText: !_isPasswordVisible,
                                     validator: (value) {
@@ -286,7 +333,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                         return 'Password must be at least 6 characters';
                                       }
                                       // ✅ DODATKOWE WALIDACJE
-                                      if (!RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)').hasMatch(value)) {
+                                      if (!RegExp(
+                                        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)',
+                                      ).hasMatch(value)) {
                                         return 'Password must contain uppercase, lowercase and number';
                                       }
                                       return null;
@@ -296,9 +345,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 20),
-                          
+
                           // ✅ ANIMOWANE POLE POTWIERDŹ HASŁO
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 1000),
@@ -315,51 +364,76 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.outline,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.outline,
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
                                           width: 2,
                                         ),
                                       ),
                                       prefixIcon: Icon(
                                         Icons.lock_outline,
-                                        color: _isLoading 
-                                            ? Colors.grey 
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        color:
+                                            _isLoading
+                                                ? Colors.grey
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                       ),
                                       suffixIcon: IconButton(
-                                        onPressed: _isLoading ? null : () {
-                                          setState(() {
-                                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                                          });
-                                        },
+                                        onPressed:
+                                            _isLoading
+                                                ? null
+                                                : () {
+                                                  setState(() {
+                                                    _isConfirmPasswordVisible =
+                                                        !_isConfirmPasswordVisible;
+                                                  });
+                                                },
                                         icon: Icon(
                                           _isConfirmPasswordVisible
                                               ? Icons.visibility
                                               : Icons.visibility_off,
-                                          color: _isLoading 
-                                              ? Colors.grey 
-                                              : Theme.of(context).colorScheme.onSurface,
+                                          color:
+                                              _isLoading
+                                                  ? Colors.grey
+                                                  : Theme.of(
+                                                    context,
+                                                  ).colorScheme.onSurface,
                                         ),
                                       ),
                                       labelText: "Confirm Password",
                                       labelStyle: TextStyle(
-                                        color: _isLoading 
-                                            ? Colors.grey 
-                                            : Theme.of(context).colorScheme.onSurface,
+                                        color:
+                                            _isLoading
+                                                ? Colors.grey
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.onSurface,
                                       ),
                                       filled: true,
-                                      fillColor: _isLoading
-                                          ? Colors.grey.withAlpha(50)
-                                          : Theme.of(context).colorScheme.surface,
+                                      fillColor:
+                                          _isLoading
+                                              ? Colors.grey.withAlpha(50)
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.surface,
                                     ),
                                     style: TextStyle(
-                                      color: _isLoading 
-                                          ? Colors.grey 
-                                          : Theme.of(context).colorScheme.onSurface,
+                                      color:
+                                          _isLoading
+                                              ? Colors.grey
+                                              : Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
                                     ),
                                     obscureText: !_isConfirmPasswordVisible,
                                     validator: (value) {
@@ -376,9 +450,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 15),
-                          
+
                           // ✅ INFO O WYMAGANIACH HASŁA
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 1200),
@@ -389,27 +463,42 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                 child: Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.secondary.withAlpha(50),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.secondary.withAlpha(50),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: Theme.of(context).colorScheme.secondary.withAlpha(100),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.secondary.withAlpha(100),
                                     ),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         "Password requirements:",
-                                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall!.copyWith(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                       SizedBox(height: 4),
                                       Text(
                                         "• At least 6 characters\n• Include uppercase & lowercase letters\n• Include at least one number",
-                                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall!.copyWith(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withAlpha(180),
                                         ),
                                       ),
                                     ],
@@ -418,9 +507,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 30),
-                          
+
                           // ✅ ANIMOWANE PRZYCISKI
                           TweenAnimationBuilder<double>(
                             duration: Duration(milliseconds: 1400),
@@ -437,71 +526,114 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                     // ✅ RESET PASSWORD BUTTON
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: _isLoading 
-                                            ? Colors.grey 
-                                            : Theme.of(context).colorScheme.primary,
-                                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                        backgroundColor:
+                                            _isLoading
+                                                ? Colors.grey
+                                                : Theme.of(
+                                                  context,
+                                                ).colorScheme.primary,
+                                        foregroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onPrimary,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 6,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         elevation: _isLoading ? 0 : 5,
                                       ),
-                                      onPressed: _isLoading ? null : () => _resetPassword(context),
-                                      child: _isLoading
-                                          ? Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                SizedBox(
-                                                  width: 16,
-                                                  height: 16,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                                      Theme.of(context).colorScheme.onPrimary,
+                                      onPressed:
+                                          _isLoading
+                                              ? null
+                                              : () => _resetPassword(context),
+                                      child:
+                                          _isLoading
+                                              ? Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  SizedBox(
+                                                    width: 16,
+                                                    height: 16,
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation<
+                                                            Color
+                                                          >(
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .onPrimary,
+                                                          ),
                                                     ),
                                                   ),
-                                                ),
-                                                SizedBox(width: 8),
-                                                Text("Resetting..."),
-                                              ],
-                                            )
-                                          : Text(
-                                              "Reset Password",
-                                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                                color: Theme.of(context).colorScheme.onPrimary,
+                                                  SizedBox(width: 8),
+                                                  Text("Resetting..."),
+                                                ],
+                                              )
+                                              : Text(
+                                                "Reset Password",
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .titleMedium!
+                                                    .copyWith(
+                                                      color:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .onPrimary,
+                                                    ),
                                               ),
-                                            ),
                                     ),
-                                    
+
                                     // ✅ CANCEL BUTTON
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(context).colorScheme.secondary,
-                                        foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                                        backgroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.secondary,
+                                        foregroundColor:
+                                            Theme.of(
+                                              context,
+                                            ).colorScheme.onSecondary,
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 6,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         elevation: 5,
                                       ),
-                                      onPressed: _isLoading ? null : () {
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (ctx) => const LoginScreen(),
-                                          ),
-                                        );
-                                      },
+                                      onPressed:
+                                          _isLoading
+                                              ? null
+                                              : () {
+                                                Navigator.of(
+                                                  context,
+                                                ).pushReplacement(
+                                                  MaterialPageRoute(
+                                                    builder:
+                                                        (ctx) =>
+                                                            const LoginScreen(),
+                                                  ),
+                                                );
+                                              },
                                       child: Text(
                                         "Cancel",
-                                        style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                          color: Theme.of(context).colorScheme.onSecondary,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium!.copyWith(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.onSecondary,
                                         ),
                                       ),
                                     ),
@@ -510,9 +642,9 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                               );
                             },
                           ),
-                          
+
                           const SizedBox(height: 20),
-                          
+
                           // ✅ DEBUG INFO (USUŃ W PRODUKCJI)
                           if (widget.token.isNotEmpty) ...[
                             TweenAnimationBuilder<double>(
@@ -527,13 +659,50 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                       color: Colors.blue.withAlpha(50),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    child: Text(
-                                      "Debug: Token received (${widget.token.substring(0, 10)}...)",
-                                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                        color: Colors.blue,
-                                        fontFamily: 'monospace',
-                                      ),
-                                      textAlign: TextAlign.center,
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          "Debug: Token received",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall!.copyWith(
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          "Token: ${_getSafeTokenPreview(widget.token)}",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall!.copyWith(
+                                            color: Colors.blue,
+                                            fontFamily: 'monospace',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          "Email: ${widget.email}",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall!.copyWith(
+                                            color: Colors.blue,
+                                            fontFamily: 'monospace',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        Text(
+                                          "Token length: ${widget.token.length}",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall!.copyWith(
+                                            color: Colors.blue,
+                                            fontFamily: 'monospace',
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );

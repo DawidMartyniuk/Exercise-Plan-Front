@@ -9,14 +9,12 @@ import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/theme/app_theme.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:work_plan_front/serwis/exerciseService.dart';
-// ✅ ZMIEŃ IMPORT
 import 'package:app_links/app_links.dart';
 import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ INICJALIZACJA HIVE
   if (kIsWeb) {
     await Hive.initFlutter();
   } else {
@@ -24,13 +22,9 @@ void main() async {
     Hive.init(appDocumentDir.path);
   }
 
-  // ✅ REJESTRACJA ADAPTERA
   Hive.registerAdapter(ExerciseAdapter());
-  
-  // ✅ OTWÓRZ BOX NAJPIERW
   await Hive.openBox<Exercise>('exerciseBox');
 
-  // ✅ POTEM ZAŁADUJ ĆWICZENIA
   try {
     final exerciseService = ExerciseService();
     final exercises = await exerciseService.exerciseList();
@@ -39,11 +33,7 @@ void main() async {
     print("❌ Błąd ładowania ćwiczeń przy starcie: $e");
   }
 
-  runApp(
-    ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerStatefulWidget {
@@ -54,35 +44,47 @@ class MyApp extends ConsumerStatefulWidget {
 }
 
 class _MyAppState extends ConsumerState<MyApp> {
-  // ✅ ZMIEŃ NA APP_LINKS
   late AppLinks _appLinks;
   StreamSubscription<Uri>? _linkSubscription;
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  bool _deepLinkHandled = false;
 
   @override
   void initState() {
     super.initState();
-    // ✅ INICJALIZUJ APP_LINKS
     initAppLinks();
   }
 
-  // ✅ NOWA METODA DLA APP_LINKS
   void initAppLinks() async {
     _appLinks = AppLinks();
 
     try {
-      // Sprawdź czy aplikacja została uruchomiona z linku
+      // ✅ SPRAWDŹ INITIAL LINK TYLKO JEŚLI ISTNIEJE I JEST PRAWIDŁOWY
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         print("🔗 Initial app link: $initialUri");
-        handleDeepLink(initialUri);
+
+        // ✅ SPRAWDŹ CZY TO RZECZYWIŚCIE LINK DO RESETU HASŁA
+        if (_isValidResetPasswordLink(initialUri)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            handleDeepLink(initialUri);
+          });
+        } else {
+          print("🔍 Initial link nie jest linkiem do resetu hasła - ignoruję");
+        }
+      } else {
+        print("🔍 Brak initial link - normalny start aplikacji");
       }
 
-      // Nasłuchuj nowych linków
+      // ✅ SŁUCHAJ NOWYCH LINKÓW
       _linkSubscription = _appLinks.uriLinkStream.listen(
         (Uri uri) {
           print("🔗 App link received: $uri");
-          handleDeepLink(uri);
+          if (_isValidResetPasswordLink(uri)) {
+            handleDeepLink(uri);
+          } else {
+            print("🔍 Otrzymany link nie jest linkiem do resetu hasła - ignoruję");
+          }
         },
         onError: (err) {
           print("❌ App link error: $err");
@@ -93,88 +95,90 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-  // ✅ OBSŁUGA DEEP LINKS - DOPASOWANA DO BACKENDU
+  // ✅ NOWA METODA - SPRAWDŹ CZY LINK JEST DO RESETU HASŁA
+// ✅ ALTERNATYWNA WERSJA - SPRAWDZAJ TYLKO WYMAGANE ELEMENTY
+// ✅ NAJBARDZIEJ PERMISYWNA WERSJA - AKCEPTUJ WSZYSTKIE MYAPP LINKI Z EMAIL I TOKEN
+bool _isValidResetPasswordLink(Uri uri) {
+  print("🔍 Checking URI: ${uri.toString()}");
+  
+  // Sprawdź podstawowe wymagania
+  final isMyAppScheme = uri.scheme == 'myapp';
+  final hasEmail = uri.queryParameters['email']?.isNotEmpty == true;
+  final hasTokenInPath = uri.pathSegments.isNotEmpty;
+
+  print("🔍 Simple validation:");
+  print("  - Is myapp scheme: $isMyAppScheme");
+  print("  - Has email param: $hasEmail");
+  print("  - Has path segments: $hasTokenInPath");
+  
+  if (isMyAppScheme && hasEmail && hasTokenInPath) {
+    print("✅ Valid reset password link detected!");
+    return true;
+  }
+  
+  print("❌ Not a valid reset password link");
+  return false;
+}
+
   void handleDeepLink(Uri uri) {
+    if (_deepLinkHandled) return;
+    _deepLinkHandled = true;
+
     print("🔍 Handling deep link: ${uri.toString()}");
     print("🔍 Path segments: ${uri.pathSegments}");
     print("🔍 Query parameters: ${uri.queryParameters}");
 
-    // ✅ OBSŁUGA RESET HASŁA - NOWY FORMAT /open-reset/{token}
-    if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'open-reset') {
-      final token = uri.pathSegments.length > 1 ? uri.pathSegments[1] : '';
-      final email = uri.queryParameters['email'] ?? '';
+    try {
+      String token = '';
+      String email = uri.queryParameters['email'] ?? '';
 
-      print("🔐 Reset password link - Email: $email, Token: ${token.isNotEmpty ? 'Present' : 'Missing'}");
-      print("🔐 Full token: $token");
-
-      // ✅ SPRAWDŹ CZY MAMY WYMAGANE DANE
-      if (token.isNotEmpty && email.isNotEmpty) {
-        if (navigatorKey.currentState != null) {
-          navigatorKey.currentState!.pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => ResetPasswordPage(
-                email: email,
-                token: token,
-              ),
-            ),
-            (route) => false, // Usuń wszystkie poprzednie ekrany
-          );
-        }
+      // ✅ EKSTRAKTUJ TOKEN Z RÓŻNYCH ŹRÓDEŁ
+      if (uri.pathSegments.length >= 2 && uri.pathSegments[0].toLowerCase().contains('reset')) {
+        // Format: myapp://open-reset/TOKEN?email=...
+        token = uri.pathSegments[1];
+      } else if (uri.pathSegments.isNotEmpty && !uri.pathSegments[0].toLowerCase().contains('reset')) {
+        // Format: myapp://TOKEN?email=...
+        token = uri.pathSegments[0];
       } else {
-        print("❌ Niepełne dane resetu hasła - Token: ${token.isNotEmpty}, Email: ${email.isNotEmpty}");
+        // Token może być w query parameters
+        token = uri.queryParameters['token'] ?? '';
       }
-    }
-    // ✅ OBSŁUGA WERYFIKACJI EMAIL (OPCJONALNIE)
-    else if (uri.pathSegments.isNotEmpty && uri.pathSegments.first == 'verify-email') {
-      final token = uri.pathSegments.length > 1 ? uri.pathSegments[1] : '';
-      final email = uri.queryParameters['email'] ?? '';
-      
-      print("📧 Email verification link - Email: $email, Token: ${token.isNotEmpty ? 'Present' : 'Missing'}");
-      
-      // ✅ TUTAJ MOŻESZ DODAĆ OBSŁUGĘ WERYFIKACJI EMAIL
-      // if (navigatorKey.currentState != null) {
-      //   navigatorKey.currentState!.pushAndRemoveUntil(
-      //     MaterialPageRoute(
-      //       builder: (context) => EmailVerificationPage(
-      //         email: email,
-      //         token: token,
-      //       ),
-      //     ),
-      //     (route) => false,
-      //   );
-      // }
-    }
-    // ✅ OBSŁUGA STARYCH FORMATÓW (BACKWARD COMPATIBILITY)
-    else if (uri.path == '/reset-password') {
-      final token = uri.queryParameters['token'] ?? '';
-      final email = uri.queryParameters['email'] ?? '';
-      
-      print("🔐 Legacy reset password link - Email: $email, Token: ${token.isNotEmpty ? 'Present' : 'Missing'}");
-      
-      if (token.isNotEmpty && email.isNotEmpty) {
-        if (navigatorKey.currentState != null) {
-          navigatorKey.currentState!.pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => ResetPasswordPage(
-                email: email,
-                token: token,
+
+      print("🔍 Extracted token: '$token'");
+      print("🔍 Extracted email: '$email'");
+
+      // ✅ WALIDACJA DANYCH
+      if (token.isNotEmpty && email.isNotEmpty && email.contains('@')) {
+        // ✅ POCZEKAJ AŻ NAVIGATOR BĘDZIE GOTOWY
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (navigatorKey.currentState != null) {
+            navigatorKey.currentState!.push(
+              MaterialPageRoute(
+                builder: (_) => ResetPasswordPage(email: email, token: token),
               ),
-            ),
-            (route) => false,
-          );
-        }
+            );
+            print("🔐 Otwieram ResetPasswordPage z tokenem i emailem");
+          } else {
+            print("❌ Navigator nie jest jeszcze gotowy");
+          }
+
+          // ✅ RESET FLAGI PO KRÓTKIM CZASIE
+          Future.delayed(Duration(seconds: 1), () {
+            _deepLinkHandled = false;
+          });
+        });
+      } else {
+        print("❌ Nieprawidłowe dane. Token: '$token', Email: '$email'");
+        _deepLinkHandled = false;
       }
-    }
-    // ✅ NIEZNANE LINKI
-    else {
-      print("⚠️ Nieznany deep link: ${uri.path}");
-      print("⚠️ Path segments: ${uri.pathSegments}");
+    } catch (e) {
+      print("❌ Błąd podczas przetwarzania deep link: $e");
+      _deepLinkHandled = false;
     }
   }
 
   @override
   void dispose() {
-    // ✅ ANULUJ SUBSKRYPCJĘ
     _linkSubscription?.cancel();
     super.dispose();
   }
@@ -185,23 +189,13 @@ class _MyAppState extends ConsumerState<MyApp> {
       title: 'Exercise Plan App',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
-      navigatorKey: navigatorKey, // ✅ WAŻNE: Navigator key do deep links
-      home: TabsScreen(
-        selectedPageIndex: 0,
-      ),
-      // ✅ ZAKTUALIZOWANE ROUTES
+      navigatorKey: navigatorKey,
+      // ✅ NORMALNA STRONA STARTOWA - BEZ RESETU HASŁA
+      home: TabsScreen(selectedPageIndex: 0),
+      // ✅ USUŃ NIEPOTRZEBNE ROUTES LUB POZOSTAW JAKO FALLBACK
       routes: {
-        '/reset-password': (context) => ResetPasswordPage(
-          email: '',
-          token: '',
-        ),
-        '/open-reset': (context) => ResetPasswordPage(
-          email: '',
-          token: '',
-        ),
+        '/tabs': (_) => TabsScreen(selectedPageIndex: 0),
       },
     );
   }
 }
-
-
