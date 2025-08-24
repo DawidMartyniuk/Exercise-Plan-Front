@@ -54,6 +54,13 @@ class _ExerciseListState extends State<ExerciseList> {
       Navigator.of(context).pop(selectedExercises); // ✅ WRÓĆ Z LISTĄ
     }
   }
+  void navigatorToInfoScreen(Exercise exercise) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => ExerciseInfoScreen(exercise: exercise),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,12 +114,13 @@ class _ExerciseListState extends State<ExerciseList> {
                         widget.onExerciseSelected!(currentExercise);
                       }
                     } else {
+                      navigatorToInfoScreen(currentExercise);
                       // TRYB PRZEGLĄDANIA - POKAŻ SZCZEGÓŁY
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
-                        ),
-                      );
+                      // Navigator.of(context).push(
+                      //   MaterialPageRoute(
+                      //     builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
+                      //   ),
+                      // );
                     }
                   },
                   borderRadius: BorderRadius.circular(8),
@@ -120,21 +128,28 @@ class _ExerciseListState extends State<ExerciseList> {
                     padding: const EdgeInsets.all(8.0),
                     child: Row(
                       children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: ImageUtils.buildImage(
-                              imageUrl: currentExercise.gifUrl,
-                              context: context,
-                              width: 60,
-                              height: 60,
-                              placeholder: ImageUtils.buildSmallPlaceholder(context, size: 60),
+                        GestureDetector(
+                          onTap: () {
+                            if(widget.isSelectionMode) {
+                               navigatorToInfoScreen(currentExercise);
+                            }
+                          },
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: ImageUtils.buildImage(
+                                imageUrl: currentExercise.gifUrl,
+                                context: context,
+                                width: 60,
+                                height: 60,
+                                placeholder: ImageUtils.buildSmallPlaceholder(context, size: 60),
+                              ),
                             ),
                           ),
                         ),
