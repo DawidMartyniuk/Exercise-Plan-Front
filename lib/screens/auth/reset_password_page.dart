@@ -82,7 +82,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
     });
 
     try {
-      //  ✅ TUTAJ DODASZ LOGIKĘ RESETU HASŁA PÓŹNIEJ
+ 
       final success = await ref
           .read(authProviderResetPassword.notifier)
           .confirmPasswordReset(
@@ -190,7 +190,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                                   ).textTheme.titleLarge!.copyWith(
                                     color:
                                         Theme.of(context).colorScheme.onSurface,
-                                    fontSize: 30,
+                                    fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -200,40 +200,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
 
                           const SizedBox(height: 10),
 
-                          // ✅ INFORMACJA O EMAIL
-                          TweenAnimationBuilder<double>(
-                            duration: Duration(milliseconds: 600),
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            builder: (context, value, child) {
-                              return Opacity(
-                                opacity: value,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary.withAlpha(50),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    "Reset password for: ${widget.email}",
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium!.copyWith(
-                                      color:
-                                          Theme.of(
-                                            context,
-                                          ).colorScheme.onSurface,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
 
                           const SizedBox(height: 30),
 
@@ -453,61 +419,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
 
                           const SizedBox(height: 15),
 
-                          // ✅ INFO O WYMAGANIACH HASŁA
-                          TweenAnimationBuilder<double>(
-                            duration: Duration(milliseconds: 1200),
-                            tween: Tween(begin: 0.0, end: 1.0),
-                            builder: (context, value, child) {
-                              return Opacity(
-                                opacity: value,
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.secondary.withAlpha(50),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.secondary.withAlpha(100),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Password requirements:",
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall!.copyWith(
-                                          color:
-                                              Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        "• At least 6 characters\n• Include uppercase & lowercase letters\n• Include at least one number",
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall!.copyWith(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withAlpha(180),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-
                           const SizedBox(height: 30),
 
                           // ✅ ANIMOWANE PRZYCISKI
@@ -644,71 +555,6 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage>
                           ),
 
                           const SizedBox(height: 20),
-
-                          // ✅ DEBUG INFO (USUŃ W PRODUKCJI)
-                          if (widget.token.isNotEmpty) ...[
-                            TweenAnimationBuilder<double>(
-                              duration: Duration(milliseconds: 1600),
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              builder: (context, value, child) {
-                                return Opacity(
-                                  opacity: value,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.withAlpha(50),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Text(
-                                          "Debug: Token received",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            color: Colors.blue,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "Token: ${_getSafeTokenPreview(widget.token)}",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            color: Colors.blue,
-                                            fontFamily: 'monospace',
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Text(
-                                          "Email: ${widget.email}",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            color: Colors.blue,
-                                            fontFamily: 'monospace',
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        Text(
-                                          "Token length: ${widget.token.length}",
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall!.copyWith(
-                                            color: Colors.blue,
-                                            fontFamily: 'monospace',
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
                         ],
                       ),
                     ),

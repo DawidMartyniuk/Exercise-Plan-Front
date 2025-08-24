@@ -5,6 +5,7 @@ import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/auth/register.dart';
 import 'package:work_plan_front/screens/auth/reset_password.dart';
+import 'package:work_plan_front/screens/auth/widget/email_field.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/utils/toast_untils.dart'; // ✅ DODAJ IMPORT
 
@@ -235,48 +236,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 offset: Offset(50 * (1 - value), 0),
                                 child: Opacity(
                                   opacity: value,
-                                  child: TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    decoration: InputDecoration(
-                                      border: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.outline,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context).colorScheme.primary,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      prefixIcon: Icon(
-                                        Icons.email,
-                                        color: Theme.of(context).colorScheme.onSurface,
-                                      ),
-                                      labelText: "Email",
-                                      labelStyle: TextStyle(
-                                        color: Theme.of(context).colorScheme.onSurface,
-                                      ),
-                                      filled: true,
-                                      fillColor: Theme.of(context).colorScheme.surface,
-                                    ),
-                                    style: TextStyle(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Please enter your email';
-                                      }
-                                      final emailRegex = RegExp(
-                                        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                                      );
-                                      if (!emailRegex.hasMatch(value)) {
-                                        return 'Please enter a valid email address';
-                                      }
-                                      return null;
-                                    },
-                                  ),
+                                  child: EmailField(emailController: _emailController)
                                 ),
                               );
                             },

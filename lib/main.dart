@@ -182,7 +182,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: appTheme,
       navigatorKey: navigatorKey,
       // ✅ ZAWSZE ZACZNIJ OD LOGIN SCREEN
-      home: LoginScreen(),
+      home:
+      LoginScreen(),
       routes: {
         '/tabs': (_) => TabsScreen(selectedPageIndex: 0),
         '/login': (_) => LoginScreen(),
