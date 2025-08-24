@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:animations/animations.dart'; 
+import 'package:animations/animations.dart';
 
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
@@ -41,10 +41,37 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     final trainingSession = ref.watch(completedTrainingSessionProvider);
     return trainingSession.length;
   }
+
   String _getProfileDescription() {
-  final authResponse = ref.watch(authProviderLogin);
-  return authResponse?.user.description ?? 'No description available';
-}
+    final authResponse = ref.watch(authProviderLogin);
+    return authResponse?.user.description ?? 'No description available';
+  }
+
+  void loout() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await ref.read(authProviderLogin.notifier).logout();
+
+      if (mounted) {
+        Navigator.of(context).pop(); // Zamknij loading
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Zamknij loading
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Logout error: $e')));
+      }
+    }
+  }
 
   Widget _buildAvatarImage() {
     final imageBase64 = _getProfileImage();
@@ -95,9 +122,8 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final authResponse = ref.watch(authProviderLogin);
-     if (authResponse == null) {
+    if (authResponse == null) {
       return Container(
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -106,29 +132,19 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
         ),
         child: Center(
           child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(
-                Icons.login,
-                size: 48,
-                color: Colors.grey,
-              ),
+              Icon(Icons.login, size: 48, color: Colors.grey),
               SizedBox(height: 8),
               Text(
                 'Please log in',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 16),
               ),
               SizedBox(height: 4),
               Text(
                 'Log in to see your training calendar',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.grey[500], fontSize: 12),
               ),
             ],
           ),
@@ -137,20 +153,28 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     }
 
     return Scaffold(
-      appBar:ProfileAppBar(title: "Profile"),
+      appBar: ProfileAppBar(title: "Profile"),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
             children: [
-                ProfileUserPanel(
-                  buildAvatarImage: _buildAvatarImage(),
-                  getProfileName: _getProfileName,
-                  getProfileDescription: _getProfileDescription,
-                  getTotalWorkouts: _getTotalWorkouts,
-                ),
+              ProfileUserPanel(
+                buildAvatarImage: _buildAvatarImage(),
+                getProfileName: _getProfileName,
+                getProfileDescription: _getProfileDescription,
+                getTotalWorkouts: _getTotalWorkouts,
+              ),
               SizedBox(height: 20),
               ProfileCalenderPanel(),
+              ElevatedButton.icon(
+                onPressed: () async {
+                  // ✅ POKAZUJ LOADING
+                  loout();
+                },
+                icon: Icon(Icons.logout),
+                label: Text("Logout"),
+              ),
             ],
           ),
         ),

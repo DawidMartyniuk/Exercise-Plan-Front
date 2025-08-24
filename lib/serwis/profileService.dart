@@ -18,6 +18,49 @@ class ProfileService {
 
   final String _profile = '/profile';
   final String _avatarUpdate = '/avatar';
+  final String _profileUrl = "/profile";
+
+
+   Future<User?> getCurrentUserProfile() async {
+    try {
+      final token = await getToken();
+      if (token == null) {
+        print("❌ Brak tokena do pobrania profilu");
+        return null;
+      }
+
+      final response = await http.get(
+        Uri.parse("$_baseUrl$_profileUrl"),
+        headers: await getHeaders(),
+      );
+
+      print("📡 Profile response status: ${response.statusCode}");
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        
+        // ✅ SPRAWDŹ FORMAT ODPOWIEDZI
+        if (responseData.containsKey('user')) {
+          return User.fromJson(responseData['user']);
+        } else if (responseData.containsKey('data')) {
+          return User.fromJson(responseData['data']);
+        } else {
+          // ✅ JEŚLI ODPOWIEDŹ TO BEZPOŚREDNIO OBIEKT USER
+          return User.fromJson(responseData);
+        }
+      } else if (response.statusCode == 401) {
+        print("🔐 Token nieważny - wymagane ponowne logowanie");
+        await clearToken();
+        return null;
+      } else {
+        print("❌ Błąd pobierania profilu: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("❌ Błąd getCurrentUserProfile: $e");
+      return null;
+    }
+  }
 
   // ✅ DODAJ METODĘ Z PARAMETRAMI (której używa provider)
   Future<User> updateProfile({

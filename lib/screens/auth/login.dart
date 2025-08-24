@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/auth/register.dart';
@@ -32,6 +33,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   void initState() {
     super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkIfAlreadyLoggedIn();
+    });
 
     _fadeController = AnimationController(
       vsync: this,
@@ -66,6 +71,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     _passwordController.dispose();
     super.dispose();
   }
+   void _checkIfAlreadyLoggedIn() {
+    final authState = ref.read(authProviderLogin);
+    if (authState != null) {
+      print("✅ Użytkownik już zalogowany - przekierowuję do TabsScreen");
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => TabsScreen(selectedPageIndex: 0),
+        ),
+      );
+    }
+  }
 
   Future<void> _login(BuildContext context) async {
     final email = _emailController.text;
@@ -89,6 +105,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           .read(authProviderLogin.notifier)
           .login(email, password);
       
+      if (!mounted) return; // ✅ DODAJ TO NA POCZĄTKU
+      
       setState(() {
         _isLoading = false;
       });
@@ -102,12 +120,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         
         await Future.delayed(Duration(milliseconds: 1500));
         
+        if (!mounted) return; // ✅ DODAJ TO PRZED NAWIGACJĄ
+        
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => TabsScreen(selectedPageIndex: 0),
           ),
         );
       } else if (loginResult?.statusCode == 400) {
+        if (!mounted) return; // ✅ DODAJ TO PRZED TOAST
         // ✅ UŻYJ ToastUtils z custom message
         ToastUtils.showLoginError(context, 
           customMessage: "Invalid email or password. Please try again.");
@@ -116,10 +137,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ToastUtils.showConnectionError(context);
       }
     } catch (e) {
+      if (!mounted) return; // ✅ DODAJ TO PRZED setState
       setState(() {
         _isLoading = false;
       });
       print("Login error: $e");
+      if (!mounted) return; // ✅ DODAJ TO PRZED TOAST
       // ✅ UŻYJ ToastUtils dla ogólnego błędu
       ToastUtils.showErrorToast(
         context: context,
@@ -129,8 +152,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
+    // ✅ NASŁUCHUJ ZMIAN W STANIE AUTORYZACJI
+    ref.listen<AuthResponse?>(authProviderLogin, (previous, next) {
+      if (next != null && mounted) {
+        // ✅ UŻYTKOWNIK SIĘ ZALOGOWAŁ - PRZEKIERUJ
+        print("✅ Stan autoryzacji zmieniony - użytkownik zalogowany");
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => TabsScreen(selectedPageIndex: 0),
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(

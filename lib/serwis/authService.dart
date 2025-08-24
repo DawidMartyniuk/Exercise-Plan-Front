@@ -115,27 +115,23 @@ class Authservice {
   }
 
 
-  Future<AuthResponse?> logout() async {
-    final token = await getToken();
-    if (token == null) {
-      print("Brak tokena. Użytkownik nie jest zalogowany.");
-      return null;
+   Future<void> logout() async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        final response = await http.post(
+          Uri.parse("$_baseUrl$_logoutUrl"),
+          headers: await getHeaders(),
+        );
+        
+        print("🚪 Logout response: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Błąd logout API: $e");
+    } finally {
+      // ✅ ZAWSZE WYCZYŚĆ TOKEN LOKALNIE
+      await clearToken();
     }
-    
-    final response = await http.post(
-      Uri.parse("$_baseUrl$_logoutUrl"),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-      body: jsonEncode({}),
-    );
-    if (response.statusCode == 200) {
-    print("Wylogowano pomyślnie");
-    await clearToken(); 
-  } else {
-    print("Błąd wylogowania: ${response.statusCode}");
-  }
   }
 
 Future<LoginResult?> login(String email, String password) async {
@@ -154,7 +150,7 @@ Future<LoginResult?> login(String email, String password) async {
       print("🔍 Parsed Response: $responseBody");
       
       if (responseBody.containsKey('token') && responseBody.containsKey('user')) {
-        // ✅ RĘCZNIE DODAJ MESSAGE JEŚLI BRAK
+       
         if (!responseBody.containsKey('message')) {
           responseBody['message'] = 'Login successful';
         }

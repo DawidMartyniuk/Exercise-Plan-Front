@@ -1,33 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/adapters.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/screens/auth/reset_password_page.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/theme/app_theme.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:work_plan_front/serwis/exerciseService.dart';
+import 'package:work_plan_front/theme/app_theme.dart';
+import 'package:work_plan_front/utils/tokenStorage.dart';
 import 'package:app_links/app_links.dart';
 import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (kIsWeb) {
-    await Hive.initFlutter();
-  } else {
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    Hive.init(appDocumentDir.path);
-  }
-
+  // ✅ INICJALIZACJA HIVE
+  await Hive.initFlutter();
   Hive.registerAdapter(ExerciseAdapter());
-  await Hive.openBox<Exercise>('exerciseBox');
 
+  // ✅ PRELOAD ĆWICZEŃ
   try {
     final exerciseService = ExerciseService();
-    final exercises = await exerciseService.exerciseList();
+    final exercises = await exerciseService.exerciseList(forceRefresh: true);
     print("🚀 Załadowano ${exercises?.length ?? 0} ćwiczeń przy starcie");
   } catch (e) {
     print("❌ Błąd ładowania ćwiczeń przy starcie: $e");
@@ -95,52 +91,44 @@ class _MyAppState extends ConsumerState<MyApp> {
     }
   }
 
-  // ✅ NOWA METODA - SPRAWDŹ CZY LINK JEST DO RESETU HASŁA
-// ✅ ALTERNATYWNA WERSJA - SPRAWDZAJ TYLKO WYMAGANE ELEMENTY
-// ✅ NAJBARDZIEJ PERMISYWNA WERSJA - AKCEPTUJ WSZYSTKIE MYAPP LINKI Z EMAIL I TOKEN
-bool _isValidResetPasswordLink(Uri uri) {
-  print("🔍 Checking URI: ${uri.toString()}");
-  
-  // Sprawdź podstawowe wymagania
-  final isMyAppScheme = uri.scheme == 'myapp';
-  final hasEmail = uri.queryParameters['email']?.isNotEmpty == true;
-  final hasTokenInPath = uri.pathSegments.isNotEmpty;
+  // ✅ SPRAWDŹ CZY LINK JEST DO RESETU HASŁA
+  bool _isValidResetPasswordLink(Uri uri) {
+    print("🔍 Checking URI: ${uri.toString()}");
+    
+    // Sprawdź podstawowe wymagania
+    final isMyAppScheme = uri.scheme == 'myapp';
+    final hasEmail = uri.queryParameters['email']?.isNotEmpty == true;
+    final hasTokenInPath = uri.pathSegments.isNotEmpty;
 
-  print("🔍 Simple validation:");
-  print("  - Is myapp scheme: $isMyAppScheme");
-  print("  - Has email param: $hasEmail");
-  print("  - Has path segments: $hasTokenInPath");
-  
-  if (isMyAppScheme && hasEmail && hasTokenInPath) {
-    print("✅ Valid reset password link detected!");
-    return true;
+    print("🔍 Simple validation:");
+    print("  - Is myapp scheme: $isMyAppScheme");
+    print("  - Has email param: $hasEmail");
+    print("  - Has path segments: $hasTokenInPath");
+    
+    if (isMyAppScheme && hasEmail && hasTokenInPath) {
+      print("✅ Valid reset password link detected!");
+      return true;
+    }
+    
+    print("❌ Not a valid reset password link");
+    return false;
   }
-  
-  print("❌ Not a valid reset password link");
-  return false;
-}
 
   void handleDeepLink(Uri uri) {
-    if (_deepLinkHandled) return;
+    if (_deepLinkHandled) {
+      print("🔄 Deep link już obsłużony - ignoruję duplikat");
+      return;
+    }
+
     _deepLinkHandled = true;
-
-    print("🔍 Handling deep link: ${uri.toString()}");
-    print("🔍 Path segments: ${uri.pathSegments}");
-    print("🔍 Query parameters: ${uri.queryParameters}");
-
+    
     try {
+      final email = uri.queryParameters['email'] ?? '';
       String token = '';
-      String email = uri.queryParameters['email'] ?? '';
-
-      // ✅ EKSTRAKTUJ TOKEN Z RÓŻNYCH ŹRÓDEŁ
-      if (uri.pathSegments.length >= 2 && uri.pathSegments[0].toLowerCase().contains('reset')) {
-        // Format: myapp://open-reset/TOKEN?email=...
-        token = uri.pathSegments[1];
-      } else if (uri.pathSegments.isNotEmpty && !uri.pathSegments[0].toLowerCase().contains('reset')) {
-        // Format: myapp://TOKEN?email=...
-        token = uri.pathSegments[0];
+      
+      if (uri.pathSegments.isNotEmpty) {
+        token = uri.pathSegments.first;
       } else {
-        // Token może być w query parameters
         token = uri.queryParameters['token'] ?? '';
       }
 
@@ -185,16 +173,19 @@ bool _isValidResetPasswordLink(Uri uri) {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ OBSERWUJ STAN AUTORYZACJI
+    final authState = ref.watch(authProviderLogin);
+    
     return MaterialApp(
       title: 'Exercise Plan App',
       debugShowCheckedModeBanner: false,
       theme: appTheme,
       navigatorKey: navigatorKey,
-      // ✅ NORMALNA STRONA STARTOWA - BEZ RESETU HASŁA
-      home: TabsScreen(selectedPageIndex: 0),
-      // ✅ USUŃ NIEPOTRZEBNE ROUTES LUB POZOSTAW JAKO FALLBACK
+      // ✅ ZAWSZE ZACZNIJ OD LOGIN SCREEN
+      home: LoginScreen(),
       routes: {
         '/tabs': (_) => TabsScreen(selectedPageIndex: 0),
+        '/login': (_) => LoginScreen(),
       },
     );
   }

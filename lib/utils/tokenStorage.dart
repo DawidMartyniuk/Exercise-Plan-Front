@@ -18,7 +18,53 @@ Future<void> clearToken() async {
 }
  Future<bool> isLoggedIn() async {
   final token = await getToken();
+
+  if(token == null || token.isEmpty ){
+    return false;
+  }
+
+  try{
+    if(JwtDecoder.isExpired(token)){
+      print("token wygasł");
+      await clearToken();
+      return false;
+    }
+    return true;
+  } catch (e) {
+    print("Error checking token validity: $e");
+    await clearToken();
+    return false;
+  }
+
   return token != null; 
+}
+
+Future<bool> isTokenValid() async {
+  final token = await getToken();
+  if (token == null || token.isEmpty) {
+    return false;
+  }
+
+  try {
+    return !JwtDecoder.isExpired(token);
+  } catch (e) {
+    return false;
+  }
+}
+
+// ✅ POBIERZ DANE Z TOKENA
+Future<Map<String, dynamic>?> getTokenData() async {
+  final token = await getToken();
+  if (token == null || await isTokenValid()) {
+    return null;
+  }
+
+  try {
+    return JwtDecoder.decode(token);
+  } catch (e) {
+    print("❌ Błąd dekodowania tokena: $e");
+    return null;
+  }
 }
 Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
