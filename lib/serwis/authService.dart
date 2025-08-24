@@ -35,12 +35,12 @@ class Authservice {
     print("  - URL: $_baseUrl$_resetPasswordConfirmUrl");
 
     try {
-      // ✅ POPRAWKA - UŻYJ STANDARDOWYCH NAZW LARAVEL
+      
       final requestBody = {
         'email': email,
         'token': token,
-        'password': newPassword, // ✅ ZMIEŃ Z 'new_password' NA 'password'
-        'password_confirmation': repeatPassword, // ✅ ZMIEŃ Z 'repeat_password' NA 'password_confirmation'
+        'password': newPassword,
+        'password_confirmation': repeatPassword, 
       };
 
       print("📤 Request body: ${jsonEncode(requestBody)}");

@@ -61,6 +61,7 @@ class ExerciseRowState {
     'colRep': colRep,
     'isFailure': isFailure,
     'isChecked': isChecked,
+    'exerciseNumber': exerciseNumber, 
   };
 
   factory ExerciseRowState.fromJson(Map<String, dynamic> json) => ExerciseRowState(
@@ -110,7 +111,6 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
   }
 
   void updateRow(int planId, ExerciseRowState rowState) {
-    // print('updateRow: $rowState');
     final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
     final idx = planRows.indexWhere((e) =>
       e.colStep == rowState.colStep &&
@@ -124,26 +124,111 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     state = state.copyWith(plans: {...state.plans, planId: planRows});
     
     _saveToPrefs();
-    // print('Stan planu po updateRow: ${state.plans[planId]}');
   }
 
   void setPlanRows(int planId, List<ExerciseRowState> rows) {
-    //  print('setPlanRows: $rows');
     state = state.copyWith(plans: {...state.plans, planId: rows});
     _saveToPrefs();
-    // print('Stan planu po setPlanRows: ${state.plans[planId]}');
   }
 
   List<ExerciseRowState> getRows(int planId) {
     return state.plans[planId] ?? [];
   }
 
-  // void clearPlan(int planId) {
-  //   final newPlans = {...state.plans};
-  //   newPlans.remove(planId);
-  //   state = state.copyWith(plans: newPlans);
-  //   _saveToPrefs();
-  // }
+  // ✅ DODANA BRAKUJĄCA METODA removeExercise
+  void removeExercise(int planId, String exerciseNumber) {
+    print("🗑️ Usuwanie ćwiczenia $exerciseNumber z planu $planId");
+    
+    final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
+    final originalCount = planRows.length;
+    
+    // Usuń wszystkie wiersze dla danego ćwiczenia
+    planRows.removeWhere((row) => row.exerciseNumber == exerciseNumber);
+    
+    final removedCount = originalCount - planRows.length;
+    print("🗑️ Usunięto $removedCount wierszy dla ćwiczenia $exerciseNumber");
+    
+    // Zaktualizuj stan
+    state = state.copyWith(plans: {...state.plans, planId: planRows});
+    _saveToPrefs();
+    
+    print("✅ Stan zaktualizowany: plan $planId ma teraz ${planRows.length} wierszy");
+  }
+
+  // ✅ DODATKOWA METODA - usuń konkretny wiersz
+  void removeRow(int planId, int colStep, String exerciseNumber) {
+    print("🗑️ Usuwanie wiersza: planId=$planId, step=$colStep, exercise=$exerciseNumber");
+    
+    final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
+    final originalCount = planRows.length;
+    
+    planRows.removeWhere((row) => 
+        row.colStep == colStep && 
+        row.exerciseNumber == exerciseNumber
+    );
+    
+    final removedCount = originalCount - planRows.length;
+    print("🗑️ Usunięto $removedCount wiersz");
+    
+    state = state.copyWith(plans: {...state.plans, planId: planRows});
+    _saveToPrefs();
+  }
+
+  // ✅ DODATKOWA METODA - sprawdź czy ćwiczenie istnieje w planie
+  bool hasExercise(int planId, String exerciseNumber) {
+    final planRows = state.plans[planId] ?? [];
+    return planRows.any((row) => row.exerciseNumber == exerciseNumber);
+  }
+
+  // ✅ DODATKOWA METODA - pobierz wiersze dla konkretnego ćwiczenia
+  List<ExerciseRowState> getExerciseRows(int planId, String exerciseNumber) {
+    final planRows = state.plans[planId] ?? [];
+    return planRows.where((row) => row.exerciseNumber == exerciseNumber).toList();
+  }
+
+  // ✅ DODATKOWA METODA - dodaj nowe ćwiczenie do planu
+  void addExercise(int planId, String exerciseNumber, {int initialStep = 1, int initialKg = 0, int initialRep = 0}) {
+    print("➕ Dodawanie ćwiczenia $exerciseNumber do planu $planId");
+    
+    final planRows = List<ExerciseRowState>.from(state.plans[planId] ?? []);
+    
+    // Sprawdź czy ćwiczenie już nie istnieje
+    if (planRows.any((row) => row.exerciseNumber == exerciseNumber)) {
+      print("⚠️ Ćwiczenie $exerciseNumber już istnieje w planie $planId");
+      return;
+    }
+    
+    // Dodaj nowy wiersz
+    planRows.add(ExerciseRowState(
+      colStep: initialStep,
+      colKg: initialKg,
+      colRep: initialRep,
+      isChecked: false,
+      isFailure: false,
+      exerciseNumber: exerciseNumber,
+    ));
+    
+    state = state.copyWith(plans: {...state.plans, planId: planRows});
+    _saveToPrefs();
+    
+    print("✅ Dodano ćwiczenie $exerciseNumber do planu $planId");
+  }
+
+  // ✅ DEBUG - wyświetl stan planu
+  void debugPlan(int planId) {
+    final planRows = state.plans[planId] ?? [];
+    print("🔍 DEBUG Plan $planId:");
+    print("  - Łącznie wierszy: ${planRows.length}");
+    
+    final exerciseGroups = <String, int>{};
+    for (final row in planRows) {
+      exerciseGroups[row.exerciseNumber] = (exerciseGroups[row.exerciseNumber] ?? 0) + 1;
+    }
+    
+    exerciseGroups.forEach((exerciseNumber, count) {
+      print("  - Ćwiczenie $exerciseNumber: $count wierszy");
+    });
+  }
 }
 
 final workoutPlanStateProvider = StateNotifierProvider<WorkoutPlanStateNotifier, WorkoutPlanState>(

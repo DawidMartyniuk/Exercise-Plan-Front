@@ -1,8 +1,6 @@
 import 'package:collection/collection.dart';
 
-class DataFormatter {
-  /// Formatuje dane tabeli dla kompatybilności z poprzednim kodem
-  static Map<String, List<Map<String, String>>> formatTableData({
+class DataFormatter {  static Map<String, List<Map<String, String>>> formatTableData({
     required Map<String, List<Map<String, String>>> tableData,
     required String planTitle,
   }) {
@@ -14,40 +12,91 @@ class DataFormatter {
     });
   }
 
-  /// Formatuje dane planu do wysłania na backend
+  /// ✅ NAPRAWIONA METODA - formatuje dane planu do wysłania na backend
   static Map<String, dynamic> formatPlanData({
     required Map<String, List<Map<String, String>>> tableData,
     required String planTitle,
   }) {
-    final allRows = tableData.entries
-        .expand((entry) => entry.value)
-        .where((row) => row["exercise_name"] != null && row["exercise_name"]!.trim().isNotEmpty)
-        .toList();
+    print("🔄 DataFormatter: Processing ${tableData.length} exercises");
+    
+    final List<Map<String, dynamic>> groupedList = [];
+    
+    // ✅ ITERUJ PRZEZ KAŻDE ĆWICZENIE OSOBNO
+    tableData.forEach((exerciseId, rows) {
+      print("  - Processing exercise $exerciseId with ${rows.length} sets");
+      print("  - Sample row: ${rows.isNotEmpty ? rows[0] : 'EMPTY'}");
+      
+      if (rows.isNotEmpty) {
+        // ✅ UTWÓRZ GRUPĘ DLA KAŻDEGO ĆWICZENIA
+        groupedList.add({
+          "exercise_name": "Exercise $exerciseId", // ✅ TYMCZASOWA NAZWA - MOŻNA POBRAĆ Z KONTEKSTU
+          "exercise_number": exerciseId,
+          "notes": "", // ✅ MOŻNA DODAĆ OBSŁUGĘ NOTATEK
+          "data": rows.map((row) {
+            return {
+              "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+              "colKg": _parseWeight(row["colKg"] ?? "0"),
+              "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
+            };
+          }).toList(),
+        });
+        print("    ✅ Added exercise with ${rows.length} sets");
+      } else {
+        print("    ❌ No rows for exercise $exerciseId");
+      }
+    });
 
-    final grouped = groupBy<Map<String, String>, String>(
-      allRows,
-      (row) => "${row["exercise_name"]}|||${row["notes"] ?? ""}",
-    );
+    final result = {
+      "exercises": [
+        {
+          "exercise_table": planTitle.isNotEmpty ? planTitle : "Plan treningowy",
+          "rows": groupedList, // ✅ LISTA ĆWICZEŃ Z DANYMI
+        },
+      ],
+    };
+    
+    print("📤 DataFormatter result:");
+    print("  - exercise_table: ${result['exercises']?[0]['exercise_table']}");
+    print("  - rows count: ${groupedList.length}");
+    groupedList.asMap().forEach((index, exercise) {
+      print("    - rows[$index]: ${exercise['exercise_name']} with ${(exercise['data'] as List).length} sets");
+    });
+    
+    return result;
+  }
 
-    final groupedList = grouped.entries.map((entry) {
-      final keyParts = entry.key.split("|||");
-      final firstRow = entry.value.first;
+  /// ✅ DODAJ METODĘ Z NAZWAMI ĆWICZEŃ
+  static Map<String, dynamic> formatPlanDataWithNames({
+    required Map<String, List<Map<String, String>>> tableData,
+    required String planTitle,
+    required Map<String, String> exerciseNames, // ✅ MAPA ID -> NAZWA
+  }) {
+    print("🔄 DataFormatter: Processing ${tableData.length} exercises with names");
+    
+    final List<Map<String, dynamic>> groupedList = [];
+    
+    tableData.forEach((exerciseId, rows) {
+      final exerciseName = exerciseNames[exerciseId] ?? "Unknown Exercise";
+      print("  - Processing exercise: $exerciseName ($exerciseId) with ${rows.length} sets");
+      
+      if (rows.isNotEmpty) {
+        groupedList.add({
+          "exercise_name": exerciseName, // ✅ PRAWDZIWA NAZWA ĆWICZENIA
+          "exercise_number": exerciseId,
+          "notes": "", // Można dodać obsługę notatek
+          "data": rows.map((row) {
+            return {
+              "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+              "colKg": _parseWeight(row["colKg"] ?? "0"),
+              "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
+            };
+          }).toList(),
+        });
+        print("    ✅ Added $exerciseName with ${rows.length} sets");
+      }
+    });
 
-      return {
-        "exercise_name": keyParts[0],
-        "exercise_number": firstRow["exercise_number"] ?? "1",
-        "notes": keyParts.length > 1 ? keyParts[1] : "",
-        "data": entry.value.map((row) {
-          return {
-            "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
-            "colKg": _parseWeight(row["colKg"] ?? "0"),
-            "colRep": int.tryParse(row["colRep"] ?? "0") ?? 0,
-          };
-        }).toList(),
-      };
-    }).toList();
-
-    return {
+    final result = {
       "exercises": [
         {
           "exercise_table": planTitle.isNotEmpty ? planTitle : "Plan treningowy",
@@ -55,9 +104,15 @@ class DataFormatter {
         },
       ],
     };
+    
+    print("📤 DataFormatter result with names:");
+    print("  - exercise_table: ${result['exercises']?[0]['exercise_table']}");
+    print("  - rows count: ${groupedList.length}");
+    
+    return result;
   }
 
-  /// Formatuje dane z formularza do formatu używanego przez SelectedExerciseList
+ 
   static Map<String, List<Map<String, String>>> formatExerciseTableData({
     required Map<String, Map<String, dynamic>> exerciseRows,
     required Map<String, String> exerciseNames,

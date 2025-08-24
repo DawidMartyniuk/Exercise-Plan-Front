@@ -19,16 +19,16 @@ class SelectedExerciseList extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<SelectedExerciseList> createState() => _SelectedExerciseListState();
+  State<SelectedExerciseList> createState() => SelectedExerciseListState();
 }
 
-class _SelectedExerciseListState extends State<SelectedExerciseList> {
+class SelectedExerciseListState extends State<SelectedExerciseList> {
   Map<String, Map<String, dynamic>> exerciseRows = {};
   final Map<String, TextEditingController> _notesControllers = {};
   final Map<String, List<TextEditingController>> _kgControllers = {};
   final Map<String, List<TextEditingController>> _repControllers = {};
 
-  List<Exercise> _reorderedExercises=[];
+  List<Exercise> _reorderedExercises = [];
   int? _draggedIndex;
 
   @override
@@ -47,7 +47,7 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
   void didUpdateWidget(SelectedExerciseList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-       if (widget.exercises.length != _reorderedExercises.length ||
+    if (widget.exercises.length != _reorderedExercises.length ||
         !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
       _reorderedExercises = List.from(widget.exercises);
     }
@@ -55,96 +55,69 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
     // Jeśli lista ćwiczeń się zmieniła, zaktualizuj dane
     for (final exercise in widget.exercises) {
       if (!exerciseRows.containsKey(exercise.id)) {
+        print("🆕 Initializing new exercise: ${exercise.name}");
         _initializeExerciseData(exercise);
       }
     }
-    
-    // Usuń dane dla ćwiczeń, które zostały usunięte
-    final currentExerciseIds = widget.exercises.map((e) => e.id).toSet();
-    exerciseRows.removeWhere((key, value) => !currentExerciseIds.contains(key));
-
-    _notesControllers.removeWhere((key, controller) {
-      if (!currentExerciseIds.contains(key)) {
-        controller.dispose();
-        return true;
-      }
-      return false;
-    });
-
-    _kgControllers.removeWhere((key, controllers) {
-      if (!currentExerciseIds.contains(key)) {
-        for (var controller in controllers) {
-          controller.dispose();
-        }
-        return true;
-      }
-      return false;
-    });
-    
-    _repControllers.removeWhere((key, controllers) {
-      if (!currentExerciseIds.contains(key)) {
-        for (var controller in controllers) {
-          controller.dispose();
-        }
-        return true;
-      }
-      return false;
-    });
+    _reorderedExercises = List.from(widget.exercises);
     
     // Przekaż zaktualizowaną funkcję pobierania danych
     widget.onGetTableData(getTableData);
   }
 
-  void _reorderExercises(int oldIndex,int newIndex) {
-   setState(() {
-     if(newIndex > oldIndex) {
-       newIndex -= 1;
-     }
-     final exercise = _reorderedExercises.removeAt(oldIndex);
-     _reorderedExercises.insert(newIndex, exercise);
-   });
-   if(widget.onExercisesReordered != null) {
-     widget.onExercisesReordered!(_reorderedExercises);
-   }
+  void _reorderExercises(int oldIndex, int newIndex) {
+    setState(() {
+      if (newIndex > oldIndex) {
+        newIndex -= 1;
+      }
+      final exercise = _reorderedExercises.removeAt(oldIndex);
+      _reorderedExercises.insert(newIndex, exercise);
+    });
+    if (widget.onExercisesReordered != null) {
+      widget.onExercisesReordered!(_reorderedExercises);
+    }
   }
 
   void _initializeExerciseData(Exercise exercise) {
-    if (!exerciseRows.containsKey(exercise.id)) {
-      exerciseRows[exercise.id] = {
-        "exerciseName": exercise.name,
-        "notes": "",
-        "rows": [
-          {"colStep": "1", "colKg": "0", "colRep": "0"}
-        ]
-      };
-
-        _initializeControllers(exercise.id);
+    print("🆕 Initializing exercise data for: ${exercise.name} (ID: ${exercise.id})");
+  
+    // Sprawdź czy już nie istnieje
+    if (exerciseRows.containsKey(exercise.id)) {
+      print("⚠️ Exercise data already exists for: ${exercise.name}");
+      return;
     }
-    
-    _notesControllers.putIfAbsent(
-      exercise.id,
-      () => TextEditingController(text: exerciseRows[exercise.id]!["notes"] ?? ""),
-    );
-  }
+  
+    exerciseRows[exercise.id] = {
+      "exerciseName": exercise.name,
+      "notes": "",
+      "rows": [
+        {"colStep": "1", "colKg": "0", "colRep": "0"}
+      ]
+    };
+  
+    // Inicjalizuj kontrolery
+    if (!_notesControllers.containsKey(exercise.id)) {
+      _notesControllers[exercise.id] = TextEditingController();
+    }
+  
+    if (!_kgControllers.containsKey(exercise.id)) {
+      _kgControllers[exercise.id] = [TextEditingController(text: "0")];
+    }
+  
+    if (!_repControllers.containsKey(exercise.id)) {
+      _repControllers[exercise.id] = [TextEditingController(text: "0")];
+    }
 
-  void _initializeControllers(String exerciseId){
-    final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+    // Dodaj listenery
+    _kgControllers[exercise.id]![0].addListener(() {
+      _updateRowValue(exercise.id, 0, "colKg", _kgControllers[exercise.id]![0].text);
+    });
 
-
-    _kgControllers[exerciseId] = rows.map((row)=>
-     TextEditingController(text: row["colKg"] ?? "0")).toList();
-    _repControllers[exerciseId] = rows.map((row)=>
-     TextEditingController(text: row["colRep"] ?? "0")).toList();
-
-     for(int i = 0 ; i<_kgControllers[exerciseId]!.length; i++){
-      _kgControllers[exerciseId]![i].addListener(() {
-        _updateRowValue(exerciseId, i, "colKg", _kgControllers[exerciseId]![i].text);
-      });
-
-      _repControllers[exerciseId]![i].addListener(() {
-        _updateRowValue(exerciseId, i, "colRep", _repControllers[exerciseId]![i].text);
-      });
-     }
+    _repControllers[exercise.id]![0].addListener(() {
+      _updateRowValue(exercise.id, 0, "colRep", _repControllers[exercise.id]![0].text);
+    });
+  
+    print("✅ Initialized exercise data for: ${exercise.name}");
   }
 
   void _addRow(String exerciseId, String exerciseName) {
@@ -155,25 +128,28 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
       
       final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
       final currentRowCount = rows.length;
-      final currentReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
-      final currentKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
+      
+      // ✅ POPRAWKA - KOPIUJ WARTOŚCI Z OSTATNIEGO SETU
+      final lastKg = rows.isNotEmpty ? rows[currentRowCount - 1]["colKg"] ?? "0" : "0";
+      final lastReps = rows.isNotEmpty ? rows[currentRowCount - 1]["colRep"] ?? "0" : "0";
       
       rows.add({
         "colStep": "${currentRowCount + 1}",
-        "colKg": currentKg,
-        "colRep": currentReps,
+        "colKg": lastKg, // ✅ KOPIUJ OSTATNIĄ WAGĘ
+        "colRep": lastReps, // ✅ KOPIUJ OSTATNIE POWTÓRZENIA
       });
 
-      final kgController = TextEditingController(text: currentKg);
-      final repController = TextEditingController(text: currentReps);
+      // ✅ NOWE KONTROLERY Z SKOPIOWANYMI WARTOŚCIAMI
+      final kgController = TextEditingController(text: lastKg);
+      final repController = TextEditingController(text: lastReps);
 
       kgController.addListener(() => 
-      _updateRowValue(exerciseId, currentRowCount, "colKg", kgController.text));
+        _updateRowValue(exerciseId, currentRowCount, "colKg", kgController.text));
       repController.addListener(() => 
-      _updateRowValue(exerciseId, currentRowCount, "colRep", repController.text));
+        _updateRowValue(exerciseId, currentRowCount, "colRep", repController.text));
 
       _kgControllers[exerciseId]!.add(kgController);
-    _repControllers[exerciseId]!.add(repController);
+      _repControllers[exerciseId]!.add(repController);
     });
   }
 
@@ -183,12 +159,12 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
         final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
         if (rows.length > 1 && index < rows.length) {
 
-          if(_kgControllers[exerciseId] != null && _kgControllers[exerciseId]!.length > index){
+          if (_kgControllers[exerciseId] != null && _kgControllers[exerciseId]!.length > index) {
             _kgControllers[exerciseId]![index].dispose();
-             _kgControllers[exerciseId]!.removeAt(index);
+            _kgControllers[exerciseId]!.removeAt(index);
           }
 
-          if(_repControllers[exerciseId] != null && _repControllers[exerciseId]!.length > index){
+          if (_repControllers[exerciseId] != null && _repControllers[exerciseId]!.length > index) {
             _repControllers[exerciseId]![index].dispose();
             _repControllers[exerciseId]!.removeAt(index);
           }
@@ -216,29 +192,25 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
     return (exerciseRows[exerciseId]?["rows"] as List<Map<String, String>>?) ?? [];
   }
 
+  // ✅ POWRÓT DO PROSTEJ WERSJI getTableData
   Map<String, List<Map<String, String>>> getTableData() {
-    int exerciseCounter = 1;
+    print("🔍 Getting table data for ${widget.exercises.length} exercises");
     
-    return exerciseRows.map((exerciseId, data) {
-      final rawRows = data["rows"] as List<dynamic>? ?? [];
-      final exerciseName = data["exerciseName"]?.toString() ?? "Unknown Exercise";
-      final notes = data["notes"]?.toString() ?? "";
-      
-      final rows = rawRows.map((row) {
-        final rowMap = Map<String, dynamic>.from(row);
-        return {
-          "exercise_name": exerciseName,
-          "exercise_number": exerciseId,
-          "notes": notes,
-          "colStep": rowMap["colStep"]?.toString() ?? "0",
-          "colKg": rowMap["colKg"]?.toString() ?? "0",
-          "colRep": rowMap["colRep"]?.toString() ?? "0",
-        };
-      }).toList();
-      
-      exerciseCounter++;
-      return MapEntry(exerciseId, rows.cast<Map<String, String>>());
-    });
+    final Map<String, List<Map<String, String>>> result = {};
+    
+    for (final exercise in widget.exercises) {
+      final exerciseId = exercise.id;
+      if (exerciseRows.containsKey(exerciseId)) {
+        final rows = (exerciseRows[exerciseId]?["rows"] as List<Map<String, String>>?) ?? [];
+        result[exerciseId] = rows;
+        print("  - ${exercise.name}: ${rows.length} sets");
+      } else {
+        print("  - ${exercise.name}: NO DATA");
+      }
+    }
+    
+    print("🔍 Returning data for ${result.length} exercises");
+    return result;
   }
 
   void _deleteExerciseForPlan(String exerciseId) {
@@ -247,13 +219,13 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
       exerciseRows.remove(exerciseId);
       _notesControllers.remove(exerciseId)?.dispose();
 
-      if(_kgControllers[exerciseId] != null) {
+      if (_kgControllers[exerciseId] != null) {
         for (var controller in _kgControllers[exerciseId]!) {
           controller.dispose();
         }
         _kgControllers.remove(exerciseId);
       }
-      if(_repControllers[exerciseId] != null) {
+      if (_repControllers[exerciseId] != null) {
         for (var controller in _repControllers[exerciseId]!) {
           controller.dispose();
         }
@@ -308,31 +280,29 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
     return ReorderableListView.builder(
       onReorder: _reorderExercises,
       itemCount: widget.exercises.length,
-      proxyDecorator: (child, index, animation){
+      proxyDecorator: (child, index, animation) {
         return AnimatedBuilder(
           animation: animation,
           builder: (context, child) {
             return Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(14),
-               child: Container(
-                 decoration: BoxDecoration(
-                   borderRadius: BorderRadius.circular(14),
-                   color: Theme.of(context).colorScheme.primary.withAlpha(25),
-                   border: Border.all(
-                     color: Theme.of(context).colorScheme.primary,
-                     width: 1,
-                   ), 
-                 ),
-                 
-                 child: child,
-               ),
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: Theme.of(context).colorScheme.primary.withAlpha(25),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1,
+                  ), 
+                ),
+                child: child,
+              ),
             );
           },
           child: child,
         );
       },
-
       
       itemBuilder: (context, index) {
         final exercise = widget.exercises[index];
@@ -359,17 +329,17 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                 // Header z nazwą ćwiczenia i akcjami
                 Row(
                   children: [
-                      ReorderableDragStartListener(
-                        index: index,
-                        child:  Container(
-                          child: Icon(
-                            Icons.drag_handle,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                            ),
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Container(
+                        child: Icon(
+                          Icons.drag_handle,
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 20,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                    ),
+                    const SizedBox(width: 12),
                     Container(
                       width: 48,
                       height: 48,
@@ -385,7 +355,6 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                         size: 48,
                         showBorder: false,
                       ),
-                   
                     ),
                     
                     const SizedBox(width: 12),
@@ -458,15 +427,13 @@ class _SelectedExerciseListState extends State<SelectedExerciseList> {
                 const SizedBox(height: 16),
                 
                 // Tabela setów
-               // _buildSetsTable(exerciseId, exercise.name),
-
                 BuildSetsTable(
                   exerciseId: exerciseId,
                   exerciseName: exercise.name,
                   rows: _getTableData(exerciseId),
                   kgControllers: _kgControllers,
                   repControllers: _repControllers,
-              ),
+                ),
                 
                 const SizedBox(height: 12),
                 

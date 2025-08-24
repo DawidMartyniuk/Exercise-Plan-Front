@@ -78,8 +78,13 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
   }
   
   void resetPlanById(int planId) {
+  print("🔄 resetPlanById called for plan ID: $planId");
+  
   state = state.map((plan) {
     if (plan.id == planId) {
+      print("  - Resetuję plan: ${plan.exercise_table}");
+      print("  - Plan ma ${plan.rows.length} ćwiczeń");
+      
       // Resetuj wszystkie wiersze
       final newRows = plan.rows.map((rowData) {
         final newData = rowData.data.map((row) => ExerciseRow(
@@ -92,10 +97,15 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
         )).toList();
         return rowData.copyWithData(newData);
       }).toList();
-      return plan.copyWithRows(newRows);
+      
+      final resettedPlan = plan.copyWithRows(newRows);
+      print("  - Plan po resecie ma ${resettedPlan.rows.length} ćwiczeń");
+      return resettedPlan;
     }
     return plan;
   }).toList();
+  
+  print("✅ resetPlanById completed");
 }
 
   // Wyczyść wszystkie plany

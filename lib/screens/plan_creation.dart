@@ -23,9 +23,13 @@ class PlanCreation extends ConsumerStatefulWidget {
 class _StatePlanCreation extends ConsumerState<PlanCreation> {
   List<Exercise> selectedExercise = [];
   Map<String, List<Map<String, String>>> Function()? _getTableData;
-  String exerciseTableTitle = ""; 
+  String exerciseTableTitle = "";
+  
+  // ✅ DODAJ GLOBALKEY
+  final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey = 
+      GlobalKey<SelectedExerciseListState>();
 
-  bool get _isPlanReadToSave{
+  bool get _isPlanReadToSave {
     return PlanCreationValidation.validatePlanData(
       exerciseTableTitle,
       selectedExercise,
@@ -34,9 +38,11 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
   /// Zapisuje dane planu treningowego
   void _savePlanData() async {
+    print("💾 Starting plan save process...");
+
     if (!_isPlanReadToSave) {
-      ToastUtils.showValidationError(context, 
-        customMessage: "Wypełnij tytuł planu i dodaj przynajmniej jedno ćwiczenie");
+      ToastUtils.showValidationError(context,
+          customMessage: "Wypełnij tytuł planu i dodaj przynajmniej jedno ćwiczenie");
       return;
     }
 
@@ -46,19 +52,41 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     }
 
     try {
-      // Formatowanie danych
-      final payload = DataFormatter.formatPlanData(
-        tableData: _getTableData!(),
+      // ✅ POBIERZ I POKAŻ SUROWE DANE
+      final tableData = _getTableData!();
+      
+      print("🔍 Raw table data:");
+      tableData.forEach((exerciseId, rows) {
+        print("  - Exercise $exerciseId:");
+        for (int i = 0; i < rows.length; i++) {
+          print("    - Set ${i + 1}: ${rows[i]}");
+        }
+      });
+
+      // ✅ UTWÓRZ MAPĘ NAZW ĆWICZEŃ
+      final exerciseNames = <String, String>{};
+      for (final exercise in selectedExercise) {
+        exerciseNames[exercise.id] = exercise.name;
+      }
+      print("🔍 Exercise names: $exerciseNames");
+
+      // ✅ FORMATUJ Z NAZWAMI ĆWICZEŃ
+      final payload = DataFormatter.formatPlanDataWithNames(
+        tableData: tableData,
         planTitle: exerciseTableTitle,
+        exerciseNames: exerciseNames,
       );
+
+      print("📤 Final payload to send:");
+      print("  - Structure: ${payload.keys.toList()}");
+      print("  - Full payload: $payload");
 
       // Zapisywanie planu
       final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
       await exercisePlanNotifier.initializeExercisePlan(payload);
 
       final statusCode = await exercisePlanNotifier.saveExercisePlan(
-        onlyThis: exercisePlanNotifier.state.last
-      );
+          onlyThis: exercisePlanNotifier.state.last);
 
       if (statusCode == 200 || statusCode == 201) {
         await _handleSaveSuccess();
@@ -74,7 +102,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   Future<void> _handleSaveSuccess() async {
     ToastUtils.showSaveSuccess(context, itemName: "Plan treningowy");
     await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
-    
+
     if (mounted) {
       Navigator.pushReplacement(
         context,
@@ -148,32 +176,35 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           isSelectionMode: true,
           title: 'Wybierz ćwiczenie do planu',
           onMultipleExercisesSelected: (exercises) {
-              print('Otrzymano ${exercises.length} ćwiczeń');
+            print('Otrzymano ${exercises.length} ćwiczeń');
           },
         ),
       ),
     );
 
-     if (result != null) {
+    if (result != null) {
       setState(() {
         if (result is List<Exercise>) {
           // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE
+          int addedCount = 0;
           for (final exercise in result) {
             if (!selectedExercise.any((existing) => existing.id == exercise.id)) {
               selectedExercise.add(exercise);
+              addedCount++;
             }
           }
-          print('Dodano ${result.length} ćwiczeń do planu');
+          print('Dodano $addedCount nowych ćwiczeń do planu (z ${result.length} otrzymanych)');
         } else if (result is Exercise) {
           // ✅ POJEDYNCZE ĆWICZENIE - DODAJ JEDNO
           if (!selectedExercise.any((existing) => existing.id == result.id)) {
             selectedExercise.add(result);
+            print('Dodano ćwiczenie: ${result.name}');
+          } else {
+            print('Ćwiczenie ${result.name} już istnieje w planie');
           }
-          print('Dodano ćwiczenie: ${result.name}');
         }
       });
     }
-
   }
 
   /// Usuwa ćwiczenie z planu
@@ -181,6 +212,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     setState(() {
       selectedExercise.remove(exercise);
     });
+    print("🗑️ Usunięto ćwiczenie z planu: ${exercise.name}");
   }
 
   /// ✅ NOWA METODA - OBSŁUGA ZMIANY KOLEJNOŚCI ĆWICZEŃ
@@ -208,7 +240,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
               child: Text(
                 "Save",
                 style: TextStyle(
-                  color: _isPlanReadToSave 
+                  color: _isPlanReadToSave
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.bold,
@@ -229,7 +261,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
               initialValue: exerciseTableTitle,
               onChanged: (value) => setState(() => exerciseTableTitle = value),
             ),
-            
+
             const SizedBox(height: 20),
 
             // ✅ DODAJ INSTRUKCJĘ O PRZECIĄGANIU (opcjonalnie)
@@ -265,24 +297,22 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                 ),
               ),
             ],
-            
+
             // Lista wybranych ćwiczeń lub komunikat o braku ćwiczeń
             Expanded(
               child: selectedExercise.isEmpty
                   ? _buildEmptyState()
                   : SelectedExerciseList(
+                      key: _selectedExerciseListKey, // ✅ DODAJ KEY
                       onGetTableData: (getterFunction) {
-                        _getTableData = () => DataFormatter.formatTableData(
-                          tableData: getterFunction(),
-                          planTitle: exerciseTableTitle,
-                        );
+                        _getTableData = getterFunction; // ✅ ZAPISZ FUNKCJĘ BEZPOŚREDNIO
                       },
                       exercises: selectedExercise,
                       onDelete: _removeExerciseFromPlan,
-                      onExercisesReordered: _onExercisesReordered, // ✅ DODAJ CALLBACK
+                      onExercisesReordered: _onExercisesReordered,
                     ),
             ),
-            
+
             // Przycisk dodawania ćwiczeń
             ExerciseSelectionButton(
               onPressed: _addExerciseToPlan,

@@ -42,33 +42,56 @@ class ExerciseService {
     }
   }
 
-  Future<int> saveExercisePlan(List<ExerciseTable> exercises) async {
-    try {
-      final userId = await getUserIdFromToken();
-      if (userId == null) {
-        throw Exception("User ID not found.");
-      }
-
-      final payload = {"exercises": exercises.map((e) => e.toJson()).toList()};
-
-      final url = Uri.parse("$_baseUrl$_exerciseUrl");
-      final response = await http.post(
-        url,
-        headers: await getHeaders(),
-        body: jsonEncode(payload),
-      );
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        print("Exercise plan saved successfully!");
-      } else {
-        throw Exception("Failed to save exercise plan: ${response.body}");
-      }
-      return response.statusCode;
-    } catch (e) {
-      print("Failed to save exercise plan: $e");
-      rethrow;
+ Future<int> saveExercisePlan(List<ExerciseTable> exercises) async {
+  try {
+    final userId = await getUserIdFromToken();
+    if (userId == null) {
+      throw Exception("User ID not found.");
     }
+
+    // ✅ DODAJ DEBUGGING - SPRAWDŹ CO WYSYŁASZ
+    print("🔍 saveExercisePlan - Input exercises count: ${exercises.length}");
+    for (int i = 0; i < exercises.length; i++) {
+      final exercise = exercises[i];
+      print("  - Exercise $i: ${exercise.exercise_table}");
+      print("    - Rows count: ${exercise.rows.length}");
+      exercise.rows.asMap().forEach((j, row) {
+        print("      - Row $j: ${row.exercise_name} (${row.exercise_number})");
+        print("        - Data count: ${row.data.length}");
+      });
+    }
+
+    final payload = {"exercises": exercises.map((e) => e.toJson()).toList()};
+
+    // ✅ DODAJ DEBUGGING - SPRAWDŹ PAYLOAD
+    print("📤 Final payload being sent to backend:");
+    print("  - Payload keys: ${payload.keys.toList()}");
+    print("  - Exercises count in payload: ${(payload['exercises'] as List).length}");
+    print("  - Full payload: ${jsonEncode(payload)}");
+
+    final url = Uri.parse("$_baseUrl$_exerciseUrl");
+    final response = await http.post(
+      url,
+      headers: await getHeaders(),
+      body: jsonEncode(payload),
+    );
+
+    // ✅ DODAJ DEBUGGING - SPRAWDŹ ODPOWIEDŹ
+    print("📥 Backend response:");
+    print("  - Status code: ${response.statusCode}");
+    print("  - Response body: ${response.body}");
+
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      print("Exercise plan saved successfully!");
+    } else {
+      throw Exception("Failed to save exercise plan: ${response.body}");
+    }
+    return response.statusCode;
+  } catch (e) {
+    print("Failed to save exercise plan: $e");
+    rethrow;
   }
+}
 
   // Usuń plan ćwiczeń
   Future<void> deleteExercise(int id) async {
