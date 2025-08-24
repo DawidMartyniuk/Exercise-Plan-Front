@@ -70,6 +70,59 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
 
   @override
   Widget build(BuildContext context) {
+    Widget buildDragTargetBetweenItems(int index) {
+  return DragTarget<ExerciseTable>(
+    builder: (context, candidateData, rejectedData) {
+      return Container(
+        height: candidateData.isNotEmpty ? 30 : 12,
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(vertical: candidateData.isNotEmpty ? 4 : 0),
+        decoration: BoxDecoration(
+          color: candidateData.isNotEmpty
+              ? Theme.of(context).colorScheme.primary.withAlpha(30)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(4),
+          border: candidateData.isNotEmpty
+              ? Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2,
+                )
+              : null,
+        ),
+        child: candidateData.isNotEmpty
+            ? Center(
+                child: Text(
+                  "Insert here",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+            : null,
+      );
+    },
+    onWillAcceptWithDetails: (data) => data != null,
+    onAcceptWithDetails: (details) {
+      // ✅ WSTAW PLAN W KONKRETNEJ POZYCJI
+      ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
+        details.data, 
+        widget.group.id, 
+        index + 1 // ✅ PO ELEMENCIE O INDEXIE
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Plan inserted at position ${index + 2} in ${widget.group.name}'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    },
+  );
+}
+
+
+
     return Container(
       margin: EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -221,85 +274,155 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
           
           // ✅ LISTA PLANÓW + PRZYCISK DODAWANIA (ROZWIJANA)
           if (widget.group.isExpanded)
-            DragTarget<ExerciseTable>(
-              builder: (context, candidateData, rejectedData) {
-                return Container(
-                  constraints: BoxConstraints(minHeight: 80),
-                  margin: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: candidateData.isNotEmpty
-                        ? Theme.of(context).colorScheme.primary.withAlpha(20)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: candidateData.isNotEmpty
-                       ? Border.all(
-                        color: Theme.of(context).colorScheme.outline.withAlpha(80),
-                        width: 1.5,
-                    )
-                       : null,
-                  ),
-                  child: Column(
-                    children: [
-                      // ✅ LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
-                      widget.group.plans.isEmpty
-                          ? Container(
-                              padding: EdgeInsets.all(25),
-                              child: Center(
+            Container(
+              constraints: BoxConstraints(minHeight: 80),
+              margin: EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  // ✅ DODAJ DRAG TARGET NA GÓRZE - DLA PRZECIĄGANIA W GÓRĘ
+                  DragTarget<ExerciseTable>(
+                    builder: (context, candidateData, rejectedData) {
+                      return Container(
+                        height: candidateData.isNotEmpty ? 40 : 20,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: candidateData.isNotEmpty
+                              ? Theme.of(context).colorScheme.primary.withAlpha(30)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: candidateData.isNotEmpty
+                              ? Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                  style: BorderStyle.solid,
+                                )
+                              : null,
+                        ),
+                        child: candidateData.isNotEmpty
+                            ? Center(
                                 child: Text(
-                                  'Drop plans here or create new one',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface.withAlpha(128),
+                                  "Drop here to add to top",
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
-                            )
-                          : ListView.separated(
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              padding: EdgeInsets.all(8),
-                              itemCount: widget.group.plans.length,
-                              separatorBuilder: (context, index) => SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final plan = widget.group.plans[index];
-                                return PlanItemWidget(
-                                  plan: plan,
-                                  allExercises: widget.allExercises,
-                                  onStartWorkout: widget.onStartWorkout,
-                                  onDeletePlan: (planToDelete, context, planId) {
-                                    widget.onDeletePlan(
-                                      planToDelete,
-                                      context,
-                                      planId,
-                                    );
-                                  }
-                                );
-                              },
-                            ),
-                      
-                      // ✅ PRZYCISK DODAWANIA NOWEGO PLANU - ZAWSZE NA DOLE
-                      if (widget.onCreateNewPlan != null)
-                        Padding(
-                          padding: EdgeInsets.fromLTRB(8, 
-                            widget.group.plans.isEmpty ? 0 : 16, // ✅ Mniejszy padding gdy grupa pusta
-                            8, 8),
-                          child: _buildCreateNewPlanButton(context),
+                              )
+                            : null,
+                      );
+                    },
+                    onWillAcceptWithDetails: (data) => data != null,
+                    onAcceptWithDetails: (details) {
+                      // ✅ DODAJ PLAN NA POCZĄTEK LISTY
+                      ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
+                        details.data, 
+                        widget.group.id, 
+                        0 // ✅ POZYCJA 0 = POCZĄTEK
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Plan added to top of ${widget.group.name}'),
+                          duration: Duration(seconds: 2),
                         ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-              onWillAcceptWithDetails: (data) => data != null,
-              onAcceptWithDetails: (plan) {
-                ref.read(planGroupsProvider.notifier).movePlanToGroup(plan.data, widget.group.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Plan moved to ${widget.group.name}'),
-                    duration: Duration(seconds: 2),
+
+                  // ✅ LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
+                  widget.group.plans.isEmpty
+                      ? Container(
+                          padding: EdgeInsets.all(25),
+                          child: Center(
+                            child: Text(
+                              'Drop plans here or create new one',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withAlpha(128),
+                              ),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.all(8),
+                          itemCount: widget.group.plans.length,
+                          separatorBuilder: (context, index) => 
+                            // ✅ DODAJ DRAG TARGET MIĘDZY PLANAMI
+                            buildDragTargetBetweenItems(index),
+                          itemBuilder: (context, index) {
+                            final plan = widget.group.plans[index];
+                            return PlanItemWidget(
+                              plan: plan,
+                              allExercises: widget.allExercises,
+                              onStartWorkout: widget.onStartWorkout,
+                              onDeletePlan: (planToDelete, context, planId) {
+                                widget.onDeletePlan(planToDelete, context, planId);
+                              }
+                            );
+                          },
+                        ),
+
+                  // ✅ DRAG TARGET NA DOLE - DLA PRZECIĄGANIA NA KONIEC
+                  DragTarget<ExerciseTable>(
+                    builder: (context, candidateData, rejectedData) {
+                      return Container(
+                        height: candidateData.isNotEmpty ? 40 : 20,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: candidateData.isNotEmpty
+                              ? Theme.of(context).colorScheme.primary.withAlpha(30)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                          border: candidateData.isNotEmpty
+                              ? Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                  style: BorderStyle.solid,
+                                )
+                              : null,
+                        ),
+                        child: candidateData.isNotEmpty
+                            ? Center(
+                                child: Text(
+                                  "Drop here to add to bottom",
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      );
+                    },
+                    onWillAcceptWithDetails: (data) => data != null,
+                    onAcceptWithDetails: (details) {
+                      // ✅ DODAJ PLAN NA KONIEC LISTY
+                      ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
+                        details.data, 
+                        widget.group.id, 
+                        widget.group.plans.length // ✅ KONIEC LISTY
+                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Plan added to bottom of ${widget.group.name}'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
-        ],
+
+                  // ✅ PRZYCISK DODAWANIA NOWEGO PLANU - ZAWSZE NA DOLE
+                  if (widget.onCreateNewPlan != null)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(8, 
+                        widget.group.plans.isEmpty ? 0 : 16,
+                        8, 8),
+                      child: _buildCreateNewPlanButton(context),
+                    ),
+                ],
+              ),
+            )
+        ]
       ),
     );
   }
@@ -351,4 +474,55 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
       ),
     );
   }
+
+  // ✅ DODAJ METODĘ TWORZĄCĄ DRAG TARGET MIĘDZY PLANAMI
+  Widget _buildDragTargetBetweenItems(int index) {
+    return DragTarget<ExerciseTable>(
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          height: candidateData.isNotEmpty ? 30 : 8,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: candidateData.isNotEmpty
+                ? Theme.of(context).colorScheme.primary.withAlpha(20)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+            border: candidateData.isNotEmpty
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                    style: BorderStyle.solid,
+                  )
+                : null,
+          ),
+          child: candidateData.isNotEmpty
+              ? Center(
+                  child: Text(
+                    "Release to move",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
+      onWillAcceptWithDetails: (data) => data != null,
+      onAcceptWithDetails: (details) {
+        // ✅ PRZENIEŚ PLAN NA NOWĄ POZYCJĘ
+        ref.read(planGroupsProvider.notifier).movePlanToGroup(
+          details.data,
+          widget.group.id,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Plan moved in ${widget.group.name}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+    );
+  }
+  
 }

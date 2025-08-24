@@ -69,32 +69,79 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
     _saveGroups();
   }
 
-  void removePlanFromGroups(ExerciseTable plan, String targetGroupId) {
-  print("🗑️ Usuwanie planu '${plan.exercise_table}' ze wszystkich grup");
+  void addPlanToGroupAtPosition(
+    ExerciseTable plan,
+    String targetGroupId,
+    int position,
+  ) {
+    print(
+      "🎯 Dodawanie planu '${plan.exercise_table}' do grupy $targetGroupId na pozycji $position",
+    );
 
+    // ✅ USUŃ PLAN ZE WSZYSTKICH GRUP
+    state =
+        state.map((group) {
+          final updatedPlans =
+              group.plans.where((p) => p.id != plan.id).toList();
+          return group.copyWith(plans: updatedPlans);
+        }).toList();
 
-  state = state.map((group) {
-    final originalCount = group.plans.length;
-    final updatedPlans = group.plans.where((p) => p.id != plan.id).toList(); // ✅ POPRAWIONE
+    // ✅ DODAJ PLAN W KONKRETNEJ POZYCJI
+    state =
+        state.map((group) {
+          if (group.id == targetGroupId) {
+            final updatedPlans = List<ExerciseTable>.from(group.plans);
+            final insertPosition = position.clamp(0, updatedPlans.length);
+            updatedPlans.insert(insertPosition, plan);
 
-    if (originalCount != updatedPlans.length) {
-      print("📤 Usunięto plan z grupy '${group.name}' (${originalCount} -> ${updatedPlans.length})");
-    }
+            print(
+              "✅ Plan dodany na pozycji $insertPosition (z ${updatedPlans.length} planów)",
+            );
+            return group.copyWith(plans: updatedPlans);
+          }
+          return group;
+        }).toList();
 
-    return group.copyWith(plans: updatedPlans);
-  }).toList();
-
-  final totalPlans = state.expand((g) => g.plans).length;
-  final duplicates = state.expand((g) => g.plans).map((p) => p.id).toList();
-  final uniquePlans = duplicates.toSet().length;
-  
-  print("✅ Łącznie planów: $totalPlans, unikalnych: $uniquePlans");
-  if (totalPlans != uniquePlans) {
-    print("⚠️ WYKRYTO DUPLIKATY!");
+    _saveGroups();
   }
 
-  _saveGroups();
-}
+  // ✅ POPRAW ISTNIEJĄCĄ METODĘ - UŻYJ NOWEJ METODY
+  void movePlanToGroupAtEnd(ExerciseTable plan, String targetGroupId) {
+    // ✅ UŻYJ NOWEJ METODY Z POZYCJĄ NA KOŃCU
+    addPlanToGroupAtPosition(plan, targetGroupId, 999);
+  }
+
+  void removePlanFromGroups(ExerciseTable plan, String targetGroupId) {
+    print("🗑️ Usuwanie planu '${plan.exercise_table}' ze wszystkich grup");
+
+    state =
+        state.map((group) {
+          final originalCount = group.plans.length;
+          final updatedPlans =
+              group.plans
+                  .where((p) => p.id != plan.id)
+                  .toList(); // ✅ POPRAWIONE
+
+          if (originalCount != updatedPlans.length) {
+            print(
+              "📤 Usunięto plan z grupy '${group.name}' (${originalCount} -> ${updatedPlans.length})",
+            );
+          }
+
+          return group.copyWith(plans: updatedPlans);
+        }).toList();
+
+    final totalPlans = state.expand((g) => g.plans).length;
+    final duplicates = state.expand((g) => g.plans).map((p) => p.id).toList();
+    final uniquePlans = duplicates.toSet().length;
+
+    print("✅ Łącznie planów: $totalPlans, unikalnych: $uniquePlans");
+    if (totalPlans != uniquePlans) {
+      print("⚠️ WYKRYTO DUPLIKATY!");
+    }
+
+    _saveGroups();
+  }
 
   void movePlanToGroup(ExerciseTable plan, String targetGroupId) {
     print(
@@ -160,38 +207,41 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
     _saveGroups();
   }
 
-void initializeWithPlans(List<ExerciseTable> plans) {
-  print("🔄 Inicjalizacja grup z ${plans.length} planami");
-  
-  if (state.isEmpty) {
-    print("📝 Tworzenie pierwszej grupy");
-    state = [PlanGroup(id: 'default', name: 'My Plans', plans: plans)];
-    _saveGroups();
-  } else {
-    print("📋 Sprawdzanie istniejących planów w grupach");
-    
-    // SPRAWDŹ WSZYSTKIE PLANY WE WSZYSTKICH GRUPACH
-    final allExistingPlanIds = state
-        .expand((group) => group.plans)
-        .map((p) => p.id)
-        .toSet();
-    
-    final newPlans = plans.where((plan) => !allExistingPlanIds.contains(plan.id)).toList();
-    
-    print("🆕 Znaleziono ${newPlans.length} nowych planów do dodania");
-    print("📋 Nowe plany: ${newPlans.map((p) => p.exercise_table).join(', ')}");
-    
-    if (newPlans.isNotEmpty) {
-      final firstGroup = state.first;
-      state = [
-        firstGroup.copyWith(plans: [...firstGroup.plans, ...newPlans]),
-        ...state.skip(1),
-      ];
+  void initializeWithPlans(List<ExerciseTable> plans) {
+    print("🔄 Inicjalizacja grup z ${plans.length} planami");
+
+    if (state.isEmpty) {
+      print("📝 Tworzenie pierwszej grupy");
+      state = [PlanGroup(id: 'default', name: 'My Plans', plans: plans)];
       _saveGroups();
-      print("✅ Dodano ${newPlans.length} nowych planów do grupy '${firstGroup.name}'");
+    } else {
+      print("📋 Sprawdzanie istniejących planów w grupach");
+
+      // SPRAWDŹ WSZYSTKIE PLANY WE WSZYSTKICH GRUPACH
+      final allExistingPlanIds =
+          state.expand((group) => group.plans).map((p) => p.id).toSet();
+
+      final newPlans =
+          plans.where((plan) => !allExistingPlanIds.contains(plan.id)).toList();
+
+      print("🆕 Znaleziono ${newPlans.length} nowych planów do dodania");
+      print(
+        "📋 Nowe plany: ${newPlans.map((p) => p.exercise_table).join(', ')}",
+      );
+
+      if (newPlans.isNotEmpty) {
+        final firstGroup = state.first;
+        state = [
+          firstGroup.copyWith(plans: [...firstGroup.plans, ...newPlans]),
+          ...state.skip(1),
+        ];
+        _saveGroups();
+        print(
+          "✅ Dodano ${newPlans.length} nowych planów do grupy '${firstGroup.name}'",
+        );
+      }
     }
   }
-}
 }
 
 final planGroupsProvider =
