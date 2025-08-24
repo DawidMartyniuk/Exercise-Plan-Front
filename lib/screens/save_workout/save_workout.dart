@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
@@ -11,6 +12,7 @@ import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/widget/CustomDivider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
@@ -358,16 +360,14 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     final status = await _trainingService.saveTrainingSession(trainingSession);
     
     if (status == 200 || status == 201) {
-     ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
+      ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Trening zapisany!')),
       );
       
-      if (widget.onEndWorkout != null) {
-        widget.onEndWorkout!();
-      }
-      Navigator.of(context).pop();
+      // ✅ ZAKOŃCZ TRENING DOPIERO PO POMYŚLNYM ZAPISIE
+      await _endWorkoutAfterSave();
       
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -378,6 +378,37 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Błąd zapisu treningu: $e')),
     );
+  }
+}
+
+// ✅ NOWA METODA - KOŃCZY TRENING PO ZAPISIE
+Future<void> _endWorkoutAfterSave() async {
+  try {
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    
+    if (currentWorkout?.plan != null) {
+      // ✅ RESETUJ PLAN W PROVIDERZE
+      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+      
+      // ✅ RESETUJ LOKALNIE
+      resetPlanRows(currentWorkout.plan!);
+    }
+    
+    // ✅ ZAKOŃCZ TRENING GLOBALNIE
+    endWorkoutGlobal(context: context, ref: ref);
+    
+    // ✅ WYWOŁAJ CALLBACK KOŃCA TRENINGU (JEŚLI ISTNIEJE)
+    if (widget.onEndWorkout != null) {
+      widget.onEndWorkout!();
+    }
+    
+    // ✅ WRÓĆ DO EKRANU PLANÓW
+    Navigator.of(context).pop();
+    
+    print("✅ Trening zakończony po zapisie");
+    
+  } catch (e) {
+    print("❌ Błąd podczas kończenia treningu: $e");
   }
 }
 

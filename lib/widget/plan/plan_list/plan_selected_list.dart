@@ -11,7 +11,6 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
-import 'package:work_plan_front/utils/workout_utils.dart';
 import 'helpers/plan_helpers.dart';
 import 'helpers/exercise_calculator.dart';
 import 'components/exercise_table_helpers.dart';
