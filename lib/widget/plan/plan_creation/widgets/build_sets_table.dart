@@ -33,6 +33,7 @@ class BuildSetsTable extends StatelessWidget{
       builder: (context) => const WeightSelected(),
     );
   }
+  
   void _showRepsBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,

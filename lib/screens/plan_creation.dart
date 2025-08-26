@@ -29,6 +29,10 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey = 
       GlobalKey<SelectedExerciseListState>();
 
+  // ✅ DODAJ MAPĘ DO PRZECHOWYWANIA DANYCH PODCZAS ZAMIANY
+  Map<String, dynamic>? _pendingReplacementData;
+  String? _oldExerciseIdForReplacement;
+
   bool get _isPlanReadToSave {
     return PlanCreationValidation.validatePlanData(
       exerciseTableTitle,
@@ -168,6 +172,131 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     );
   }
 
+  /// ✅ NOWA METODA - OBSŁUGA ZMIANY ĆWICZENIA
+  Future<void> _handleExerciseReplacement(Exercise oldExercise, Map<String, dynamic> savedData) async {
+    print("🔄 Starting exercise replacement process for: ${oldExercise.name}");
+    print("🔄 Old exercise ID: ${oldExercise.id}");
+    print("🔄 Saved data: $savedData");
+    
+    // ✅ ZAPISZ DANE DO PRZYWRÓCENIA PÓŹNIEJ
+    _pendingReplacementData = savedData;
+    _oldExerciseIdForReplacement = oldExercise.id;
+    
+    // ✅ USUŃ STARE ĆWICZENIE Z LISTY
+    setState(() {
+      selectedExercise.removeWhere((exercise) => exercise.id == oldExercise.id);
+    });
+    
+    // ✅ PRZEJDŹ DO EKRANU WYBORU ĆWICZENIA
+    final result = await Navigator.of(context).push<dynamic>(
+      MaterialPageRoute(
+        builder: (ctx) => ExercisesScreen(
+          isSelectionMode: true,
+          title: 'Zamień ćwiczenie: ${oldExercise.name}',
+          onMultipleExercisesSelected: (exercises) {
+            print('Otrzymano ${exercises.length} ćwiczeń do zamiany');
+          },
+        ),
+      ),
+    );
+
+    if (result != null && _pendingReplacementData != null) {
+      if (result is Exercise) {
+        print("🔄 Selected new exercise: ${result.name} (ID: ${result.id})");
+        
+        // ✅ DODAJ NOWE ĆWICZENIE
+        setState(() {
+          selectedExercise.add(result);
+        });
+        
+        // ✅ PRZYWRÓĆ ZAPISANE DANE PO ZBUDOWANIU WIDGETU
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          print("🔄 Attempting to restore data:");
+          print("  - New exercise ID: ${result.id}");
+          print("  - Old exercise ID: $_oldExerciseIdForReplacement");
+          print("  - Saved data: $_pendingReplacementData");
+          
+          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
+            newExerciseId: result.id,
+            oldExerciseId: _oldExerciseIdForReplacement!,
+            savedData: _pendingReplacementData!,
+          );
+          
+          // ✅ WYCZYŚĆ TYMCZASOWE DANE
+          _pendingReplacementData = null;
+          _oldExerciseIdForReplacement = null;
+          
+          print("✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}");
+          
+          // ✅ POKAŻ TOAST O POWODZENIU
+          ToastUtils.showSuccessToast(
+            context: context, 
+            message: "Zamieniono ${oldExercise.name} na ${result.name}",
+          );
+        });
+        
+      } else if (result is List<Exercise> && result.isNotEmpty) {
+        // ✅ JEŚLI WYBRANO LISTĘ - WEŹ PIERWSZE ĆWICZENIE
+        final newExercise = result.first;
+        print("🔄 Selected first exercise from list: ${newExercise.name} (ID: ${newExercise.id})");
+        
+        setState(() {
+          selectedExercise.add(newExercise);
+        });
+        
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          print("🔄 Attempting to restore data for list selection:");
+          print("  - New exercise ID: ${newExercise.id}");
+          print("  - Old exercise ID: $_oldExerciseIdForReplacement");
+          
+          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
+            newExerciseId: newExercise.id,
+            oldExerciseId: _oldExerciseIdForReplacement!,
+            savedData: _pendingReplacementData!,
+          );
+          
+          _pendingReplacementData = null;
+          _oldExerciseIdForReplacement = null;
+          
+          print("✅ Exercise replacement completed: ${oldExercise.name} → ${newExercise.name}");
+          
+          ToastUtils.showSuccessToast(
+            context: context, 
+            message: "Zamieniono ${oldExercise.name} na ${newExercise.name}",
+          );
+        });
+      }
+    } else {
+      // ✅ UŻYTKOWNIK ANULOWAŁ - PRZYWRÓĆ STARE ĆWICZENIE
+      print("❌ Exercise replacement cancelled - restoring old exercise");
+      setState(() {
+        selectedExercise.add(oldExercise);
+      });
+      
+      // ✅ PRZYWRÓĆ DANE STAREGO ĆWICZENIA
+      if (_pendingReplacementData != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
+            newExerciseId: oldExercise.id,
+            oldExerciseId: _oldExerciseIdForReplacement!,
+            savedData: _pendingReplacementData!,
+          );
+          
+          _pendingReplacementData = null;
+          _oldExerciseIdForReplacement = null;
+        });
+      }
+      
+      ToastUtils.showInfoToast(
+        context: context, 
+        message: "Anulowano zamianę ćwiczenia",
+      );
+    }
+  }
+
   /// Dodaje nowe ćwiczenie do planu
   Future<void> _addExerciseToPlan() async {
     final result = await Navigator.of(context).push<dynamic>(
@@ -215,7 +344,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     print("🗑️ Usunięto ćwiczenie z planu: ${exercise.name}");
   }
 
-  /// ✅ NOWA METODA - OBSŁUGA ZMIANY KOLEJNOŚCI ĆWICZEŃ
+  /// ✅ OBSŁUGA ZMIANY KOLEJNOŚCI ĆWICZEŃ
   void _onExercisesReordered(List<Exercise> reorderedExercises) {
     setState(() {
       selectedExercise = reorderedExercises;
@@ -264,7 +393,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
             const SizedBox(height: 20),
 
-            // ✅ DODAJ INSTRUKCJĘ O PRZECIĄGANIU (opcjonalnie)
+            // ✅ INSTRUKCJA O PRZECIĄGANIU
             if (selectedExercise.length > 1) ...[
               Container(
                 width: double.infinity,
@@ -303,13 +432,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
               child: selectedExercise.isEmpty
                   ? _buildEmptyState()
                   : SelectedExerciseList(
-                      key: _selectedExerciseListKey, // ✅ DODAJ KEY
+                      key: _selectedExerciseListKey, // ✅ KEY
                       onGetTableData: (getterFunction) {
-                        _getTableData = getterFunction; // ✅ ZAPISZ FUNKCJĘ BEZPOŚREDNIO
+                        _getTableData = getterFunction;
                       },
                       exercises: selectedExercise,
                       onDelete: _removeExerciseFromPlan,
                       onExercisesReordered: _onExercisesReordered,
+                      onReplaceExercise: _handleExerciseReplacement, // ✅ NOWY CALLBACK
                     ),
             ),
 
