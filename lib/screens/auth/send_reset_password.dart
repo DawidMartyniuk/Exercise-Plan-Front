@@ -2,122 +2,106 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/screens/auth/widget/password_field.dart';
+import 'package:work_plan_front/screens/auth/widget/email_field.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 // ✅ NOWE IMPORTY ANIMACJI
 import 'package:work_plan_front/screens/auth/animation/animated_form_container.dart';
 import 'package:work_plan_front/screens/auth/animation/animation_button.dart';
 import 'package:work_plan_front/screens/auth/animation/animation_filed.dart';
 
-class ResetPasswordPage extends ConsumerStatefulWidget {
-  final String email;
-  final String token;
-
-  const ResetPasswordPage({
-    super.key,
-    required this.email,
-    required this.token,
-  });
+class SendResetPasswordScreen extends ConsumerStatefulWidget {
+  const SendResetPasswordScreen({super.key});
 
   @override
-  _ResetPasswordPageState createState() => _ResetPasswordPageState();
+  _SendResetPasswordState createState() => _SendResetPasswordState();
 }
 
-class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
+class _SendResetPasswordState extends ConsumerState<SendResetPasswordScreen> {
+  final _emailController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  bool _isPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
 
   @override
   void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
   Future<void> _resetPassword(BuildContext context) async {
-    if (!_formKey.currentState!.validate()) {
-      ToastUtils.showValidationError(context);
-      return;
-    }
+    if (_formKey.currentState?.validate() ?? false) {
+      setState(() {
+        _isLoading = true;
+      });
 
-    setState(() {
-      _isLoading = true;
-    });
+      try {
+        final success = await ref
+            .read(authProviderResetPassword.notifier)
+            .resetPassword(_emailController.text.trim());
 
-    try {
-      final success = await ref
-          .read(authProviderResetPassword.notifier)
-          .confirmPasswordReset(
-            email: widget.email,
-            token: widget.token,
-            newPassword: _passwordController.text,
-            confirmPassword: _confirmPasswordController.text,
+        if (!mounted) return;
+
+        if (success) {
+          ToastUtils.showSuccessToast(
+            context: context,
+            message: 'Reset link sent to ${_emailController.text}',
+            duration: Duration(seconds: 3),
           );
-
-      if (!mounted) return;
-
-      if (success) {
-        ToastUtils.showSuccessToast(
-          context: context,
-          title: "Password Reset Successful!",
-          message: "Your password has been reset successfully. You can now login with your new password.",
-          duration: Duration(seconds: 4),
-        );
-
-        Future.delayed(Duration(seconds: 2), () {
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (ctx) => const LoginScreen()),
+          Future.delayed(Duration(seconds: 3), () {
+            if (!mounted) return;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (ctx) => const LoginScreen()),
+            );
+          });
+        } else {
+          ToastUtils.showErrorToast(
+            context: context,
+            message: 'Failed to send reset link. Please try again later.',
+            duration: Duration(seconds: 3),
           );
-        });
-      } else {
-        ToastUtils.showErrorToast(
-          context: context,
-          title: "Password Reset Failed",
-          message: "There was an error resetting your password. Please try again.",
-          duration: Duration(seconds: 4),
-        );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ToastUtils.showConnectionError(context);
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
-    } catch (e) {
-      if (!mounted) return;
-      ToastUtils.showConnectionError(context);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    } else {
+      ToastUtils.showErrorToast(
+        context: context,
+        message: 'Please enter a valid email address.',
+        duration: Duration(seconds: 3),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Theme.of(context).colorScheme.surface, // ✅ DODAJ TŁO
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
           child: SingleChildScrollView( // ✅ DODAJ SCROLL VIEW
             child: AnimatedFormContainer( // ✅ UŻYJ NOWEGO KONTENERA
-              title: "Set New Password",
+              title: "Reset Password",
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ✅ INFO O EMAIL Z ANIMACJĄ
+                    // ✅ INFORMACJA Z ANIMACJĄ
                     AnimatedField(
                       animationType: AnimationType.scaleIn,
                       delayMs: 600,
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primaryContainer.withAlpha(80),
+                          color: Theme.of(context).colorScheme.primaryContainer.withAlpha(50),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.primary.withAlpha(100),
@@ -133,76 +117,35 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Reset password for:",
-                                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    widget.email,
-                                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                "Enter your email address and we'll send you a link to reset your password.",
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-
+                    
                     const SizedBox(height: 30),
 
-                    // ✅ NOWE HASŁO Z ANIMACJĄ
+                    // ✅ EMAIL FIELD Z ANIMACJĄ
                     AnimatedField(
                       animationType: AnimationType.scaleIn,
                       delayMs: 800,
-                      child: PasswordField(
-                        passwordController: _passwordController,
+                      child: EmailField(
+                        emailController: _emailController,
                         isEnabled: !_isLoading,
-                        isPasswordVisible: _isPasswordVisible,
-                        labelText: "New Password",
-                        isNewPassword: true, // ✅ SILNIEJSZA WALIDACJA
-                        togglePasswordVisibility: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    // ✅ POTWIERDŹ HASŁO Z ANIMACJĄ
-                    AnimatedField(
-                      animationType: AnimationType.scaleIn,
-                      delayMs: 1000,
-                      child: PasswordField(
-                        passwordController: _confirmPasswordController,
-                        isEnabled: !_isLoading,
-                        isPasswordVisible: _isConfirmPasswordVisible,
-                        labelText: "Confirm Password",
-                        confirmPassword: _passwordController.text, // ✅ PORÓWNANIE
-                        togglePasswordVisibility: () {
-                          setState(() {
-                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                          });
-                        },
                       ),
                     ),
 
                     const SizedBox(height: 40),
 
-                    // ✅ ANIMOWANE PRZYCISKI
+                    // ✅ BUTTONS Z ANIMACJĄ
                     AnimatedButton(
-                      delayMs: 1400,
+                      delayMs: 1200,
                       animationType: ButtonAnimationType.bounce,
                       buttons: [
                         ElevatedButton(
@@ -237,7 +180,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                                     ),
                                     SizedBox(width: 8),
                                     Text(
-                                      "Resetting...",
+                                      "Sending...",
                                       style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                         color: Theme.of(context).colorScheme.onPrimary,
                                       ),
@@ -245,7 +188,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                                   ],
                                 )
                               : Text(
-                                  "Reset Password",
+                                  "Send Reset Link",
                                   style: Theme.of(context).textTheme.titleMedium!.copyWith(
                                     color: Theme.of(context).colorScheme.onPrimary,
                                   ),

@@ -182,7 +182,8 @@ class _MyAppState extends ConsumerState<MyApp> {
       theme: appTheme,
       navigatorKey: navigatorKey,
       // ✅ ZAWSZE ZACZNIJ OD LOGIN SCREEN
-      home:
+      home: 
+      //ResetPasswordPage(email: "dfsdf", token: "fsdfds")
       LoginScreen(),
       routes: {
         '/tabs': (_) => TabsScreen(selectedPageIndex: 0),

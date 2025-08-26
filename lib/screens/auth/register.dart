@@ -1,14 +1,20 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/provider/authProvider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/screens/auth/animation/animated_form_container.dart';
+import 'package:work_plan_front/screens/auth/animation/animation_button.dart';
+import 'package:work_plan_front/screens/auth/animation/animation_filed.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart'; // ✅ DODAJ
+import 'package:image_picker/image_picker.dart';
+import 'package:work_plan_front/screens/auth/widget/email_field.dart';
+import 'package:work_plan_front/screens/auth/widget/name_fileld.dart';
+import 'package:work_plan_front/screens/auth/widget/password_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
-  
   @override
   _RegisterScreenState createState() => _RegisterScreenState();
 }
@@ -24,7 +30,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
-  
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   void _showImageSourceDialog() {
     showDialog(
       context: context,
@@ -77,22 +92,22 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               ),
             ],
           ),
-            actions: [
+          actions: [
             Container(
               width: double.infinity,
               alignment: Alignment.centerRight,
               child: TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
-              ),
               ),
             ),
           ],
@@ -101,21 +116,21 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     );
   }
 
-  Future<void> _pickImage(ImageSource source ) async {
-    try{
+  Future<void> _pickImage(ImageSource source) async {
+    try {
       final XFile? image = await _picker.pickImage(
         source: source,
         maxHeight: 512,
         maxWidth: 512,
         imageQuality: 80,
-        );
+      );
 
-        if(image != null){
-          setState(() {
-            _profileImage = File(image.path);
-          });
-          print("Wybrano obraz: ${_profileImage!.path}");
-        }
+      if (image != null) {
+        setState(() {
+          _profileImage = File(image.path);
+        });
+        print("Wybrano obraz: ${_profileImage!.path}");
+      }
     } catch (e) {
       print("Błąd podczas wybierania obrazu: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -125,12 +140,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       );
     }
-
   }
 
- 
-
-  Future<void> register(BuildContext contex) async {
+  Future<void> register(BuildContext context) async {
     final name = _nameController.text;
     final email = _emailController.text;
     final password = _passwordController.text;
@@ -144,10 +156,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             .read(authProviderRegister.notifier)
             .register(name, email, password, repeatPassword);
 
-        print("Zarejestrowano $name i  $email i $password i $repeatPassword");
-        Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (ctx) => LoginScreen()));
+        print("Zarejestrowano $name i $email i $password i $repeatPassword");
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (ctx) => LoginScreen()),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -159,263 +171,151 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface, // ✅ DODAJ TŁO
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
           child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 16.0,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(height: 30),
-                      Text(
-                        "Create Account",
-                        style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: _showImageSourceDialog, // tutaj 
+            child: AnimatedFormContainer( // ✅ TERAZ BEZ SCAFFOLD
+              title: "Create Account",
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ✅ PROFILE IMAGE
+                    AnimatedField(
+                      animationType: AnimationType.scaleIn,
+                      delayMs: 600,
+                      child: GestureDetector(
+                        onTap: _showImageSourceDialog,
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                          backgroundImage:
-                              _profileImage != null
-                                  ? FileImage(_profileImage!)
-                                  : null,
-                          child:
-                              _profileImage == null
-                                  ? Icon(
-                                    Icons.camera_alt,
-                                    size: 40,
-                                    color:Theme.of(context).colorScheme.primary,
-                                  )
-                                  : null,
+                          backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                          child: _profileImage == null
+                              ? Icon(
+                                  Icons.camera_alt,
+                                  size: 40,
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : null,
                         ),
                       ),
-                      SizedBox(height: 20),
-                      TextFormField(
-                        controller: _nameController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: "Name",
-                          labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please enter your name';
-                          }
-                          if (value.length < 3) {
-                            return 'Name must be at least 3 characters long';
-                          }
+                    ),
+                    
+                    const SizedBox(height: 20),
+
+                    // ✅ NAME FIELD
+                    AnimatedField(
+                      animationType: AnimationType.slideLeft,
+                      delayMs: 800,
+                      child: NameField(nameController: _nameController),
+                    ),
+                    
+                    const SizedBox(height: 30),
+
+                    // ✅ EMAIL FIELD
+                    AnimatedField(
+                      animationType: AnimationType.slideRight,
+                      delayMs: 1000,
+                      child: EmailField(emailController: _emailController),
+                    ),
+                    
+                    const SizedBox(height: 30),
+
+                    // ✅ PASSWORD FIELD
+                    AnimatedField(
+                      animationType: AnimationType.slideLeft,
+                      delayMs: 1200,
+                      child: PasswordField(
+                        passwordController: _passwordController,
+                        isPasswordVisible: _isPasswordVisible,
+                        labelText: "Password",
+                        isNewPassword: true,
+                        togglePasswordVisibility: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
                         },
                       ),
-                      SizedBox(height: 30),
-                      TextFormField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.email, 
-                          color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          labelText: "Email",
-                          labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          final emailRegex = RegExp(
-                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-                          );
-                          if (!emailRegex.hasMatch(value)) {
-                            return 'Please enter a valid email address';
-                          }
-                          return null;
+                    ),
+                    
+                    const SizedBox(height: 30),
+
+                    // ✅ CONFIRM PASSWORD FIELD
+                    AnimatedField(
+                      animationType: AnimationType.slideRight,
+                      delayMs: 1400,
+                      child: PasswordField(
+                        passwordController: _confirmPasswordController,
+                        isPasswordVisible: _isConfirmPasswordVisible,
+                        labelText: "Confirm Password",
+                        confirmPassword: _passwordController.text,
+                        togglePasswordVisibility: () {
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
                         },
                       ),
-                      SizedBox(height: 30), 
-                      
-                      TextFormField(
-                        controller: _passwordController,
-                        keyboardType: TextInputType.visiblePassword,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock,  color: Theme.of(context).colorScheme.onSurface,),
-                          labelText: "Password",
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    
+                    const SizedBox(height: 30),
+
+                    // ✅ BUTTONS
+                    AnimatedButton(
+                      delayMs: 1600,
+                      animationType: ButtonAnimationType.bounce,
+                      buttons: [
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          
-                        ),
-                        
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters long';
-                          }
-                          final containsUpperCase = value.contains(
-                            RegExp(r'[A-Z]'),
-                          );
-                          if (!containsUpperCase) {
-                            return 'Password must contain at least one uppercase latter';
-                          }
-                          if (_passwordController.text !=
-                              _confirmPasswordController.text) {
-                            return 'Passwords is not the same';
-                          }
-                        },
-                        obscureText: !_isPasswordVisible,
-                      ),
-                      SizedBox(height: 30),
-                      TextFormField(
-                        controller: _confirmPasswordController,
-                        keyboardType: TextInputType.visiblePassword,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.onSurface,),
-                          labelText: "Repead Password",
-                          suffixIcon: IconButton(
-                            onPressed: () {
-                              setState(() {
-                                _isPasswordVisible = !_isPasswordVisible;
-                              });
-                            },
-                            icon: Icon(
-                              _isPasswordVisible
-                                  ? Icons.visibility
-                                  : Icons.visibility_off,
-                              color: Theme.of(context).colorScheme.onSurface,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (ctx) => LoginScreen(),
+                              ),
+                            );
+                          },
+                          child: Text(
+                            "Cancel",
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                              color: Colors.white,
                             ),
-                          ),
-                          labelStyle: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
+                        // ✅ USUŃ SizedBox(width: 20) - Wrap sam zadba o spacing
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            register(context);
+                          },
+                          child: Text(
+                            "Create Account",
+                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters long';
-                          }
-                          final containsUpperCase = value.contains(
-                            RegExp(r'[A-Z]'),
-                          );
-                          if (!containsUpperCase) {
-                            return 'Password must contain at least one uppercase latter';
-                          }
-                          if (_passwordController.text !=
-                              _confirmPasswordController.text) {
-                            return 'Passwords is not the same';
-                          }
-                        },
-                        obscureText: !_isPasswordVisible,
-                      ),
-                      SizedBox(height: 30),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #1C1B1B
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (ctx) => LoginScreen(),
-                                ),
-                              );
-                            },
-                            child: Text(
-                              "Cancel",
-                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 20),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.secondary, // ✅ ZMIANA: jednolity kolor #AE9174
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            onPressed: () {
-                              register(context);
-                            },
-                            child: Text(
-                              "Create Account",
-                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
