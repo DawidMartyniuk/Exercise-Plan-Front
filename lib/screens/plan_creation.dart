@@ -24,12 +24,11 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   List<Exercise> selectedExercise = [];
   Map<String, List<Map<String, String>>> Function()? _getTableData;
   String exerciseTableTitle = "";
-  
-  // ✅ DODAJ GLOBALKEY
+
   final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey = 
       GlobalKey<SelectedExerciseListState>();
 
-  // ✅ DODAJ MAPĘ DO PRZECHOWYWANIA DANYCH PODCZAS ZAMIANY
+  // MAPĘ DO PRZECHOWYWANIA DANYCH PODCZAS ZAMIANY
   Map<String, dynamic>? _pendingReplacementData;
   String? _oldExerciseIdForReplacement;
 
@@ -380,74 +379,53 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Pole tytułu planu
-            PlanTitleField(
-              initialValue: exerciseTableTitle,
-              onChanged: (value) => setState(() => exerciseTableTitle = value),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ✅ INSTRUKCJA O PRZECIĄGANIU
-            if (selectedExercise.length > 1) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                  ),
+     body: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+      child: CustomScrollView(
+        slivers: [
+          // ✅ PlanTitleField będzie zawsze u góry
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                PlanTitleField(
+                  initialValue: exerciseTableTitle,
+                  onChanged: (value) =>
+                      setState(() => exerciseTableTitle = value),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.drag_handle,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "Przeciągnij ćwiczenia aby zmienić ich kolejność w planie",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
+
+          // ✅ Lista ćwiczeń będzie scrollowana
+          SliverFillRemaining(
+            hasScrollBody: true,
+            child: Column(
+              children: [
+                Expanded(
+                  child: selectedExercise.isEmpty
+                      ? _buildEmptyState()
+                      : SelectedExerciseList(
+                          key: _selectedExerciseListKey,
+                          onGetTableData: (getterFunction) {
+                            _getTableData = getterFunction;
+                          },
+                          exercises: selectedExercise,
+                          onDelete: _removeExerciseFromPlan,
+                          onExercisesReordered: _onExercisesReordered,
+                          onReplaceExercise: _handleExerciseReplacement,
                         ),
-                      ),
-                    ),
-                  ],
                 ),
+
+                // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
+                ExerciseSelectionButton(
+                  onPressed: _addExerciseToPlan,
+                ),
+                   ],
+                 ),
               ),
-            ],
-
-            // Lista wybranych ćwiczeń lub komunikat o braku ćwiczeń
-            Expanded(
-              child: selectedExercise.isEmpty
-                  ? _buildEmptyState()
-                  : SelectedExerciseList(
-                      key: _selectedExerciseListKey, // ✅ KEY
-                      onGetTableData: (getterFunction) {
-                        _getTableData = getterFunction;
-                      },
-                      exercises: selectedExercise,
-                      onDelete: _removeExerciseFromPlan,
-                      onExercisesReordered: _onExercisesReordered,
-                      onReplaceExercise: _handleExerciseReplacement, // ✅ NOWY CALLBACK
-                    ),
-            ),
-
-            // Przycisk dodawania ćwiczeń
-            ExerciseSelectionButton(
-              onPressed: _addExerciseToPlan,
-            ),
-          ],
+        ],
         ),
       ),
     );
