@@ -1,10 +1,13 @@
+import 'package:work_plan_front/model/weight_type.dart';
+
 class User {
   final int id;
   final String name;
   final String email;
   final String? avatar;
   final String? description; 
-  final int? weight; // Assuming weight is an integer, adjust type if needed
+  final int? weight;
+  final WeightType preferredWeightUnit; // ✅ DODAJ NOWE POLE
   final String createdAt;
   final String updatedAt;
 
@@ -16,6 +19,7 @@ class User {
     this.weight, // Default weight to 0 if not provided
     this.description,
     this.avatar,
+    this.preferredWeightUnit = WeightType.kg, // ✅ DOMYŚLNA WARTOŚĆ
     required this.createdAt,
     required this.updatedAt,
   });
@@ -32,6 +36,10 @@ class User {
     weight: json['weight'] != null 
         ? int.tryParse(json['weight'].toString()) 
         : null,
+    // ✅ PARSUJ ENUM Z BAZY DANYCH
+    preferredWeightUnit: WeightType.fromString(
+        json['preferred_weight_unit']?.toString() ?? 'kg'
+    ),
     createdAt: json['created_at'] as String,
     updatedAt: json['updated_at'] as String,
   );
@@ -44,6 +52,7 @@ class User {
       'avatar': avatar,
       'description': description,
       'weight': weight,
+      'preferred_weight_unit': preferredWeightUnit.toDbString(), // ✅ KONWERTUJ DO STRING
       'created_at': createdAt,
       'updated_at': updatedAt,
     };
@@ -56,6 +65,7 @@ class User {
     String? avatar,
     int? weight,
     String? description,
+    WeightType? preferredWeightUnit, // ✅ DODAJ DO copyWith
     String? createdAt,
     String? updatedAt,
   }) {
@@ -66,33 +76,38 @@ class User {
       avatar: avatar ?? this.avatar,
       weight: weight ?? this.weight,
       description: description ?? this.description,
+      preferredWeightUnit: preferredWeightUnit ?? this.preferredWeightUnit, // ✅ DODAJ
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  // ✅ DODAJ NOWĄ METODĘ - merge tylko niepustych pól
+  //  DODAJ NOWĄ METODĘ - merge tylko niepustych pól
   User mergeWith(User updatedUser) {
     return User(
-      id: this.id, // ID nie zmienia się
-      // ✅ Użyj nowej wartości tylko jeśli nie jest pusta/null
+      id: this.id, 
+    
       name: updatedUser.name.isNotEmpty ? updatedUser.name : this.name,
       email: updatedUser.email.isNotEmpty ? updatedUser.email : this.email,
-      // ✅ Avatar: użyj nowy TYLKO jeśli nie jest null i nie jest pusty
       avatar: (updatedUser.avatar != null && updatedUser.avatar!.isNotEmpty) 
           ? updatedUser.avatar 
           : this.avatar,
-      // ✅ Description: użyj nowy TYLKO jeśli backend go zwrócił
-      description: updatedUser.description != null 
-          ? updatedUser.description 
-          : this.description,
-      // ✅ Weight: użyj nowy TYLKO jeśli nie jest null
-      weight: updatedUser.weight != null 
-          ? updatedUser.weight 
-          : this.weight,
-      // ✅ Timestamps zawsze aktualizuj (backend zawsze je zwraca)
+      description: updatedUser.description ?? this.description,
+      weight: updatedUser.weight ?? this.weight,
+      preferredWeightUnit: updatedUser.preferredWeightUnit, 
       createdAt: updatedUser.createdAt.isNotEmpty ? updatedUser.createdAt : this.createdAt,
       updatedAt: updatedUser.updatedAt.isNotEmpty ? updatedUser.updatedAt : this.updatedAt,
     );
+  }
+
+  // ✅ HELPER METHODS
+  String getFormattedWeight() {
+    if (weight == null) return 'Nie podano';
+    return preferredWeightUnit.formatWeight(weight!.toDouble(), decimals: 0);
+  }
+
+  double? getWeightInUnit(WeightType targetUnit) {
+    if (weight == null) return null;
+    return preferredWeightUnit.convertTo(weight!.toDouble(), targetUnit);
   }
 }

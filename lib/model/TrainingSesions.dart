@@ -1,3 +1,4 @@
+import 'package:work_plan_front/model/weight_type.dart';
 
 class TrainingSession {
   final int? id;
@@ -7,6 +8,7 @@ class TrainingSession {
   final int duration;
   final bool completed;
   final double totalWeight;
+  final WeightType weightType;
   final String description;
   final String imageBase64;
   final List<CompletedExercise> exercises;
@@ -19,6 +21,7 @@ class TrainingSession {
     required this.duration,
     required this.completed,
     required this.totalWeight,
+    this.weightType = WeightType.kg,
     required this.description,
     required this.imageBase64,
     required this.exercises,
@@ -33,6 +36,9 @@ class TrainingSession {
       duration: json['duration'],
       completed: json['completed'] == 1, // ✅ int → bool
       totalWeight: (json['total_weight'] as num).toDouble(),
+      weightType: json['weight_type'] != null 
+          ? WeightType.fromString(json['weight_type']) 
+          : WeightType.kg, 
       description: json['description'] ?? '', // ✅ null → empty string
       imageBase64: json['image_base64'] ?? '', // ✅ null → empty string
       exercises: (json['exercises'] as List)
@@ -49,6 +55,7 @@ class TrainingSession {
       'duration': duration,
       'completed': completed ? 1 : 0, // ✅ bool → int
       'total_weight': totalWeight,
+      'weight_type': weightType.toDbString(), // ✅ enum → string
       'description': description,
       'image_base64': imageBase64,
       'exercises': exercises.map((e) => e.toJson()).toList(),
@@ -59,6 +66,14 @@ class TrainingSession {
     }
     
     return json;
+  }
+
+    String getFormattedTotalWeight() {
+    return weightType.formatWeight(totalWeight);
+  }
+
+  double getTotalWeightInUnit(WeightType targetUnit) {
+    return weightType.convertTo(totalWeight, targetUnit);
   }
 }
 
@@ -96,6 +111,7 @@ class CompletedSet {
   final int actualReps;
   final bool completed;
   final bool toFailure;
+  final WeightType weightType;
 
   CompletedSet({
     required this.colStep,
@@ -103,13 +119,18 @@ class CompletedSet {
     required this.actualReps,
     required this.completed,
     required this.toFailure,
+    this.weightType = WeightType.kg,
   });
+
 
   factory CompletedSet.fromJson(Map<String, dynamic> json) {
     return CompletedSet(
       colStep: json['colStep'],
       actualKg: json['actual_kg'],
       actualReps: json['actual_reps'],
+      weightType: json['weight_type'] != null 
+          ? WeightType.fromString(json['weight_type']) 
+          : WeightType.kg,
       completed: json['completed'] == 1, // ✅ int → bool
       toFailure: json['to_failure'] == 1, // ✅ int → bool
     );
@@ -119,7 +140,16 @@ class CompletedSet {
     'colStep': colStep,
     'actual_kg': actualKg,
     'actual_reps': actualReps,
+    'weight_type': weightType.toDbString(),
     'completed': completed ? 1 : 0, // ✅ bool → int
     'to_failure': toFailure ? 1 : 0, // ✅ bool → int
   };
+
+   String getFormattedWeight() {
+    return weightType.formatWeight(actualKg.toDouble(), decimals: 0);
+  }
+
+  double getWeightInUnit(WeightType targetUnit) {
+    return weightType.convertTo(actualKg.toDouble(), targetUnit);
+  }
 }

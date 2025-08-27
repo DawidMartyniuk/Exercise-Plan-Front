@@ -2,14 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/screens/auth/reset_password_page.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/serwis/exerciseService.dart';
 import 'package:work_plan_front/theme/app_theme.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:work_plan_front/utils/token_storage.dart';
 import 'package:app_links/app_links.dart';
 import 'dart:async';
 
@@ -59,8 +57,6 @@ class _MyAppState extends ConsumerState<MyApp> {
       final initialUri = await _appLinks.getInitialLink();
       if (initialUri != null) {
         print("🔗 Initial app link: $initialUri");
-
-        // ✅ SPRAWDŹ CZY TO RZECZYWIŚCIE LINK DO RESETU HASŁA
         if (_isValidResetPasswordLink(initialUri)) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             handleDeepLink(initialUri);
@@ -174,7 +170,7 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   Widget build(BuildContext context) {
     // ✅ OBSERWUJ STAN AUTORYZACJI
-    final authState = ref.watch(authProviderLogin);
+   // final authState = ref.watch(authProviderLogin);
     
     return MaterialApp(
       title: 'Exercise Plan App',

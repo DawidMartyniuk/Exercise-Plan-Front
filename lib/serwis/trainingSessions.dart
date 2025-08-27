@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:work_plan_front/model/TrainingSesions.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:work_plan_front/utils/token_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 

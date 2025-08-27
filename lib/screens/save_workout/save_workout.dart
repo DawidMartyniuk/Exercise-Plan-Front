@@ -13,7 +13,7 @@ import 'package:work_plan_front/screens/save_workout/save_workout_image_and_desc
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
-import 'package:work_plan_front/widget/plan/widget/CustomDivider.dart';
+import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/reps_info_bottom_sheet.dart';

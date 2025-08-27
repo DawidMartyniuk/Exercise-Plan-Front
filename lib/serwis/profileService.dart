@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/User.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:work_plan_front/utils/token_storage.dart';
 import 'package:flutter/foundation.dart';
 
 class ProfileService {

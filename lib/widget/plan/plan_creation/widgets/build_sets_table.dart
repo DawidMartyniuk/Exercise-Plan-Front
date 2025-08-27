@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/widget/plan/widget/reps_selected.dart';
 import 'package:work_plan_front/widget/plan/widget/weight_selected.dart';
+import 'package:work_plan_front/provider/weight_type_provider.dart';
+import 'package:work_plan_front/model/weight_type.dart';
 
-class BuildSetsTable extends StatelessWidget{
+class BuildSetsTable extends ConsumerWidget {
   final String exerciseId;
   final String exerciseName;
   final List<Map<String, String>> rows;
-  final Map<String, List<TextEditingController>>? kgControllers ;
+  final Map<String, List<TextEditingController>>? kgControllers;
   final Map<String, List<TextEditingController>>? repControllers;
 
   const BuildSetsTable({
@@ -18,26 +21,13 @@ class BuildSetsTable extends StatelessWidget{
     this.repControllers,
   }) : super(key: key);
 
-   void _showWeightBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showWeightBottomSheet(BuildContext context, WidgetRef ref) {
+    // ✅ POBIERZ AKTUALNĄ JEDNOSTKĘ DLA TEGO ĆWICZENIA
+    final oldWeightType = ref.read(exerciseWeightTypeProvider(exerciseId));
+    
+    showModalBottomSheet<WeightType>(
       context: context,
-      isScrollControlled: true, 
-      useSafeArea: true,
-      backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.5, 
-      ),
-      builder: (context) => const WeightSelected(),
-    );
-  }
-  
-  void _showRepsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, 
+      isScrollControlled: true,
       useSafeArea: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
@@ -45,15 +35,65 @@ class BuildSetsTable extends StatelessWidget{
       ),
       constraints: BoxConstraints(
         minHeight: MediaQuery.of(context).size.height * 0.4,
-        maxHeight: MediaQuery.of(context).size.height * 0.6, 
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
+      ),
+      // ✅ PRZEKAŻ EXERCISE ID I NAZWĘ
+      builder: (context) => WeightSelected(
+        exerciseId: exerciseId,
+        exerciseName: exerciseName,
+      ),
+    ).then((selectedWeightType) {
+      if (selectedWeightType != null && selectedWeightType != oldWeightType) {
+        print("Converting weights for $exerciseName from $oldWeightType to $selectedWeightType");
+        _convertWeightValues(selectedWeightType, oldWeightType);
+      }
+    });
+  }
+
+  void _showRepsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height * 0.4,
+        maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
       builder: (context) => const RepsSelected(),
     );
   }
 
+  // ✅ KONWERSJA WARTOŚCI DLA TEGO KONKRETNEGO ĆWICZENIA
+  void _convertWeightValues(WeightType newWeightType, WeightType oldWeightType) {
+    if (kgControllers?[exerciseId] == null) return;
+    
+    print("🔄 Converting weights for exercise $exerciseId ($exerciseName):");
+    print("  From: $oldWeightType -> To: $newWeightType");
+    
+    for (int i = 0; i < kgControllers![exerciseId]!.length; i++) {
+      final controller = kgControllers![exerciseId]![i];
+      if (controller.text.isNotEmpty) {
+        final currentValue = double.tryParse(controller.text) ?? 0.0;
+        if (currentValue > 0) {
+          final convertedValue = oldWeightType.convertTo(currentValue, newWeightType);
+          controller.text = convertedValue.toStringAsFixed(1);
+          print("    Set ${i + 1}: $currentValue ${oldWeightType.displayName} -> $convertedValue ${newWeightType.displayName}");
+        }
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Container( decoration: BoxDecoration(
+  Widget build(BuildContext context, WidgetRef ref) {
+    // ✅ POBIERZ JEDNOSTKĘ WAGI DLA TEGO KONKRETNEGO ĆWICZENIA
+    final currentWeightType = ref.watch(exerciseWeightTypeProvider(exerciseId));
+    
+    return Container(
+      decoration: BoxDecoration(
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
         ),
@@ -88,17 +128,17 @@ class BuildSetsTable extends StatelessWidget{
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      print("Kg header clicked!"); // ✅ DEBUG LOG
-                      _showWeightBottomSheet(context);
+                      print("Weight header clicked for exercise: $exerciseId ($exerciseName)!");
+                      _showWeightBottomSheet(context, ref);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Weight",
+                            // ✅ JEDNOSTKA SPECYFICZNA DLA TEGO ĆWICZENIA
+                            "Weight (${currentWeightType.displayName})",
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -121,11 +161,11 @@ class BuildSetsTable extends StatelessWidget{
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      print("Reps header clicked!"); // ✅ DEBUG LOG
+                      print("Reps header clicked!");
                       _showRepsBottomSheet(context);
                     },
                     child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -133,15 +173,16 @@ class BuildSetsTable extends StatelessWidget{
                             "Reps",
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                              fontSize: 16,
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                             textAlign: TextAlign.center,
                           ),
+                          const SizedBox(width: 4),
                           Icon(
-                             Icons.arrow_drop_down,
-                              color: Theme.of(context).colorScheme.primary,
-                             size: 16,
+                            Icons.arrow_drop_down,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 16,
                           ),
                         ],
                       ),
@@ -151,17 +192,19 @@ class BuildSetsTable extends StatelessWidget{
               ],
             ),
           ),
-          
+
           // Wiersze tabeli
-         for (int i = 0; i < rows.length; i++)
+          for (int i = 0; i < rows.length; i++)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               decoration: BoxDecoration(
-                border: i > 0 ? Border(
-                  top: BorderSide(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                  ),
-                ) : null,
+                border: i > 0
+                    ? Border(
+                        top: BorderSide(
+                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
+                        ),
+                      )
+                    : null,
               ),
               child: Row(
                 children: [
@@ -177,14 +220,14 @@ class BuildSetsTable extends StatelessWidget{
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
-                  // ✅ POLE KG Z ZABEZPIECZENIEM
+
+                  // ✅ POLE WAGI Z PLACEHOLDER JEDNOSTKI DLA TEGO ĆWICZENIA
                   Expanded(
                     child: TextField(
-                      controller: (kgControllers?[exerciseId] != null && 
-                                   i < kgControllers![exerciseId]!.length) 
-                          ? kgControllers![exerciseId]![i] 
-                          : null, // ✅ ZABEZPIECZENIE PRZED INDEX OUT OF RANGE
+                      controller: (kgControllers?[exerciseId] != null &&
+                                  i < kgControllers![exerciseId]!.length)
+                          ? kgControllers![exerciseId]![i]
+                          : null,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -194,18 +237,24 @@ class BuildSetsTable extends StatelessWidget{
                           borderRadius: BorderRadius.circular(6),
                         ),
                         isDense: true,
+                        // ✅ PLACEHOLDER Z JEDNOSTKĄ SPECYFICZNĄ DLA TEGO ĆWICZENIA
+                        hintText: "0 ${currentWeightType.displayName}",
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(width: 16),
-                  
-                  // ✅ POLE POWTÓRZEŃ Z ZABEZPIECZENIEM
+
+                  // ✅ POLE POWTÓRZEŃ
                   Expanded(
                     child: TextField(
-                      controller: (repControllers?[exerciseId] != null && 
-                                   i < repControllers![exerciseId]!.length) 
-                          ? repControllers![exerciseId]![i] 
-                          : null, // ✅ ZABEZPIECZENIE PRZED INDEX OUT OF RANGE
+                      controller: (repControllers?[exerciseId] != null &&
+                                  i < repControllers![exerciseId]!.length)
+                          ? repControllers![exerciseId]![i]
+                          : null,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -215,6 +264,11 @@ class BuildSetsTable extends StatelessWidget{
                           borderRadius: BorderRadius.circular(6),
                         ),
                         isDense: true,
+                        hintText: "0 reps",
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),

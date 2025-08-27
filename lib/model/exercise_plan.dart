@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_plan_front/model/weight_type.dart';
 
 class ExerciseTable {
   final int id;
@@ -117,7 +118,7 @@ class ExerciseRow {
   final int colStep;
   int colKg;
   int colRep;
-
+  final WeightType weightType;
   bool isChecked;
   Color? rowColor;
   bool isFailure;
@@ -126,6 +127,7 @@ class ExerciseRow {
     required this.colStep,
     required this.colKg,
     required this.colRep,
+    this.weightType = WeightType.kg,
     this.isChecked = false,
     this.isFailure = false,
     this.rowColor,
@@ -136,6 +138,7 @@ class ExerciseRow {
       'colStep': colStep,
       'colKg': colKg,
       'colRep': colRep,
+      'weight_type': weightType.toDbString(),
       'isChecked': isChecked,
       'isFailure': isFailure,
       };
@@ -146,14 +149,27 @@ class ExerciseRow {
       colStep: json['colStep'] ?? 0,
       colKg: json['colKg'] ?? 0,
       colRep: json['colRep'] ?? 0,
+      weightType: json['weight_type'] != null 
+          ? WeightType.fromString(json['weight_type']) 
+          : WeightType.kg,
       isChecked: json['isChecked'] ?? false,
       isFailure: json['isFailure'] ?? false,
     );
   }
 
+  
+
+
+   String getFormattedWeight() {
+    return weightType.formatWeight(colKg.toDouble(), decimals: 0);
+  }
+
+  double getWeightInUnit(WeightType targetUnit) {
+    return weightType.convertTo(colKg.toDouble(), targetUnit);
+  }
 
   @override
   String toString() {
-    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep , isChecked: $isChecked, isFailure: $isFailure, rowColor: $rowColor)';
+    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep, weightType: $weightType, isChecked: $isChecked, isFailure: $isFailure, rowColor: $rowColor)';
   }
 }

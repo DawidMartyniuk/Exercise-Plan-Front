@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
-
+import 'package:work_plan_front/utils/token_storage.dart';
 class ExerciseService {
   final String _baseUrl = () {
     if (kIsWeb) {

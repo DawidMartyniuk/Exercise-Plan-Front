@@ -120,7 +120,7 @@ class _ExerciseTableState extends State<ExerciseTable> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.5, 
       ),
-      builder: (context) => const WeightSelected(),
+      builder: (context) => WeightSelected(exerciseId: widget.exerciseId),
     );
   }
 

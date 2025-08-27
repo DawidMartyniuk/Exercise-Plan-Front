@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/serwis/exercisePlan.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:work_plan_front/utils/token_storage.dart';
 
 class ExercisePlanNotifier extends StateNotifier<List<ExerciseTable>> {
 

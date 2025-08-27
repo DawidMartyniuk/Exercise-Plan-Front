@@ -4,7 +4,7 @@ import 'package:work_plan_front/model/authResponse.dart';
 import 'package:work_plan_front/model/User.dart';
 import 'package:work_plan_front/serwis/AuthService.dart';
 import 'package:work_plan_front/serwis/profileService.dart';
-import 'package:work_plan_front/utils/tokenStorage.dart';
+import 'package:work_plan_front/utils/token_storage.dart';
 
 class AuthNotifier extends StateNotifier<AuthResponse?> {
   final Authservice _authService = Authservice();
