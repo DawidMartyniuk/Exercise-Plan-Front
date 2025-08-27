@@ -1,20 +1,16 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 
 class BodyPartInfoBottomSheet extends ConsumerWidget {
- // final Map<BodyPart?, int> exercisesCount;
   final String title;
   final String info;
-  //final Map<BodyPart, int> bodyPartsInfo;
 
   const BodyPartInfoBottomSheet({
     super.key,
-   // required this.exercisesCount,
     required this.title,
     required this.info,
   });
@@ -39,7 +35,7 @@ class BodyPartInfoBottomSheet extends ConsumerWidget {
       if (info == 'weight') {
         value = ex.sets.fold(0, (sum, set) => sum + (set.kg ?? 0));
       } else if (info == 'reps') {
-        value = ex.sets.fold(0, (sum, set) => sum + (set.rep ?? 0));
+        value = ex.sets.fold(0, (sum, set) => sum + ((set.colRepMin + set.colRepMax) ~/ 2));
       }
       bodyPartsInfo[bodyPart] = (bodyPartsInfo[bodyPart] ?? 0) + value;
     }

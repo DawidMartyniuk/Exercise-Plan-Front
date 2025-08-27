@@ -70,13 +70,13 @@ class PlanValidation {
     }
 
     // Sprawdź powtórzenia
-    if (set.colRep <= 0) {
+    if (set.colRepMin <= 0) {
       errors.add("Exercise $exerciseNumber, Set $setNumber: Reps must be greater than 0");
     }
 
     // Sprawdź czy seria jest sensowna
-    if (set.colRep > 100) {
-      warnings.add("Exercise $exerciseNumber, Set $setNumber: Very high rep count (${set.colRep})");
+    if (set.colRepMax > 100) {
+      warnings.add("Exercise $exerciseNumber, Set $setNumber: Very high rep count (${set.colRepMax})");
     }
 
     if (set.colKg > 600) {

@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/reps_type.dart';
+import 'package:work_plan_front/provider/repsTypeProvider.dart';
 
 class RepsSelected extends ConsumerWidget {
-  const RepsSelected({super.key});
+  final String exerciseId;
+  final String? exerciseName;
+
+  const RepsSelected({
+    super.key,
+    required this.exerciseId,
+    this.exerciseName,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currentRepsType = ref.watch(exerciseRepsTypeProvider(exerciseId));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -32,6 +43,7 @@ class RepsSelected extends ConsumerWidget {
        GestureDetector(
           onTap: () {
             print("One Rep (4) selected"); // DEBUG
+            ref.read(exerciseRepsTypeProvider(exerciseId).notifier).state = RepsType.single;
             Navigator.of(context).pop();
           },
           child: Container(
@@ -39,26 +51,34 @@ class RepsSelected extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
-                color: Colors.green.withAlpha(51), //
+                color:  currentRepsType == RepsType.single
+                ? Colors.green.withAlpha(51)
+                : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.green,
-                width: 2,
+                color:  currentRepsType == RepsType.single
+                ? Colors.green
+                : Theme.of(context).colorScheme.outline.withAlpha(77),
+                width:  currentRepsType == RepsType.single ? 2 : 1,
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(
+                 Icon(
                   Icons.repeat,
-                  color: Colors.green,
+                  color:  currentRepsType == RepsType.single
+                  ? Colors.green
+                  : Theme.of(context).colorScheme.onSurface,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   "One Rep (4)",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Colors.green,
+                    color:  currentRepsType == RepsType.single
+                    ? Colors.green
+                    : Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -73,6 +93,7 @@ class RepsSelected extends ConsumerWidget {
         GestureDetector(
           onTap: () {
             print("Repetition interval (3 - 5) selected"); // DEBUG
+            ref.read(exerciseRepsTypeProvider(exerciseId).notifier).state = RepsType.range;
             Navigator.of(context).pop();
           },
           child: Container(
@@ -80,11 +101,15 @@ class RepsSelected extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
+              color:  currentRepsType == RepsType.range
+              ? Colors.green.withAlpha(51)
+              : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                color: Theme.of(context).colorScheme.outline.withAlpha(77),
-                width: 1,
+                color:  currentRepsType == RepsType.range
+                ? Colors.green
+                : Theme.of(context).colorScheme.outline.withAlpha(77),
+                width:  currentRepsType == RepsType.range ? 2 : 1,
               ),
             ),
             child: Row(
@@ -92,17 +117,29 @@ class RepsSelected extends ConsumerWidget {
               children: [
                 Icon(
                   Icons.repeat,
-                  color: Theme.of(context).colorScheme.onSurface,
+                  color:  currentRepsType == RepsType.range
+                  ? Colors.green
+                  : Theme.of(context).colorScheme.onSurface,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
                 Text(
                   "Repetition interval (3 - 5)",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+                    color: currentRepsType == RepsType.range
+                  ? Colors.green.withAlpha(51)
+                  : Theme.of(context).colorScheme.surface,
+                        fontWeight: FontWeight.w500,
+                      ),
                 ),
+                if(currentRepsType == RepsType.range) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                ],
               ],
             ),
           ),

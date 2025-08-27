@@ -1,38 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/selected_exercise_list_helpers.dart';
-class SelectedExerciseDataManager {
-  final Map<String, Map<String, dynamic>> exerciseRows = {};
-  final Map<String, TextEditingController> notesControllers = {};
-  final Map<String, List<TextEditingController>> kgControllers = {};
-  final Map<String, List<TextEditingController>> repControllers = {};
 
-  /// Inicjalizuje dane dla nowego ćwiczenia
-  void initializeExerciseData(Exercise exercise, Function(String, int, String, String) updateRowCallback) {
-    print("🆕 Initializing exercise data for: ${exercise.name} (ID: ${exercise.id})");
+class SelectedExerciseDataManager {
+  // Existing controllers
+  Map<String, Map<String, dynamic>> exerciseRows = {};
+  Map<String, List<TextEditingController>> kgControllers = {};
+  Map<String, List<TextEditingController>> repControllers = {};
+  Map<String, TextEditingController> notesControllers = {};
   
-    if (exerciseRows.containsKey(exercise.id)) {
-      print("⚠️ Exercise data already exists for: ${exercise.name}");
-      return;
-    }
-  
-    // Inicjalizuj dane ćwiczenia
-    exerciseRows[exercise.id] = SelectedExerciseListHelpers.generateDefaultExerciseData(exercise);
-  
-    // Inicjalizuj kontrolery
-    _initializeControllers(exercise.id, updateRowCallback);
-  
-    print("✅ Initialized exercise data for: ${exercise.name}");
+  // ✅ NOWY KONTROLER DLA DRUGIEGO POLA REPS (MAX)
+  Map<String, List<TextEditingController>> repMaxControllers = {};
+
+  bool hasExerciseData(String exerciseId) {
+    return exerciseRows.containsKey(exerciseId);
   }
 
-  /// Inicjalizuje kontrolery dla ćwiczenia
-  void _initializeControllers(String exerciseId, Function(String, int, String, String) updateRowCallback) {
-    // Notes controller
+  List<Map<String, String>> getExerciseTableData(String exerciseId) {
+    return SelectedExerciseListHelpers.getExerciseTableData(exerciseId, exerciseRows);
+  }
+
+  Map<String, List<Map<String, String>>> getTableData(List<Exercise> exercises) {
+    Map<String, List<Map<String, String>>> result = {};
+    
+    for (final exercise in exercises) {
+      result[exercise.id] = getExerciseTableData(exercise.id);
+    }
+    
+    return result;
+  }
+
+  void initializeExerciseData(Exercise exercise, Function(String, int, String, String) updateRowCallback) {
+    final exerciseId = exercise.id;
+    
+    if (exerciseRows.containsKey(exerciseId)) {
+      print("🔄 Exercise data already exists for ${exercise.name}");
+      return;
+    }
+
+    print("🆕 Initializing exercise data for: ${exercise.name}");
+    
+    // Inicjalizuj dane ćwiczenia
+    exerciseRows[exerciseId] = SelectedExerciseListHelpers.generateDefaultExerciseData(exercise);
+    
+    // Inicjalizuj kontroler notatek
     if (!notesControllers.containsKey(exerciseId)) {
       notesControllers[exerciseId] = TextEditingController();
     }
 
-    // KG controllers
+    // Inicjalizuj kontrolery dla pojedynczego setu
     if (!kgControllers.containsKey(exerciseId)) {
       final kgController = TextEditingController(text: "0");
       kgController.addListener(() {
@@ -41,13 +57,21 @@ class SelectedExerciseDataManager {
       kgControllers[exerciseId] = [kgController];
     }
 
-    // REP controllers
     if (!repControllers.containsKey(exerciseId)) {
       final repController = TextEditingController(text: "0");
       repController.addListener(() {
         updateRowCallback(exerciseId, 0, "colRep", repController.text);
       });
       repControllers[exerciseId] = [repController];
+    }
+
+    // ✅ INICJALIZUJ KONTROLERY DLA REP MAX
+    if (!repMaxControllers.containsKey(exerciseId)) {
+      final repMaxController = TextEditingController(text: "0");
+      repMaxController.addListener(() {
+        updateRowCallback(exerciseId, 0, "colRepMax", repMaxController.text);
+      });
+      repMaxControllers[exerciseId] = [repMaxController];
     }
   }
 
@@ -68,15 +92,19 @@ class SelectedExerciseDataManager {
     // Dodaj nowe kontrolery
     final kgController = TextEditingController(text: newSet["colKg"]!);
     final repController = TextEditingController(text: newSet["colRep"]!);
+    final repMaxController = TextEditingController(text: newSet["colRepMax"] ?? newSet["colRep"]!); // ✅ NOWY
 
     final currentIndex = rows.length - 1;
     kgController.addListener(() => 
       updateRowCallback(exerciseId, currentIndex, "colKg", kgController.text));
     repController.addListener(() => 
       updateRowCallback(exerciseId, currentIndex, "colRep", repController.text));
+    repMaxController.addListener(() => 
+      updateRowCallback(exerciseId, currentIndex, "colRepMax", repMaxController.text)); // ✅ NOWY
 
     kgControllers[exerciseId]!.add(kgController);
     repControllers[exerciseId]!.add(repController);
+    repMaxControllers[exerciseId]!.add(repMaxController); // ✅ NOWY
 
     print("✅ Added set $newSetNumber to $exerciseName");
   }
@@ -97,6 +125,12 @@ class SelectedExerciseDataManager {
     if (repControllers[exerciseId] != null && repControllers[exerciseId]!.length > index) {
       repControllers[exerciseId]![index].dispose();
       repControllers[exerciseId]!.removeAt(index);
+    }
+
+    // ✅ USUŃ RÓWNIEŻ KONTROLER REP MAX
+    if (repMaxControllers[exerciseId] != null && repMaxControllers[exerciseId]!.length > index) {
+      repMaxControllers[exerciseId]![index].dispose();
+      repMaxControllers[exerciseId]!.removeAt(index);
     }
 
     // Usuń set i zaktualizuj numery
@@ -123,73 +157,71 @@ class SelectedExerciseDataManager {
     }
   }
 
-  /// Usuwa wszystkie dane ćwiczenia
+  /// Usuwa dane ćwiczenia
   void deleteExerciseData(String exerciseId) {
-    exerciseRows.remove(exerciseId);
-    notesControllers.remove(exerciseId)?.dispose();
-
+    // Usuń kontrolery kg
     if (kgControllers[exerciseId] != null) {
-      for (var controller in kgControllers[exerciseId]!) {
+      for (final controller in kgControllers[exerciseId]!) {
         controller.dispose();
       }
       kgControllers.remove(exerciseId);
     }
-    
+
+    // Usuń kontrolery rep
     if (repControllers[exerciseId] != null) {
-      for (var controller in repControllers[exerciseId]!) {
+      for (final controller in repControllers[exerciseId]!) {
         controller.dispose();
       }
       repControllers.remove(exerciseId);
     }
+
+    // ✅ USUŃ KONTROLERY REP MAX
+    if (repMaxControllers[exerciseId] != null) {
+      for (final controller in repMaxControllers[exerciseId]!) {
+        controller.dispose();
+      }
+      repMaxControllers.remove(exerciseId);
+    }
+
+    // Usuń kontroler notatek
+    if (notesControllers[exerciseId] != null) {
+      notesControllers[exerciseId]!.dispose();
+      notesControllers.remove(exerciseId);
+    }
+
+    // Usuń dane ćwiczenia
+    exerciseRows.remove(exerciseId);
   }
 
-  /// Pobiera dane tabeli dla wszystkich ćwiczeń
-  Map<String, List<Map<String, String>>> getTableData(List<Exercise> exercises) {
-    print("🔍 Getting table data for ${exercises.length} exercises");
-    
-    final Map<String, List<Map<String, String>>> result = {};
-    
-    for (final exercise in exercises) {
-      final exerciseId = exercise.id;
-      if (exerciseRows.containsKey(exerciseId)) {
-        final rows = (exerciseRows[exerciseId]?["rows"] as List<Map<String, String>>?) ?? [];
-        result[exerciseId] = rows;
-        print("  - ${exercise.name}: ${rows.length} sets");
-      } else {
-        print("  - ${exercise.name}: NO DATA");
+  void dispose() {
+    // Dispose wszystkich kontrolerów
+    for (final controllerList in kgControllers.values) {
+      for (final controller in controllerList) {
+        controller.dispose();
       }
     }
     
-    print("🔍 Returning data for ${result.length} exercises");
-    return result;
-  }
+    for (final controllerList in repControllers.values) {
+      for (final controller in controllerList) {
+        controller.dispose();
+      }
+    }
 
-  /// Pobiera dane dla konkretnego ćwiczenia
-  List<Map<String, String>> getExerciseTableData(String exerciseId) {
-    return SelectedExerciseListHelpers.getExerciseTableData(exerciseId, exerciseRows);
-  }
-
-  /// Sprawdza czy ćwiczenie ma zainicjalizowane dane
-  bool hasExerciseData(String exerciseId) {
-    return SelectedExerciseListHelpers.hasInitializedData(exerciseId, exerciseRows);
-  }
-
-  /// Zwalnia wszystkie zasoby
-  void dispose() {
-    for (var controller in notesControllers.values) {
+    // ✅ DISPOSE REP MAX KONTROLERÓW
+    for (final controllerList in repMaxControllers.values) {
+      for (final controller in controllerList) {
+        controller.dispose();
+      }
+    }
+    
+    for (final controller in notesControllers.values) {
       controller.dispose();
     }
 
-    for (var controllers in kgControllers.values) {
-      for (var controller in controllers) {
-        controller.dispose();
-      }
-    }
-
-    for (var controllers in repControllers.values) {
-      for (var controller in controllers) {
-        controller.dispose();
-      }
-    }
+    kgControllers.clear();
+    repControllers.clear();
+    repMaxControllers.clear(); // ✅ NOWY
+    notesControllers.clear();
+    exerciseRows.clear();
   }
 }

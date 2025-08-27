@@ -359,6 +359,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                   rows: _dataManager.getExerciseTableData(exerciseId),
                   kgControllers: _dataManager.kgControllers,
                   repControllers: _dataManager.repControllers,
+                  repMaxControllers: _dataManager.repMaxControllers,
                 ),
                 
                 const SizedBox(height: 12),

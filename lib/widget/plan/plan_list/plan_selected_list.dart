@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/CurrentWorkout.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
@@ -69,10 +70,12 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         exercise_number: row.exercise_number,
         exercise_name: row.exercise_name,
         notes: row.notes,
+        rep_type: row.rep_type,
         data: row.data.map((exerciseRow) => ExerciseRow(
           colStep: exerciseRow.colStep,
           colKg: exerciseRow.colKg,
-          colRep: exerciseRow.colRep,
+          colRepMin: exerciseRow.colRepMin,
+          colRepMax: exerciseRow.colRepMax,
           isChecked: exerciseRow.isChecked,
           isFailure: exerciseRow.isFailure,
           rowColor: exerciseRow.rowColor,
@@ -99,7 +102,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
           orElse: () => ExerciseRowState(
             colStep: row.colStep,
             colKg: row.colKg,
-            colRep: row.colRep,
+            colRepMin: row.colRepMin,
+            colRepMax: row.colRepMax,
             isChecked: row.isChecked,
             isFailure: row.isFailure,
             exerciseNumber: rowData.exercise_number,
@@ -107,7 +111,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         );
         
         row.colKg = match.colKg;
-        row.colRep = match.colRep;
+        row.colRepMin = match.colRepMin;
+        row.colRepMax = match.colRepMax;
         row.isChecked = match.isChecked;
         row.isFailure = match.isFailure;
         row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
@@ -133,7 +138,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         rowData.data.map((row) => ExerciseRow(
           colStep: row.colStep,
           colKg: row.colKg,
-          colRep: row.colRep,
+          colRepMin: row.colRepMin,
+          colRepMax: row.colRepMax,
           isChecked: row.isChecked,
           isFailure: row.isFailure,
           rowColor: row.rowColor,
@@ -158,7 +164,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         rowStates.add(ExerciseRowState(
           colStep: row.colStep,
           colKg: row.colKg,
-          colRep: row.colRep,
+          colRepMin: row.colRepMin,
+          colRepMax: row.colRepMax,
           isChecked: row.isChecked,
           isFailure: row.isFailure,
           exerciseNumber: rowData.exercise_number,
@@ -190,7 +197,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
 
   void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     setState(() {
-      row.colRep = int.tryParse(value) ?? row.colRep;
+      row.colRepMin = int.tryParse(value) ?? row.colRepMin;
     });
     _updateRowInProvider(row, exerciseNumber);
   }
@@ -208,7 +215,8 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
       ExerciseRowState(
         colStep: row.colStep,
         colKg: row.colKg,
-        colRep: row.colRep,
+        colRepMin: row.colRepMin,
+        colRepMax: row.colRepMax,
         isChecked: row.isChecked,
         isFailure: row.isFailure,
         exerciseNumber: exerciseNumber,
@@ -223,11 +231,13 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         exercise_number: exercise.id,
         exercise_name: exercise.name,
         notes: '',
+        rep_type: RepsType.single,
         data: [
           ExerciseRow(
             colStep: 1,
             colKg: 0,
-            colRep: 0,
+            colRepMin: 0,
+            colRepMax: 0,
             isChecked: false,
             isFailure: false,
             rowColor: Colors.transparent,
@@ -398,6 +408,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
         onNotesChanged: (value) {
           setState(() {
             final updatedRow = ExerciseRowsData(
+              rep_type:  RepsType.single, // Placeholder, adjust as needed
               exercise_name: exerciseName,
               exercise_number: firstRow.exercise_number,
               data: firstRow.data,

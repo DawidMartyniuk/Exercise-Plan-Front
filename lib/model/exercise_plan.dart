@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/model/weight_type.dart';
 
 class ExerciseTable {
@@ -53,12 +54,14 @@ class ExerciseRowsData {
   final String exercise_number;
   final String notes;
   final List<ExerciseRow> data;
+  final RepsType rep_type;
 
   ExerciseRowsData({
     required this.exercise_name,
     required this.exercise_number,
     required this.notes,
     required this.data,
+    required this.rep_type,
   });
 
   Map<String, dynamic> toJson() {
@@ -76,6 +79,9 @@ class ExerciseRowsData {
     return ExerciseRowsData(
       exercise_number: json['exercise_number']?.toString() ?? "Unknown Number",
       exercise_name: json['exercise_name'] ?? "Unknown Exercise",
+      rep_type: json['rep_type'] != null
+          ? RepsType.fromString(json['rep_type'])
+          : RepsType.single,
       notes: json['notes'] ?? "",
       data:
           dataJson
@@ -89,6 +95,7 @@ class ExerciseRowsData {
     return ExerciseRowsData(
       exercise_number: this.exercise_number,
       exercise_name: this.exercise_name,
+      rep_type: this.rep_type,
       data: newData,
       notes: this.notes,
     );
@@ -103,6 +110,7 @@ class ExerciseRowsData {
     return ExerciseRowsData(
       exercise_number: exercise_number ?? this.exercise_number,
       exercise_name: exercise_name ?? this.exercise_name,
+      rep_type: this.rep_type,
       data: data ?? this.data,
       notes: notes ?? this.notes,
     );
@@ -117,7 +125,8 @@ class ExerciseRowsData {
 class ExerciseRow {
   final int colStep;
   int colKg;
-  int colRep;
+  int colRepMin;
+  int colRepMax;
   final WeightType weightType;
   bool isChecked;
   Color? rowColor;
@@ -126,18 +135,20 @@ class ExerciseRow {
   ExerciseRow({
     required this.colStep,
     required this.colKg,
-    required this.colRep,
+    required this.colRepMin,
+    int? colRepMax ,
     this.weightType = WeightType.kg,
     this.isChecked = false,
     this.isFailure = false,
     this.rowColor,
-  });
+  }) : colRepMax = colRepMax ?? colRepMin;
 
   Map<String, dynamic> toJson() {
     return {
       'colStep': colStep,
       'colKg': colKg,
-      'colRep': colRep,
+      'colRepMin': colRepMin,
+      'colRepMax': colRepMax,
       'weight_type': weightType.toDbString(),
       'isChecked': isChecked,
       'isFailure': isFailure,
@@ -148,9 +159,10 @@ class ExerciseRow {
     return ExerciseRow(
       colStep: json['colStep'] ?? 0,
       colKg: json['colKg'] ?? 0,
-      colRep: json['colRep'] ?? 0,
-      weightType: json['weight_type'] != null 
-          ? WeightType.fromString(json['weight_type']) 
+      colRepMin: json['colRepMin'] ?? 0,
+      colRepMax: json['colRepMax'] ?? json['colRepMin'] ?? 0,
+      weightType: json['weight_type'] != null
+          ? WeightType.fromString(json['weight_type'])
           : WeightType.kg,
       isChecked: json['isChecked'] ?? false,
       isFailure: json['isFailure'] ?? false,
@@ -170,6 +182,6 @@ class ExerciseRow {
 
   @override
   String toString() {
-    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRep: $colRep, weightType: $weightType, isChecked: $isChecked, isFailure: $isFailure, rowColor: $rowColor)';
+    return 'ExerciseRow(colStep: $colStep, colKg: $colKg, colRepMin: $colRepMin, colRepMax: $colRepMax, weightType: $weightType, isChecked: $isChecked, isFailure: $isFailure, rowColor: $rowColor)';
   }
 }

@@ -6,7 +6,7 @@ mixin ExerciseCalculations {
     return plan.rows.fold(0.0, (total, rowData) {
       return total + rowData.data.fold(0.0, (sum, row) {
         if (row.isChecked) {
-          return sum + (row.colKg * row.colRep);
+          return sum + (row.colKg * ((row.colRepMin + row.colRepMax) ~/ 2));
         }
         return sum;
       });
@@ -16,7 +16,7 @@ mixin ExerciseCalculations {
   double calculateExerciseVolume(ExerciseRowsData exerciseData) {
     return exerciseData.data.fold(0.0, (sum, row) {
       if (row.isChecked) {
-        return sum + (row.colKg * row.colRep);
+        return sum + (row.colKg * ((row.colRepMin + row.colRepMax) ~/ 2));
       }
       return sum;
     });
@@ -44,7 +44,7 @@ mixin ExerciseCalculations {
     return plan.rows.fold(0, (total, rowData) {
       return total + rowData.data.fold(0, (sum, row) {
         if (row.isChecked) {
-          return sum + row.colRep;
+            return sum + ((row.colRepMin + row.colRepMax) ~/ 2);
         }
         return sum;
       });
@@ -80,8 +80,8 @@ mixin ExerciseCalculations {
         .toList();
     
     if (completedRows.isEmpty) return 0.0;
-    
-    final totalReps = completedRows.fold(0, (sum, row) => sum + row.colRep);
+
+    final totalReps = completedRows.fold(0, (sum, row) => sum + ((row.colRepMin + row.colRepMax) ~/ 2));
     return totalReps / completedRows.length;
   }
 

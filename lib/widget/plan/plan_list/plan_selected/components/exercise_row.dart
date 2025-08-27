@@ -80,7 +80,7 @@ class ExerciseRowWidget extends StatelessWidget {
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
                 decoration: InputDecoration(
-                  hintText: row.colRep.toString(),
+                  hintText: row.colRepMin.toString(),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                 ),

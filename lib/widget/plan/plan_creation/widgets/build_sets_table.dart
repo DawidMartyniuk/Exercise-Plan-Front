@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/reps_type.dart';
+import 'package:work_plan_front/provider/repsTypeProvider.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/widgets/reps_field.dart';
 import 'package:work_plan_front/widget/plan/widget/reps_selected.dart';
 import 'package:work_plan_front/widget/plan/widget/weight_selected.dart';
 import 'package:work_plan_front/provider/weight_type_provider.dart';
@@ -11,6 +14,7 @@ class BuildSetsTable extends ConsumerWidget {
   final List<Map<String, String>> rows;
   final Map<String, List<TextEditingController>>? kgControllers;
   final Map<String, List<TextEditingController>>? repControllers;
+   final Map<String, List<TextEditingController>>? repMaxControllers;
 
   const BuildSetsTable({
     Key? key,
@@ -19,6 +23,7 @@ class BuildSetsTable extends ConsumerWidget {
     required this.rows,
     this.kgControllers,
     this.repControllers,
+    this.repMaxControllers,
   }) : super(key: key);
 
   void _showWeightBottomSheet(BuildContext context, WidgetRef ref) {
@@ -50,8 +55,11 @@ class BuildSetsTable extends ConsumerWidget {
     });
   }
 
-  void _showRepsBottomSheet(BuildContext context) {
-    showModalBottomSheet(
+  void _showRepsBottomSheet(BuildContext context, WidgetRef ref ) {
+    // ✅ POBIERZ AKTUALNY RODZAJ POWTÓRZEŃ DLA TEGO ĆWICZENIA
+    final oldRepsType = ref.read(exerciseRepsTypeProvider(exerciseId));
+
+    showModalBottomSheet<RepsType>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
@@ -63,11 +71,19 @@ class BuildSetsTable extends ConsumerWidget {
         minHeight: MediaQuery.of(context).size.height * 0.4,
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      builder: (context) => const RepsSelected(),
-    );
+      builder: (context) =>  RepsSelected(
+        exerciseId: exerciseId,
+        exerciseName: exerciseName),
+    ).then((selectedRepsType) {
+      if (selectedRepsType != null && selectedRepsType != oldRepsType) {
+        print("Reps type changed for $exerciseName from $oldRepsType to $selectedRepsType");
+        _covertRepsValues(selectedRepsType, oldRepsType);
+   
+      }
+    });
   }
 
-  // ✅ KONWERSJA WARTOŚCI DLA TEGO KONKRETNEGO ĆWICZENIA
+  // KONWERSJA WARTOŚCI DLA TEGO KONKRETNEGO ĆWICZENIA
   void _convertWeightValues(WeightType newWeightType, WeightType oldWeightType) {
     if (kgControllers?[exerciseId] == null) return;
     
@@ -86,10 +102,36 @@ class BuildSetsTable extends ConsumerWidget {
       }
     }
   }
+  void _covertRepsValues(RepsType newRepsType, RepsType oldRepsType){
+    if (repControllers?[exerciseId] == null) return;
+
+    print("🔄 Converting reps for exercise $exerciseId ($exerciseName):");
+    print("  From: $oldRepsType -> To: $newRepsType");
+
+    for (int i=0; i < repControllers![exerciseId]!.length; i++ ){
+      final repController = repControllers![exerciseId]![i];
+      final repMaxController = repMaxControllers![exerciseId]![i];
+    
+    if(newRepsType == RepsType.range && oldRepsType == RepsType.single){
+      if(repController.text.isNotEmpty){
+        final currentValue = repController.text;
+        repMaxController.text = currentValue;
+            print("    Set ${i + 1}: $currentValue seconds → $currentValue-$currentValue reps");
+      }
+    } else if (newRepsType == RepsType.single && oldRepsType == RepsType.range){
+      if(repController.text.isNotEmpty ){
+        final miniValue = repController.text;
+        repMaxController?.text = "";
+        print("    Set ${i + 1}: $miniValue-$miniValue reps → $miniValue seconds");
+      }
+    }
+  }
+    
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // ✅ POBIERZ JEDNOSTKĘ WAGI DLA TEGO KONKRETNEGO ĆWICZENIA
+    // POBIERZ JEDNOSTKĘ WAGI DLA TEGO KONKRETNEGO ĆWICZENIA
     final currentWeightType = ref.watch(exerciseWeightTypeProvider(exerciseId));
     
     return Container(
@@ -162,7 +204,7 @@ class BuildSetsTable extends ConsumerWidget {
                   child: GestureDetector(
                     onTap: () {
                       print("Reps header clicked!");
-                      _showRepsBottomSheet(context);
+                      _showRepsBottomSheet(context, ref);
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -237,7 +279,7 @@ class BuildSetsTable extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         isDense: true,
-                        // ✅ PLACEHOLDER Z JEDNOSTKĄ SPECYFICZNĄ DLA TEGO ĆWICZENIA
+                      
                         hintText: "0 ${currentWeightType.displayName}",
                         hintStyle: TextStyle(
                           color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
@@ -249,29 +291,36 @@ class BuildSetsTable extends ConsumerWidget {
                   const SizedBox(width: 16),
 
                   // ✅ POLE POWTÓRZEŃ
-                  Expanded(
-                    child: TextField(
-                      controller: (repControllers?[exerciseId] != null &&
-                                  i < repControllers![exerciseId]!.length)
-                          ? repControllers![exerciseId]![i]
-                          : null,
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        isDense: true,
-                        hintText: "0 reps",
-                        hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
+                  RepsField(
+                    setIndex: i,
+                    exerciseId: exerciseId,
+                    repControllers: repControllers,
+                    repMaxControllers: repMaxControllers,
+                    ref: ref,
+                  )
+                  // Expanded(
+                  //   child: TextField(
+                  //     controller: (repControllers?[exerciseId] != null &&
+                  //                 i < repControllers![exerciseId]!.length)
+                  //         ? repControllers![exerciseId]![i]
+                  //         : null,
+                  //     keyboardType: TextInputType.number,
+                  //     textAlign: TextAlign.center,
+                  //     style: Theme.of(context).textTheme.bodyMedium,
+                  //     decoration: InputDecoration(
+                  //       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                  //       border: OutlineInputBorder(
+                  //         borderRadius: BorderRadius.circular(6),
+                  //       ),
+                  //       isDense: true,
+                  //       hintText: "0 reps",
+                  //       hintStyle: TextStyle(
+                  //         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  //         fontSize: 12,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
             ),

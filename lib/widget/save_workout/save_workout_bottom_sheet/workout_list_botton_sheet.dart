@@ -83,7 +83,7 @@ class WorkoutListBottonSheet extends ConsumerWidget {
                         .map(
                           (set) => ListTile(
                             title: Text(
-                              "Seria: Powtórzenia: ${set.rep}, Kg: ${set.kg}",
+                              "Seria: Powtórzenia: ${set.colRepMin},  Kg: ${set.kg}",
                             ),
                             trailing:
                                 set.isChecked

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/weight_type.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
@@ -269,7 +270,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
         );
         
         row.colKg = match.colKg;
-        row.colRep = match.colRep;
+        row.colRepMin = match.colRepMin;
+        row.colRepMax = match.colRepMax;
         row.isChecked = match.isChecked;
         row.isFailure = match.isFailure;
         row.rowColor = row.isChecked
@@ -312,7 +314,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
         return CompletedSet(
           colStep: set.step, 
           actualKg: set.kg,
-          actualReps: set.rep,
+          actualReps: set.colRepMin,
+          weightType: WeightType.kg,
           completed: set.isChecked,
           toFailure: set.isFailure,
         );

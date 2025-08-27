@@ -4,8 +4,8 @@ import 'package:work_plan_front/model/weight_type.dart';
 import 'package:work_plan_front/provider/weight_type_provider.dart';
 
 class WeightSelected extends ConsumerWidget {
-  final String exerciseId; // ✅ WYMAGANE - ID ĆWICZENIA
-  final String? exerciseName; // ✅ OPCJONALNE - NAZWA DLA LEPSZEGO UX
+  final String exerciseId; 
+  final String? exerciseName; 
   
   const WeightSelected({
     super.key,
@@ -39,7 +39,7 @@ class WeightSelected extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        // ✅ POKAŻ NAZWĘ ĆWICZENIA JEŚLI JEST DOSTĘPNA
+        //  POKAŻ NAZWĘ ĆWICZENIA JEŚLI JEST DOSTĘPNA
         if (exerciseName != null) ...[
           const SizedBox(height: 8),
           Text(

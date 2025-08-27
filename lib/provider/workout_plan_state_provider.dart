@@ -37,7 +37,8 @@ class WorkoutPlanState {
 class ExerciseRowState {
   final int colStep;
   final int colKg;
-  final int colRep;
+  final int colRepMin;
+  final int colRepMax;
   final bool isChecked;
    final String exerciseNumber; 
    final bool isFailure;
@@ -45,20 +46,22 @@ class ExerciseRowState {
 
     required this.colStep,
     required this.colKg,
-    required this.colRep,
+    required this.colRepMin,
+    required this.colRepMax,
     required this.isChecked,
     required this.exerciseNumber,
     this.isFailure = false,
   });
    @override
   String toString() {
-    return 'ExerciseRowState(colStep: $colStep, colKg: $colKg, colRep: $colRep,isFailure: $isFailure, isChecked: $isChecked, exerciseNumber: $exerciseNumber)';
+    return 'ExerciseRowState(colStep: $colStep, colKg: $colKg, colRepMin: $colRepMin, colRepMax: $colRepMax, isFailure: $isFailure, isChecked: $isChecked, exerciseNumber: $exerciseNumber)';
   }
 
   Map<String, dynamic> toJson() => {
     'colStep': colStep,
     'colKg': colKg,
-    'colRep': colRep,
+    'colRepMin': colRepMin,
+    'colRepMax': colRepMax,
     'isFailure': isFailure,
     'isChecked': isChecked,
     'exerciseNumber': exerciseNumber, 
@@ -67,7 +70,8 @@ class ExerciseRowState {
   factory ExerciseRowState.fromJson(Map<String, dynamic> json) => ExerciseRowState(
     colStep: json['colStep'],
     colKg: json['colKg'],
-    colRep: json['colRep'],
+    colRepMin: json['colRepMin'],
+    colRepMax: json['colRepMax'],
     isFailure: json['isFailure'] ?? false,
     isChecked: json['isChecked'],
     exerciseNumber: json['exerciseNumber'] ?? "Unknown Number",
@@ -202,7 +206,8 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     planRows.add(ExerciseRowState(
       colStep: initialStep,
       colKg: initialKg,
-      colRep: initialRep,
+      colRepMin: initialRep,
+      colRepMax: initialRep,
       isChecked: false,
       isFailure: false,
       exerciseNumber: exerciseNumber,

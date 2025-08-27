@@ -90,7 +90,8 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
         final newData = rowData.data.map((row) => ExerciseRow(
           colStep: row.colStep,
           colKg: row.colKg,
-          colRep: row.colRep,
+          colRepMin: row.colRepMin,
+          colRepMax: row.colRepMax,
           isChecked: false,
           isFailure: false,
           rowColor: Colors.transparent,

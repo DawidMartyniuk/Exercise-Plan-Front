@@ -21,7 +21,8 @@ class PerformedExercise {
 
 class ExerciseSet {
   final int step;
-  final int rep;
+  final int colRepMin;
+  final int colRepMax;
   final int kg;
   final bool isChecked;
   final bool
@@ -29,7 +30,8 @@ class ExerciseSet {
 
   ExerciseSet({
     required this.step,
-    required this.rep,
+    required this.colRepMin,
+    required this.colRepMax,
     required this.kg,
     required this.isChecked,
     required this.isFailure,
@@ -69,7 +71,8 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
           print('getPerformedExercises: $row');
           return ExerciseSet(
             step: row.colStep,
-            rep: row.colRep,
+            colRepMin: row.colRepMin,
+            colRepMax: row.colRepMax,
             kg: row.colKg,
             isChecked: row.isChecked,
             isFailure: row.isFailure,
@@ -100,7 +103,7 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
   for (final ex in result) {
     print('✅ Exercise: ${ex.name} (ID: ${ex.id}), sets: ${ex.sets.length}');
     for (final set in ex.sets) {
-      print('  - Set: step=${set.step}, kg=${set.kg}, reps=${set.rep}, isFailure=${set.isFailure}');
+      print('  - Set: step=${set.step}, kg=${set.kg}, reps=${set.colRepMin}-${set.colRepMax}, isFailure=${set.isFailure}');
     }
   }
   

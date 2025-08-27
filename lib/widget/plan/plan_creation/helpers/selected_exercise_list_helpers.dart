@@ -40,7 +40,7 @@ class SelectedExerciseListHelpers {
       "exerciseName": exercise.name,
       "notes": "",
       "rows": [
-        {"colStep": "1", "colKg": "0", "colRep": "0"}
+        {"colStep": "1", "colKg": "0", "colRep": "0", "colRepMax": "0"}
       ]
     };
   }
@@ -48,7 +48,7 @@ class SelectedExerciseListHelpers {
   /// Kopiuje wartości z ostatniego setu dla nowego setu
   static Map<String, String> generateNewSetFromLast(List<Map<String, String>> rows, int setNumber) {
     if (rows.isEmpty) {
-      return {"colStep": "$setNumber", "colKg": "0", "colRep": "0"};
+      return {"colStep": "$setNumber", "colKg": "0", "colRep": "0", "colRepMax": "0"};
     }
     
     final lastRow = rows.last;
@@ -56,6 +56,7 @@ class SelectedExerciseListHelpers {
       "colStep": "$setNumber",
       "colKg": lastRow["colKg"] ?? "0",
       "colRep": lastRow["colRep"] ?? "0",
+      "colRepMax": lastRow["colRepMax"] ?? "0",
     };
   }
 

@@ -68,7 +68,7 @@ class ExerciseTableHelpers {
               // Reps
               _buildEditableCell(
                 context,
-                row.colRep.toString(),
+                row.colRepMin.toString(),
                 "reps",
                 (value) => onRepChanged(row, value, exerciseRowsData.exercise_number), // ✅ POPRAWKA
               ),
