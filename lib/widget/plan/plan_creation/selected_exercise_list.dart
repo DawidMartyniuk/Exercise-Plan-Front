@@ -197,6 +197,8 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
+      shrinkWrap: true,
+       physics: const NeverScrollableScrollPhysics(),
       onReorder: _reorderExercises,
       itemCount: widget.exercises.length,
       proxyDecorator: (child, index, animation) {

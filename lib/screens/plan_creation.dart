@@ -25,7 +25,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   Map<String, List<Map<String, String>>> Function()? _getTableData;
   String exerciseTableTitle = "";
 
-  final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey = 
+  final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey =
       GlobalKey<SelectedExerciseListState>();
 
   // MAPĘ DO PRZECHOWYWANIA DANYCH PODCZAS ZAMIANY
@@ -44,20 +44,26 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     print("💾 Starting plan save process...");
 
     if (!_isPlanReadToSave) {
-      ToastUtils.showValidationError(context,
-          customMessage: "Wypełnij tytuł planu i dodaj przynajmniej jedno ćwiczenie");
+      ToastUtils.showValidationError(
+        context,
+        customMessage:
+            "Wypełnij tytuł planu i dodaj przynajmniej jedno ćwiczenie",
+      );
       return;
     }
 
     if (_getTableData == null) {
-      ToastUtils.showErrorToast(context: context, message: "Brak danych tabeli");
+      ToastUtils.showErrorToast(
+        context: context,
+        message: "Brak danych tabeli",
+      );
       return;
     }
 
     try {
       // ✅ POBIERZ I POKAŻ SUROWE DANE
       final tableData = _getTableData!();
-      
+
       print("🔍 Raw table data:");
       tableData.forEach((exerciseId, rows) {
         print("  - Exercise $exerciseId:");
@@ -89,7 +95,8 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       await exercisePlanNotifier.initializeExercisePlan(payload);
 
       final statusCode = await exercisePlanNotifier.saveExercisePlan(
-          onlyThis: exercisePlanNotifier.state.last);
+        onlyThis: exercisePlanNotifier.state.last,
+      );
 
       if (statusCode == 200 || statusCode == 201) {
         await _handleSaveSuccess();
@@ -138,131 +145,145 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   void _showUnsavedChangesDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: Text(
-          "Czy na pewno chcesz wrócić?",
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-        content: Text(
-          "Wprowadzone zmiany nie zostały zapisane.",
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              "Anuluj",
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            title: Text(
+              "Czy na pewno chcesz wrócić?",
               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Zamknij dialog
-              Navigator.of(context).pop(); // Wróć do poprzedniego ekranu
-            },
-            child: Text(
-              "Wróć bez zapisywania",
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            content: Text(
+              "Wprowadzone zmiany nie zostały zapisane.",
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  "Anuluj",
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Zamknij dialog
+                  Navigator.of(context).pop(); // Wróć do poprzedniego ekranu
+                },
+                child: Text(
+                  "Wróć bez zapisywania",
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   /// ✅ NOWA METODA - OBSŁUGA ZMIANY ĆWICZENIA
-  Future<void> _handleExerciseReplacement(Exercise oldExercise, Map<String, dynamic> savedData) async {
+  Future<void> _handleExerciseReplacement(
+    Exercise oldExercise,
+    Map<String, dynamic> savedData,
+  ) async {
     print("🔄 Starting exercise replacement process for: ${oldExercise.name}");
     print("🔄 Old exercise ID: ${oldExercise.id}");
     print("🔄 Saved data: $savedData");
-    
+
     // ✅ ZAPISZ DANE DO PRZYWRÓCENIA PÓŹNIEJ
     _pendingReplacementData = savedData;
     _oldExerciseIdForReplacement = oldExercise.id;
-    
+
     // ✅ USUŃ STARE ĆWICZENIE Z LISTY
     setState(() {
       selectedExercise.removeWhere((exercise) => exercise.id == oldExercise.id);
     });
-    
+
     // ✅ PRZEJDŹ DO EKRANU WYBORU ĆWICZENIA
     final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
-        builder: (ctx) => ExercisesScreen(
-          isSelectionMode: true,
-          title: 'Zamień ćwiczenie: ${oldExercise.name}',
-          onMultipleExercisesSelected: (exercises) {
-            print('Otrzymano ${exercises.length} ćwiczeń do zamiany');
-          },
-        ),
+        builder:
+            (ctx) => ExercisesScreen(
+              isSelectionMode: true,
+              title: 'Zamień ćwiczenie: ${oldExercise.name}',
+              onMultipleExercisesSelected: (exercises) {
+                print('Otrzymano ${exercises.length} ćwiczeń do zamiany');
+              },
+            ),
       ),
     );
 
     if (result != null && _pendingReplacementData != null) {
       if (result is Exercise) {
         print("🔄 Selected new exercise: ${result.name} (ID: ${result.id})");
-        
+
         // ✅ DODAJ NOWE ĆWICZENIE
         setState(() {
           selectedExercise.add(result);
         });
-        
+
         // ✅ PRZYWRÓĆ ZAPISANE DANE PO ZBUDOWANIU WIDGETU
         WidgetsBinding.instance.addPostFrameCallback((_) {
           print("🔄 Attempting to restore data:");
           print("  - New exercise ID: ${result.id}");
           print("  - Old exercise ID: $_oldExerciseIdForReplacement");
           print("  - Saved data: $_pendingReplacementData");
-          
+
           // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
-            newExerciseId: result.id,
-            oldExerciseId: _oldExerciseIdForReplacement!,
-            savedData: _pendingReplacementData!,
-          );
-          
+          _selectedExerciseListKey.currentState
+              ?.restoreExerciseDataWithTransfer(
+                newExerciseId: result.id,
+                oldExerciseId: _oldExerciseIdForReplacement!,
+                savedData: _pendingReplacementData!,
+              );
+
           // ✅ WYCZYŚĆ TYMCZASOWE DANE
           _pendingReplacementData = null;
           _oldExerciseIdForReplacement = null;
-          
-          print("✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}");
-          
+
+          print(
+            "✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}",
+          );
+
           // ✅ POKAŻ TOAST O POWODZENIU
           ToastUtils.showSuccessToast(
-            context: context, 
+            context: context,
             message: "Zamieniono ${oldExercise.name} na ${result.name}",
           );
         });
-        
       } else if (result is List<Exercise> && result.isNotEmpty) {
         // ✅ JEŚLI WYBRANO LISTĘ - WEŹ PIERWSZE ĆWICZENIE
         final newExercise = result.first;
-        print("🔄 Selected first exercise from list: ${newExercise.name} (ID: ${newExercise.id})");
-        
+        print(
+          "🔄 Selected first exercise from list: ${newExercise.name} (ID: ${newExercise.id})",
+        );
+
         setState(() {
           selectedExercise.add(newExercise);
         });
-        
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           print("🔄 Attempting to restore data for list selection:");
           print("  - New exercise ID: ${newExercise.id}");
           print("  - Old exercise ID: $_oldExerciseIdForReplacement");
-          
+
           // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
-            newExerciseId: newExercise.id,
-            oldExerciseId: _oldExerciseIdForReplacement!,
-            savedData: _pendingReplacementData!,
-          );
-          
+          _selectedExerciseListKey.currentState
+              ?.restoreExerciseDataWithTransfer(
+                newExerciseId: newExercise.id,
+                oldExerciseId: _oldExerciseIdForReplacement!,
+                savedData: _pendingReplacementData!,
+              );
+
           _pendingReplacementData = null;
           _oldExerciseIdForReplacement = null;
-          
-          print("✅ Exercise replacement completed: ${oldExercise.name} → ${newExercise.name}");
-          
+
+          print(
+            "✅ Exercise replacement completed: ${oldExercise.name} → ${newExercise.name}",
+          );
+
           ToastUtils.showSuccessToast(
-            context: context, 
+            context: context,
             message: "Zamieniono ${oldExercise.name} na ${newExercise.name}",
           );
         });
@@ -273,24 +294,25 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       setState(() {
         selectedExercise.add(oldExercise);
       });
-      
+
       // ✅ PRZYWRÓĆ DANE STAREGO ĆWICZENIA
       if (_pendingReplacementData != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
-            newExerciseId: oldExercise.id,
-            oldExerciseId: _oldExerciseIdForReplacement!,
-            savedData: _pendingReplacementData!,
-          );
-          
+          _selectedExerciseListKey.currentState
+              ?.restoreExerciseDataWithTransfer(
+                newExerciseId: oldExercise.id,
+                oldExerciseId: _oldExerciseIdForReplacement!,
+                savedData: _pendingReplacementData!,
+              );
+
           _pendingReplacementData = null;
           _oldExerciseIdForReplacement = null;
         });
       }
-      
+
       ToastUtils.showInfoToast(
-        context: context, 
+        context: context,
         message: "Anulowano zamianę ćwiczenia",
       );
     }
@@ -300,13 +322,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   Future<void> _addExerciseToPlan() async {
     final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
-        builder: (ctx) => ExercisesScreen(
-          isSelectionMode: true,
-          title: 'Wybierz ćwiczenie do planu',
-          onMultipleExercisesSelected: (exercises) {
-            print('Otrzymano ${exercises.length} ćwiczeń');
-          },
-        ),
+        builder:
+            (ctx) => ExercisesScreen(
+              isSelectionMode: true,
+              title: 'Wybierz ćwiczenie do planu',
+              onMultipleExercisesSelected: (exercises) {
+                print('Otrzymano ${exercises.length} ćwiczeń');
+              },
+            ),
       ),
     );
 
@@ -316,12 +339,16 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE
           int addedCount = 0;
           for (final exercise in result) {
-            if (!selectedExercise.any((existing) => existing.id == exercise.id)) {
+            if (!selectedExercise.any(
+              (existing) => existing.id == exercise.id,
+            )) {
               selectedExercise.add(exercise);
               addedCount++;
             }
           }
-          print('Dodano $addedCount nowych ćwiczeń do planu (z ${result.length} otrzymanych)');
+          print(
+            'Dodano $addedCount nowych ćwiczeń do planu (z ${result.length} otrzymanych)',
+          );
         } else if (result is Exercise) {
           // ✅ POJEDYNCZE ĆWICZENIE - DODAJ JEDNO
           if (!selectedExercise.any((existing) => existing.id == result.id)) {
@@ -348,7 +375,9 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     setState(() {
       selectedExercise = reorderedExercises;
     });
-    print("🔄 Zmieniono kolejność ćwiczeń: ${reorderedExercises.map((e) => e.name).join(', ')}");
+    print(
+      "🔄 Zmieniono kolejność ćwiczeń: ${reorderedExercises.map((e) => e.name).join(', ')}",
+    );
   }
 
   @override
@@ -368,9 +397,12 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
               child: Text(
                 "Save",
                 style: TextStyle(
-                  color: _isPlanReadToSave
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                  color:
+                      _isPlanReadToSave
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
                 ),
@@ -379,57 +411,57 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           ),
         ],
       ),
-     body: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      child: CustomScrollView(
-        slivers: [
-          // ✅ PlanTitleField będzie zawsze u góry
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PlanTitleField(
-                  initialValue: exerciseTableTitle,
-                  onChanged: (value) =>
-                      setState(() => exerciseTableTitle = value),
-                ),
-                const SizedBox(height: 20),
-              ],
+      body: 
+
+      CustomScrollView(
+      slivers: [
+        //  ZWIJAJĄCE SIĘ POLE TYTUŁU - NA GÓRZE
+        SliverToBoxAdapter(
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+            child: PlanTitleField(
+              initialValue: exerciseTableTitle,
+              onChanged: (value) => setState(() => exerciseTableTitle = value),
             ),
           ),
+        ),
 
-          // ✅ Lista ćwiczeń będzie scrollowana
-          SliverFillRemaining(
-            hasScrollBody: true,
-            child: Column(
-              children: [
-                Expanded(
-                  child: selectedExercise.isEmpty
-                      ? _buildEmptyState()
-                      : SelectedExerciseList(
-                          key: _selectedExerciseListKey,
-                          onGetTableData: (getterFunction) {
-                            _getTableData = getterFunction;
-                          },
-                          exercises: selectedExercise,
-                          onDelete: _removeExerciseFromPlan,
-                          onExercisesReordered: _onExercisesReordered,
-                          onReplaceExercise: _handleExerciseReplacement,
-                        ),
-                ),
-
-                // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
-                ExerciseSelectionButton(
-                  onPressed: _addExerciseToPlan,
-                ),
-                   ],
-                 ),
-              ),
-        ],
+            //  Lista ćwiczeń będzie scrollowana
+           selectedExercise.isEmpty
+  ? SliverFillRemaining(
+      child: _buildEmptyState(),
+    )
+  : SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: SelectedExerciseList(
+          key: _selectedExerciseListKey,
+          onGetTableData: (getterFunction) {
+            _getTableData = getterFunction;
+          },
+          exercises: selectedExercise,
+          onDelete: _removeExerciseFromPlan,
+          onExercisesReordered: _onExercisesReordered,
+          onReplaceExercise: _handleExerciseReplacement,
         ),
       ),
-    );
-  }
+    ),
+
+                  // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
+                   if (selectedExercise.isNotEmpty)
+                      SliverToBoxAdapter(
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                          child: ExerciseSelectionButton(
+                            onPressed: _addExerciseToPlan,
+             ),
+            ),
+          ),
+      ],
+    ),
+  );
+
+}
 
   /// Buduje stan pusty gdy brak ćwiczeń
   Widget _buildEmptyState() {
@@ -457,6 +489,12 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             ),
             textAlign: TextAlign.center,
           ),
+          SizedBox(height: 24),
+
+           ExerciseSelectionButton(
+          onPressed: _addExerciseToPlan,
+        ),
+
         ],
       ),
     );
