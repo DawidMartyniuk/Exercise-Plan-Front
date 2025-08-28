@@ -5,44 +5,41 @@ enum RepsType {
   single,
   range;
 
-
-//extension RepsTypeExtension on RepsType {
   String get displayName {
     switch (this) {
       case RepsType.single:
-        return 'seconds';
+        return 'single';
       case RepsType.range:
-        return 'reps';
+        return 'range';
     }
   }
 
   String get fullName {
     switch (this) {
       case RepsType.single:
-        return 'Seconds';
+        return 'Single';
       case RepsType.range:
-        return 'Repetitions';
+        return 'Range';
     }
   }
 
   String toDbString() {
     switch (this) {
       case RepsType.single:
-        return 'seconds';
+        return 'single';
       case RepsType.range:
-        return 'reps';
+        return 'range';
     }
   }
 
   static RepsType fromString(String value) {
     switch (value.toLowerCase().trim()) {
-      case 'reps':
-        return RepsType.range;
-      case 'seconds':
+      case 'single':
         return RepsType.single;
+      case 'range':
+        return RepsType.range;
       default:
-        return RepsType.single; // default value
+        return RepsType.range;
     }
   }
 }
-

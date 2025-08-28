@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/repsTypeProvider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/selected_exercise_list.dart';
@@ -74,8 +75,13 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
       // ✅ UTWÓRZ MAPĘ NAZW ĆWICZEŃ
       final exerciseNames = <String, String>{};
+      final exerciseRepTypes = <String, String>{};
+
       for (final exercise in selectedExercise) {
         exerciseNames[exercise.id] = exercise.name;
+
+        final repType = ref.read(exerciseRepsTypeProvider(exercise.id));
+        exerciseRepTypes[exercise.id] = repType.toDbString();
       }
       print("🔍 Exercise names: $exerciseNames");
 
@@ -84,6 +90,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         tableData: tableData,
         planTitle: exerciseTableTitle,
         exerciseNames: exerciseNames,
+        exerciseRepTypes: exerciseRepTypes,
       );
 
       print("📤 Final payload to send:");

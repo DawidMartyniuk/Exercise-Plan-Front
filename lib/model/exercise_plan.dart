@@ -68,6 +68,7 @@ class ExerciseRowsData {
     return {
       'exercise_name': exercise_name,
       'exercise_number': exercise_number,
+      'rep_type': rep_type.toDbString(),
       'notes': notes,
       'data': data.map((row) => row.toJson()).toList(),
     };
@@ -105,6 +106,7 @@ class ExerciseRowsData {
     String? exercise_number,
     String? exercise_name,
     List<ExerciseRow>? data,
+    RepsType? rep_type,
     String? notes,
   }) {
     return ExerciseRowsData(
