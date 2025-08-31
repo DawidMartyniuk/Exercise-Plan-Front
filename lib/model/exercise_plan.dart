@@ -133,6 +133,7 @@ class ExerciseRow {
   bool isChecked;
   Color? rowColor;
   bool isFailure;
+  bool isUserModified; 
 
   ExerciseRow({
     required this.colStep,
@@ -143,7 +144,32 @@ class ExerciseRow {
     this.isChecked = false,
     this.isFailure = false,
     this.rowColor,
+    this.isUserModified = false,
   }) : colRepMax = colRepMax ?? colRepMin;
+
+  ExerciseRow copyWith({
+    int? colStep,
+    int? colKg,
+    int? colRepMin,
+    int? colRepMax,
+    bool? isChecked,
+    bool? isFailure,
+    Color? rowColor,
+    WeightType? weightType,
+    bool? isUserModified,
+  }) {
+    return ExerciseRow(
+      colStep: colStep ?? this.colStep,
+      colKg: colKg ?? this.colKg,
+      colRepMin: colRepMin ?? this.colRepMin,
+      colRepMax: colRepMax ?? this.colRepMax,
+      isChecked: isChecked ?? this.isChecked,
+      isFailure: isFailure ?? this.isFailure,
+      rowColor: rowColor ?? this.rowColor,
+      weightType: weightType ?? this.weightType,
+      isUserModified: isUserModified ?? this.isUserModified,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
