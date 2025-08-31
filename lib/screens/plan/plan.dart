@@ -87,15 +87,22 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   }
 
   void deletePlan(ExerciseTable plan, BuildContext context, int planID) {
-    // ✅ NAJPIERW USUŃ Z GRUP
+
+      if (!context.mounted) {
+    print("❌ Context is not mounted - cannot delete plan");
+    return;
+  }
+
+    //  NAJPIERW USUŃ Z GRUP
     ref.read(planGroupsProvider.notifier).removePlanFromGroups(plan, '');
 
-    // ✅ POTEM USUŃ Z BACKENDU
+    // POTEM USUŃ Z BACKENDU
     ref
         .read(exercisePlanProvider.notifier)
         .deleteExercisePlan(planID)
         .then((_) {
           // ✅ SUKCES - plan usunięty
+          if(context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -104,16 +111,19 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               backgroundColor: Colors.green,
             ),
           );
+          }
         })
         .catchError((error) {
           // ✅ BŁĄD - przywróć plan do grup
           print("❌ Błąd usuwania planu: $error");
+            if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Failed to delete plan: $error"),
               backgroundColor: Colors.red,
             ),
           );
+            }
 
           // TODO: Przywróć plan do oryginalnej grupy
         });
