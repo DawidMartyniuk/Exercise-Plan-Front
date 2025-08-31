@@ -13,7 +13,7 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
   void _autoLoad() async {
     print("🔄 _autoLoad: Rozpoczynam!");
     try {
-      print("🔄 TrainingSessionNotifier: Auto-loading sessions...");
+    //  print("🔄 TrainingSessionNotifier: Auto-loading sessions...");
       await fetchSessions(); 
       print("✅ TrainingSessionNotifier: Auto-load completed with ${state.length} sessions");
     } catch (e) {
@@ -24,17 +24,17 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
   }
 
   void addSession(TrainingSession session) {
-    print("🔍 Provider: Dodaję sesję do stanu");
+   // print("🔍 Provider: Dodaję sesję do stanu");
     state = [...state, session];
-    print("🔍 Provider: Nowy stan ma ${state.length} sesji");
+   // print("🔍 Provider: Nowy stan ma ${state.length} sesji");
   }
 
   // ✅ Pobierz sesje dla zalogowanego użytkownika
   Future<void> fetchSessions({bool forceRefresh = false}) async {
-    print("🔍 Provider: fetchSessions() WEJŚCIE (forceRefresh: $forceRefresh)");
+   // print("🔍 Provider: fetchSessions() WEJŚCIE (forceRefresh: $forceRefresh)");
     
     try {
-      print("🔍 Provider: Rozpoczynam pobieranie sesji... (forceRefresh: $forceRefresh)");
+    //  print("🔍 Provider: Rozpoczynam pobieranie sesji... (forceRefresh: $forceRefresh)");
       
       final sessions = await _service.getUserTrainingSessions().timeout(
         Duration(seconds: 10),
@@ -44,10 +44,10 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
         },
       );
       
-      print("🔍 Provider: Pobrano ${sessions.length} sesji z serwisu");
+    // print("🔍 Provider: Pobrano ${sessions.length} sesji z serwisu");
       
       if (sessions.isEmpty) {
-        print("⚠️ Provider: Serwis zwrócił 0 sesji - sprawdź API");
+     //   print("⚠️ Provider: Serwis zwrócił 0 sesji - sprawdź API");
       }
       
       // ✅ SORTUJ OD NAJNOWSZYCH
@@ -55,13 +55,13 @@ class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSessio
       
       // ✅ DEBUG - POKAŻ PIERWSZE 3 SESJE
       for (final session in sessions.take(3)) {
-        print("🕐 Sesja ID=${session.id}, Data=${session.startedAt}, PlanID=${session.exerciseTableId}");
+       // print("🕐 Sesja ID=${session.id}, Data=${session.startedAt}, PlanID=${session.exerciseTableId}");
       }
       
       state = sessions;
-      print("🔍 Provider: Stan zaktualizowany, teraz ma ${state.length} sesji");
-      print("🔍 Provider: fetchSessions() WYJŚCIE - SUCCESS");
-      
+    //  print("🔍 Provider: Stan zaktualizowany, teraz ma ${state.length} sesji");
+    // print("🔍 Provider: fetchSessions() WYJŚCIE - SUCCESS");
+     
     } catch (e, stackTrace) {
       print('❌ Provider: Błąd pobierania sesji: $e');
       print('❌ Stack trace: $stackTrace');

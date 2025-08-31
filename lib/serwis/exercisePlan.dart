@@ -1,9 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:jwt_decoder/jwt_decoder.dart';
-
 import 'package:work_plan_front/model/exercise_plan.dart';
-
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 import 'package:work_plan_front/utils/token_storage.dart';
@@ -50,7 +47,7 @@ class ExerciseService {
     }
 
     // ✅ DODAJ DEBUGGING - SPRAWDŹ CO WYSYŁASZ
-    print("🔍 saveExercisePlan - Input exercises count: ${exercises.length}");
+    //print("🔍 saveExercisePlan - Input exercises count: ${exercises.length}");
     for (int i = 0; i < exercises.length; i++) {
       final exercise = exercises[i];
       print("  - Exercise $i: ${exercise.exercise_table}");
@@ -64,10 +61,10 @@ class ExerciseService {
     final payload = {"exercises": exercises.map((e) => e.toJson()).toList()};
 
     // ✅ DODAJ DEBUGGING - SPRAWDŹ PAYLOAD
-    print("📤 Final payload being sent to backend:");
+   // print("📤 Final payload being sent to backend:");
     print("  - Payload keys: ${payload.keys.toList()}");
     print("  - Exercises count in payload: ${(payload['exercises'] as List).length}");
-    print("  - Full payload: ${jsonEncode(payload)}");
+   // print("  - Full payload: ${jsonEncode(payload)}");
 
     final url = Uri.parse("$_baseUrl$_exerciseUrl");
     final response = await http.post(
@@ -77,9 +74,9 @@ class ExerciseService {
     );
 
     // ✅ DODAJ DEBUGGING - SPRAWDŹ ODPOWIEDŹ
-    print("📥 Backend response:");
-    print("  - Status code: ${response.statusCode}");
-    print("  - Response body: ${response.body}");
+   // print("📥 Backend response:");
+    //print("  - Status code: ${response.statusCode}");
+    //print("  - Response body: ${response.body}");
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       print("Exercise plan saved successfully!");

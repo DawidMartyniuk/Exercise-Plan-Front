@@ -33,9 +33,9 @@ class TrainingSessionService {
       };
 
       // ✅ DEBUGGING - sprawdź payload przed wysłaniem
-      print("🔍 Final payload: ${jsonEncode(payload)}");
-      print("🔍 Payload ma exercise_table_name: ${payload.containsKey('exercise_table_name')}");
-      print("🔍 exercise_table_name value: '${payload['exercise_table_name']}'");
+     // print("🔍 Final payload: ${jsonEncode(payload)}");
+     // print("🔍 Payload ma exercise_table_name: ${payload.containsKey('exercise_table_name')}");
+     // print("🔍 exercise_table_name value: '${payload['exercise_table_name']}'");
 
       final response = await http.post(
         url,
@@ -43,7 +43,7 @@ class TrainingSessionService {
         body: jsonEncode(payload),
       );
 
-      print("🔍 Response status: ${response.statusCode}");
+      //print("🔍 Response status: ${response.statusCode}");
       print("🔍 Response body: ${response.body}");
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -75,10 +75,10 @@ class TrainingSessionService {
 
   // Pobierz sesje treningowe dla zalogowanego użytkownika
   Future<List<TrainingSession>> getUserTrainingSessions() async {
-    print("🌐 TrainingSessionService: getUserTrainingSessions() START");
+  //  print("🌐 TrainingSessionService: getUserTrainingSessions() START");
     
     try {
-      print("🌐 TrainingSessionService: Rozpoczynam pobieranie sesji...");
+     // print("🌐 TrainingSessionService: Rozpoczynam pobieranie sesji...");
       
       final userId = await getUserIdFromToken();
       print("👤 User ID: $userId");
@@ -97,8 +97,8 @@ class TrainingSessionService {
         headers: await getHeaders(),
       ).timeout(Duration(seconds: 5));
 
-      print("📡 Response status: ${response.statusCode}");
-      print("📡 Response body length: ${response.body.length}");
+      //print("📡 Response status: ${response.statusCode}");
+   //   print("📡 Response body length: ${response.body.length}");
       print("📡 Response body preview: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}");
 
       if (response.statusCode == 200) {
@@ -117,8 +117,8 @@ class TrainingSessionService {
         for (int i = 0; i < jsonData.length; i++) {
           try {
             final sessionData = jsonData[i] as Map<String, dynamic>;
-            print("🔍 Parsowanie sesji $i: exercise_table_id=${sessionData['exercise_table_id']}");
-            
+           // print("🔍 Parsowanie sesji $i: exercise_table_id=${sessionData['exercise_table_id']}");
+
             final session = TrainingSession.fromJson(sessionData);
             sessions.add(session);
             
@@ -130,7 +130,7 @@ class TrainingSessionService {
           }
         }
         
-        print("✅ Sparsowano ${sessions.length}/${jsonData.length} sesji");
+       // print("✅ Sparsowano ${sessions.length}/${jsonData.length} sesji");
         return sessions;
       } else {
         print("❌ Błąd API: ${response.statusCode} - ${response.body}");

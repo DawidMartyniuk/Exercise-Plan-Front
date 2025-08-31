@@ -73,8 +73,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       isScrollControlled: true,
       context: context,
       builder: (ctx) => ExerciseLimitUpload(
-        exerciseStart: AppConstants().exerciseStart,  // ✅ UŻYJ INSTANCJI
-        exerciseLimit: AppConstants().exerciseBatchSize,  // ✅ BATCH SIZE
+        exerciseStart: AppConstants().exerciseStart,
+        exerciseLimit: AppConstants().exerciseBatchSize,
       ),
     );
     if (result != null && result['update'] == true) {
@@ -139,7 +139,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
     final exercises = ref.watch(exerciseProvider);
 
-    print('Exercises in build: $exercises');
+   // print('Exercises in build: $exercises');
 
     return Scaffold(
       appBar: AppBar(
