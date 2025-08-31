@@ -112,9 +112,25 @@ class TrainingSessionService {
           return [];
         }
         
-        final sessions = jsonData.map((item) => TrainingSession.fromJson(item)).toList();
-        print("✅ Sparsowano ${sessions.length} sesji");
+        final sessions = <TrainingSession>[];
         
+        for (int i = 0; i < jsonData.length; i++) {
+          try {
+            final sessionData = jsonData[i] as Map<String, dynamic>;
+            print("🔍 Parsowanie sesji $i: exercise_table_id=${sessionData['exercise_table_id']}");
+            
+            final session = TrainingSession.fromJson(sessionData);
+            sessions.add(session);
+            
+          } catch (e) {
+            print("❌ Błąd parsowania sesji $i: $e");
+            print("📄 Problematyczne dane: ${jsonData[i]}");
+            // ✅ KONTYNUUJ Z NASTĘPNĄ SESJĄ, NIE PRZERYWAJ
+            continue;
+          }
+        }
+        
+        print("✅ Sparsowano ${sessions.length}/${jsonData.length} sesji");
         return sessions;
       } else {
         print("❌ Błąd API: ${response.statusCode} - ${response.body}");

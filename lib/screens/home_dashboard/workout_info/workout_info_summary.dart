@@ -40,9 +40,9 @@ class WorkoutInfoSummary extends ConsumerWidget with WorkoutCardHelpers {
         _buildInfoRow(context, 'Total Reps', '${getTotalReps(trainingSession)}'),
         _buildInfoRow(context, "Total Exercises", '${getTotalExercises(trainingSession)}'),
 
-        if (trainingSession.description.isNotEmpty) ...[
+        if (trainingSession.description?.isNotEmpty == true) ...[
           SizedBox(height: 16),
-          _buildInfoRow(context, 'Description', trainingSession.description),
+          _buildInfoRow(context, 'Description', trainingSession.description ?? 'No description'),
         ],
       ],
     );

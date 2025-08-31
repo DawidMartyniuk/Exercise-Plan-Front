@@ -12,6 +12,7 @@ import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
+import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
@@ -293,7 +294,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   final currentWorkout = ref.read(currentWorkoutPlanProvider);
   final performedExercises = getPerformedExercises(currentWorkout);
 
-  // ✅ DEBUGGING - sprawdź co masz w currentWorkout
   print("🔍 currentWorkout?.plan?.id: ${currentWorkout?.plan?.id}");
   print("🔍 currentWorkout?.plan?.exercise_table: '${currentWorkout?.plan?.exercise_table}'");
   
@@ -323,20 +323,18 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     );
   }).toList();
 
-  // ✅ POPRAWKA - sprawdź czy exerciseTableName nie jest puste
   final exerciseTableName = currentWorkout?.plan?.exercise_table ?? '';
   print("🔍 exerciseTableName: '$exerciseTableName'");
   
-  // ✅ Fallback jeśli nazwa jest pusta
   final finalExerciseTableName = exerciseTableName.isEmpty 
       ? 'Workout Session' 
       : exerciseTableName;
-  
+
   print("🔍 finalExerciseTableName: '$finalExerciseTableName'");
 
   final trainingSession = TrainingSession(
     exerciseTableId: currentWorkout?.plan?.id ?? 0,
-    exercise_table_name: finalExerciseTableName, // ✅ UŻYJ FALLBACK
+    exercise_table_name: finalExerciseTableName,
     startedAt: DateTime(
       yearSelected,
       monthSelected,
@@ -352,7 +350,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     exercises: completedExercises, 
   );
   
-  // ✅ DEBUGGING - sprawdź JSON przed wysłaniem
   final json = trainingSession.toJson();
   print('🔍 Wysyłam JSON: ${jsonEncode(json)}');
   print('🔍 exercise_table_name w JSON: "${json['exercise_table_name']}"');
@@ -369,8 +366,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
         SnackBar(content: Text('Trening zapisany!')),
       );
       
-      // ✅ ZAKOŃCZ TRENING DOPIERO PO POMYŚLNYM ZAPISIE
-      await _endWorkoutAfterSave();
+      // ✅ ZAKOŃCZ TRENING I PRZEJDŹ DO PLANÓW
+      await _endWorkoutAndNavigateToPlans();
       
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -384,8 +381,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   }
 }
 
-// ✅ NOWA METODA - KOŃCZY TRENING PO ZAPISIE
-Future<void> _endWorkoutAfterSave() async {
+// ✅ NOWA METODA - KOŃCZY TRENING I PRZECHODZI DO PLANÓW
+Future<void> _endWorkoutAndNavigateToPlans() async {
   try {
     final currentWorkout = ref.read(currentWorkoutPlanProvider);
     
@@ -405,10 +402,15 @@ Future<void> _endWorkoutAfterSave() async {
       widget.onEndWorkout!();
     }
     
-    // ✅ WRÓĆ DO EKRANU PLANÓW
-    Navigator.of(context).pop();
-    
     print("✅ Trening zakończony po zapisie");
+    
+    // ✅ PRZEJDŹ DO EKRANU PLANÓW (TAB INDEX 2)
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => TabsScreen(selectedPageIndex: 2), // ✅ INDEX 2 = PLANY
+      ),
+      (route) => false, // ✅ USUŃ WSZYSTKIE POPRZEDNIE ROUTE
+    );
     
   } catch (e) {
     print("❌ Błąd podczas kończenia treningu: $e");

@@ -1,4 +1,3 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
@@ -22,7 +21,7 @@ mixin WorkoutCardHelpers {
     return "$difference days ago";
   }
 
-  // ✅ OBLICZENIA STATYSTYK
+
   int getTotalSets(TrainingSession session) {
     return session.exercises
         .map((ex) => ex.sets.length)
@@ -42,28 +41,45 @@ mixin WorkoutCardHelpers {
 
   // ✅ POBIERANIE DANYCH
   String getUserName(WidgetRef ref) {
-    final authResponse = ref.watch(authProviderLogin);
-    return authResponse?.user?.name ?? 'User';
+    try {
+      final authResponse = ref.watch(authProviderLogin);
+      return authResponse?.user?.name ?? 'User';
+    } catch (e) {
+      print("❌ Error getting user name: $e");
+      return 'User';
+    }
   }
 
   String? getWorkoutTitle(TrainingSession session, WidgetRef ref) {
-    final exercisePlans = ref.watch(exercisePlanProvider);
-    
-    if (exercisePlans.isEmpty) {
-      return session.exercise_table_name?.isNotEmpty == true 
-          ? session.exercise_table_name 
-          : "Workout #${session.id}";
-    }
-
     try {
-      final matchingPlan = exercisePlans.firstWhere(
-        (plan) => plan.id == session.exerciseTableId,
-      );
-      return matchingPlan.exercise_table;
+      final exercisePlans = ref.watch(exercisePlanProvider);
+      
+      // ✅ SPRAWDŹ CZY session.exerciseTableId NIE JEST NULL
+      if (session.exerciseTableId == null) {
+        return session.exercise_table_name?.isNotEmpty == true 
+            ? session.exercise_table_name 
+            : "Workout #${session.id ?? 'Unknown'}";
+      }
+      
+      if (exercisePlans.isEmpty) {
+        return session.exercise_table_name?.isNotEmpty == true 
+            ? session.exercise_table_name 
+            : "Workout #${session.id ?? 'Unknown'}";
+      }
+
+      try {
+        final matchingPlan = exercisePlans.firstWhere(
+          (plan) => plan.id == session.exerciseTableId,
+        );
+        return matchingPlan.exercise_table;
+      } catch (e) {
+        return session.exercise_table_name?.isNotEmpty == true 
+            ? session.exercise_table_name 
+            : "Workout #${session.id ?? 'Unknown'}";
+      }
     } catch (e) {
-      return session.exercise_table_name?.isNotEmpty == true 
-          ? session.exercise_table_name 
-          : "Workout #${session.id}";
+      print("❌ Error getting workout title: $e");
+      return "Workout #${session.id ?? 'Unknown'}";
     }
   }
 

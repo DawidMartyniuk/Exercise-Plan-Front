@@ -2,15 +2,15 @@ import 'package:work_plan_front/model/weight_type.dart';
 
 class TrainingSession {
   final int? id;
-  final int exerciseTableId;
+  final int? exerciseTableId;
   final String? exercise_table_name;
   final DateTime startedAt;
   final int duration;
   final bool completed;
   final double totalWeight;
   final WeightType weightType;
-  final String description;
-  final String imageBase64;
+  final String? description;
+  final String? imageBase64;
   final List<CompletedExercise> exercises;
 
   TrainingSession({
@@ -27,25 +27,28 @@ class TrainingSession {
     required this.exercises,
   });
 
-  factory TrainingSession.fromJson(Map<String, dynamic> json) {
+ factory TrainingSession.fromJson(Map<String, dynamic> json) {
+  try {
     return TrainingSession(
-      id: json['id'],
-      exerciseTableId: json['exercise_table_id'],
-      exercise_table_name: json['exercise_table_name'], // ✅ null → optional
-      startedAt: DateTime.parse(json['started_at']),
-      duration: json['duration'],
-      completed: json['completed'] == 1, // ✅ int → bool
-      totalWeight: (json['total_weight'] as num).toDouble(),
-      weightType: json['weight_type'] != null 
-          ? WeightType.fromString(json['weight_type']) 
-          : WeightType.kg, 
-      description: json['description'] ?? '', // ✅ null → empty string
-      imageBase64: json['image_base64'] ?? '', // ✅ null → empty string
-      exercises: (json['exercises'] as List)
-          .map((ex) => CompletedExercise.fromJson(ex))
+      id: json['id'] as int?,
+      exerciseTableId: json['exercise_table_id'] as int?,
+      exercise_table_name: json['exercise_table_name'] as String?,
+      startedAt: DateTime.parse(json['started_at'] ?? DateTime.now().toIso8601String()),
+      duration: (json['duration'] as int?) ?? 0,
+      completed: (json['completed'] == 1) || (json['completed'] == true),
+      totalWeight: ((json['total_weight'] as num?) ?? 0).toDouble(),
+      description: json['description'] as String?,
+      imageBase64: json['image_base64'] as String?,
+      exercises: (json['exercises'] as List<dynamic>? ?? [])
+          .map((e) => CompletedExercise.fromJson(e as Map<String, dynamic>))
           .toList(),
     );
+  } catch (e) {
+    print("❌ Błąd parsowania TrainingSession: $e");
+    print("📄 JSON: $json");
+    rethrow;
   }
+}
 
   Map<String, dynamic> toJson() {
     final json = {
