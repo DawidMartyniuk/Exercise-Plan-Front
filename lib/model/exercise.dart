@@ -1,35 +1,74 @@
-class Exercise{
-  final String id;
+import 'package:hive/hive.dart';
+
+part 'exercise.g.dart';
+
+@HiveType(typeId: 0)
+class Exercise extends HiveObject {
+  @HiveField(0)
+  final String exerciseId; // ✅ ZMIANA: z 'id' na 'exerciseId'
+
+  @HiveField(1)
   final String name;
-  final String bodyPart;
-  final String equipment;
-  final String gifUrl;
-  final String target;
+
+  @HiveField(2)
+  final List<String> bodyParts; // ✅ ZMIANA: z String na List<String>
+
+  @HiveField(3)
+  final List<String> equipments; // ✅ ZMIANA: z String na List<String>
+
+  @HiveField(4)
+  final String? gifUrl;
+
+  @HiveField(5)
+  final List<String> targetMuscles; // ✅ ZMIANA: z 'target' na 'targetMuscles'
+
+  @HiveField(6)
   final List<String> secondaryMuscles;
+
+  @HiveField(7)
   final List<String> instructions;
 
   Exercise({
-    required this.id,
+    required this.exerciseId,
     required this.name,
-    required this.bodyPart,
-    required this.equipment,
-    required this.gifUrl,
-    required this.target,
+    required this.bodyParts,
+    required this.equipments,
+    this.gifUrl,
+    required this.targetMuscles,
     required this.secondaryMuscles,
     required this.instructions,
   });
 
+  // ✅ GETTER dla kompatybilności
+  String get id => exerciseId;
+  String get bodyPart => bodyParts.isNotEmpty ? bodyParts.first : '';
+  String get equipment => equipments.isNotEmpty ? equipments.first : '';
+  String get target => targetMuscles.isNotEmpty ? targetMuscles.first : '';
+
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      bodyPart: json['bodyPart'] as String,
-      equipment: json['equipment'] as String,
-      gifUrl: json['gifUrl'] as String,
-      target: json['target'] as String,
-      secondaryMuscles: List<String>.from(json['secondaryMuscles']),
-      instructions: List<String>.from(json['instructions']),
+      exerciseId: json['exerciseId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      bodyParts: List<String>.from(json['bodyParts'] ?? []),
+      equipments: List<String>.from(json['equipments'] ?? []),
+      gifUrl: json['gifUrl']?.toString(),
+      targetMuscles: List<String>.from(json['targetMuscles'] ?? []),
+      secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? []),
+      instructions: List<String>.from(json['instructions'] ?? []),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'exerciseId': exerciseId,
+      'name': name,
+      'bodyParts': bodyParts,
+      'equipments': equipments,
+      'gifUrl': gifUrl,
+      'targetMuscles': targetMuscles,
+      'secondaryMuscles': secondaryMuscles,
+      'instructions': instructions,
+    };
   }
 }
 
@@ -190,50 +229,3 @@ extension EquipmentListExtension on EquipmentList {
   }
 }
 
-// extension TargetListExtension on TargetList {
-//   String get name {
-//     switch (this) {
-//       case TargetList.abductors:
-//         return "abductors";
-//       case TargetList.abs:
-//         return "abs";
-//       case TargetList.adductors:
-//         return "adductors";
-//       case TargetList.biceps:
-//         return "biceps";
-//       case TargetList.calves:
-//         return "calves";
-//       case TargetList.cardiovascularSystem:
-//         return "cardiovascular system";
-//       case TargetList.delts:
-//         return "delts";
-//       case TargetList.forearms:
-//         return "forearms";
-//       case TargetList.glutes:
-//         return "glutes";
-//       case TargetList.hamstrings:
-//         return "hamstrings";
-//       case TargetList.lats:
-//         return "lats";
-//       case TargetList.levatorScapulae:
-//         return "levator scapulae";
-//       case TargetList.pectorals:
-//         return "pectorals";
-//       case TargetList.quads:
-//         return "quads";
-//       case TargetList.serratusAnterior:
-//         return "serratus anterior";
-//       case TargetList.spine:
-//         return "spine";
-//       case TargetList.traps:
-//         return "traps";
-//       case TargetList.triceps:
-//         return "triceps";
-//       case TargetList.upperBack:
-//         return "upper back";
-//     }
-//   }
-// }
-
-
-       
