@@ -37,6 +37,7 @@ class Exercise extends HiveObject {
     required this.targetMuscles,
     required this.secondaryMuscles,
     required this.instructions,
+   
   });
 
   // ✅ GETTER dla kompatybilności
@@ -47,6 +48,7 @@ class Exercise extends HiveObject {
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
     return Exercise(
+      
       exerciseId: json['exerciseId']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       bodyParts: List<String>.from(json['bodyParts'] ?? []),

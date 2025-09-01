@@ -515,7 +515,8 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
           gifUrl: '',
           targetMuscles: [],
           secondaryMuscles: [],
-          instructions: [],
+          instructions: [], 
+          //id: '',
         ),
       );
 

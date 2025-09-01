@@ -13,8 +13,8 @@ class BuildSetsTable extends ConsumerWidget {
   final String exerciseName;
   final List<Map<String, String>> rows;
   final Map<String, List<TextEditingController>>? kgControllers;
-  final Map<String, List<TextEditingController>>? repControllers;
-   final Map<String, List<TextEditingController>>? repMaxControllers;
+  final Map<String, List<TextEditingController>>? repMinControllers; // ✅ ZMIENIONE z repControllers
+  final Map<String, List<TextEditingController>>? repMaxControllers;
 
   const BuildSetsTable({
     Key? key,
@@ -22,7 +22,7 @@ class BuildSetsTable extends ConsumerWidget {
     required this.exerciseName,
     required this.rows,
     this.kgControllers,
-    this.repControllers,
+    this.repMinControllers, // ✅ ZMIENIONE
     this.repMaxControllers,
   }) : super(key: key);
 
@@ -103,13 +103,13 @@ class BuildSetsTable extends ConsumerWidget {
     }
   }
   void _covertRepsValues(RepsType newRepsType, RepsType oldRepsType){
-    if (repControllers?[exerciseId] == null) return;
+    if (repMinControllers?[exerciseId] == null) return;
 
     print("🔄 Converting reps for exercise $exerciseId ($exerciseName):");
     print("  From: $oldRepsType -> To: $newRepsType");
 
-    for (int i=0; i < repControllers![exerciseId]!.length; i++ ){
-      final repController = repControllers![exerciseId]![i];
+    for (int i=0; i < repMinControllers![exerciseId]!.length; i++ ){
+      final repController = repMinControllers![exerciseId]![i];
       final repMaxController = repMaxControllers![exerciseId]![i];
     
     if(newRepsType == RepsType.range && oldRepsType == RepsType.single){
@@ -294,33 +294,10 @@ class BuildSetsTable extends ConsumerWidget {
                   RepsField(
                     setIndex: i,
                     exerciseId: exerciseId,
-                    repControllers: repControllers,
+                    repControllers: repMinControllers,
                     repMaxControllers: repMaxControllers,
                     ref: ref,
                   )
-                  // Expanded(
-                  //   child: TextField(
-                  //     controller: (repControllers?[exerciseId] != null &&
-                  //                 i < repControllers![exerciseId]!.length)
-                  //         ? repControllers![exerciseId]![i]
-                  //         : null,
-                  //     keyboardType: TextInputType.number,
-                  //     textAlign: TextAlign.center,
-                  //     style: Theme.of(context).textTheme.bodyMedium,
-                  //     decoration: InputDecoration(
-                  //       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                  //       border: OutlineInputBorder(
-                  //         borderRadius: BorderRadius.circular(6),
-                  //       ),
-                  //       isDense: true,
-                  //       hintText: "0 reps",
-                  //       hintStyle: TextStyle(
-                  //         color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                  //         fontSize: 12,
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
             ),

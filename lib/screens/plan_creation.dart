@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/repsTypeProvider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
@@ -13,7 +15,11 @@ import 'package:work_plan_front/widget/plan/plan_creation/components/plan_creati
 import 'package:work_plan_front/utils/toast_untils.dart';
 
 class PlanCreation extends ConsumerStatefulWidget {
-  const PlanCreation({super.key});
+  final ExerciseTable? planToEdit;
+  const PlanCreation({
+    super.key,
+    this.planToEdit
+  });
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
@@ -22,6 +28,7 @@ class PlanCreation extends ConsumerStatefulWidget {
 }
 
 class _StatePlanCreation extends ConsumerState<PlanCreation> {
+  final TextEditingController _planTitleController = TextEditingController();
   List<Exercise> selectedExercise = [];
   Map<String, List<Map<String, String>>> Function()? _getTableData;
   String exerciseTableTitle = "";
@@ -29,7 +36,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey =
       GlobalKey<SelectedExerciseListState>();
 
-  // MAPĘ DO PRZECHOWYWANIA DANYCH PODCZAS ZAMIANY
   Map<String, dynamic>? _pendingReplacementData;
   String? _oldExerciseIdForReplacement;
 
@@ -38,6 +44,199 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       exerciseTableTitle,
       selectedExercise,
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.planToEdit != null) {
+      _loadPlanForEditing(widget.planToEdit!);
+    }
+  }
+
+  void _loadPlanForEditing(ExerciseTable plan) {
+    _planTitleController.text = plan.exercise_table;
+    // Ustaw tytuł planu
+    _planTitleController.text = plan.exercise_table;
+
+    _loadExercisesFromPlan(plan);
+  }
+
+ void _loadExercisesFromPlan(ExerciseTable plan) async {
+  print("\n🔄 Loading exercises from plan...");
+  
+  final allExercises = ref.read(exerciseProvider);
+  allExercises.when(
+    data: (exercisesList) {
+      print("📊 Available exercises in provider: ${exercisesList.length}");
+      return null;
+    },
+    loading: () {
+      print("📊 Available exercises in provider: loading...");
+      return null;
+    },
+    error: (error, stack) {
+      print("📊 Available exercises in provider: error: $error");
+      return null;
+    },
+  );
+
+  final selectedExercisesList = <Exercise>[];
+  final exerciseData = <String, List<Map<String, String>>>{};
+
+  print("\n📋 Processing plan rows:");
+  for (int groupIndex = 0; groupIndex < plan.rows.length; groupIndex++) {
+    final rowData = plan.rows[groupIndex];
+    final exerciseId = rowData.exercise_number;
+    print("\n🏋️ Group $groupIndex: Exercise ID '$exerciseId' (${rowData.exercise_name})");
+    print("  📊 This group has ${rowData.data.length} sets");
+
+    // ✅ ZNAJDŹ ĆWICZENIE BEZPOŚREDNIO (BEZ WHEN)
+    final exercise = allExercises.when(
+      data: (exercisesList) {
+        return exercisesList.firstWhere(
+          (ex) => ex.exerciseId == exerciseId,
+          orElse: () {
+            print("  ⚠️ Exercise with exerciseId '$exerciseId' not found! Creating fallback");
+            return Exercise(
+             // id: exerciseId,
+              exerciseId: exerciseId,
+              name: rowData.exercise_name ?? "Unknown Exercise",
+              bodyParts: [],
+              equipments: [],
+              gifUrl: "",
+              targetMuscles: [],
+              secondaryMuscles: [],
+              instructions: [],
+            );
+          },
+        );
+      },
+      loading: () => Exercise(
+       //id: exerciseId,
+        exerciseId: exerciseId, 
+        name: rowData.exercise_name ?? "Loading Exercise",
+        bodyParts: [],
+        equipments: [],
+        gifUrl: "",
+        targetMuscles: [],
+        secondaryMuscles: [],
+        instructions: [],
+      ),
+      error: (error, stack) => Exercise(
+       // id: exerciseId,
+        exerciseId: exerciseId,
+        name: rowData.exercise_name ?? "Error Exercise", 
+        bodyParts: [],
+        equipments: [],
+        gifUrl: "",
+        targetMuscles: [],
+        secondaryMuscles: [],
+        instructions: [],
+      ),
+    );
+
+    print("  ✅ Exercise resolved: ${exercise.name} (ID: ${exercise.id})");
+
+    // ✅ DODAJ ĆWICZENIE DO LISTY
+    if (!selectedExercisesList.any((ex) => ex.id == exercise.id)) {
+      selectedExercisesList.add(exercise);
+      print("  ➕ Added exercise to selected list: ${exercise.name}");
+    }
+
+    // ✅ PRZYGOTUJ DANE SETÓW
+    if (!exerciseData.containsKey(exercise.id)) {
+      exerciseData[exercise.id] = [];
+      print("  📊 Initialized exercise data for ${exercise.id}");
+    }
+
+    // ✅ DODAJ DANE SETÓW Z PLANU - UŻYWAJ colRepMin
+    for (int setIndex = 0; setIndex < rowData.data.length; setIndex++) {
+      final row = rowData.data[setIndex];
+      
+      final isRange = row.colRepMin != row.colRepMax;
+      final repsType = isRange ? 'range' : 'single';
+      
+      final setData = {
+        "colStep": row.colStep.toString(),
+        "colKg": row.colKg.toString(),
+        "colRepMin": row.colRepMin.toString(), // ✅ POPRAWIONE z colRep
+        "colRepMax": row.colRepMax.toString(),
+        "repsType": repsType,
+      };
+      exerciseData[exercise.id]!.add(setData);
+      
+      print("    📋 Set ${setIndex + 1}: step=${row.colStep}, kg=${row.colKg}, repMin=${row.colRepMin}, repMax=${row.colRepMax}, type=$repsType");
+    }
+    
+    print("  ✅ Loaded ${rowData.data.length} sets for exercise ${exercise.name}");
+  }
+
+  print("\n📊 Final loading summary:");
+  print("  🏋️ Selected exercises: ${selectedExercisesList.length}");
+  print("  📋 Exercise data keys: ${exerciseData.keys.toList()}");
+  
+  for (final entry in exerciseData.entries) {
+    print("    ${entry.key}: ${entry.value.length} sets");
+    for (int i = 0; i < entry.value.length; i++) {
+      final setData = entry.value[i];
+      print("      Set ${i + 1}: repMin=${setData['colRepMin']}, repMax=${setData['colRepMax']}, repsType=${setData['repsType']}");
+    }
+  }
+
+  // ✅ ZAKTUALIZUJ STAN
+  setState(() {
+    selectedExercise = selectedExercisesList;
+    exerciseTableTitle = plan.exercise_table; // ✅ DODAJ TO!
+    print("✅ State updated with ${selectedExercisesList.length} exercises");
+    print("✅ Plan title set to: '$exerciseTableTitle'");
+  });
+
+  // ✅ ZAŁADUJ DANE DO UI
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    print("\n📤 PostFrameCallback: Loading data to SelectedExerciseList...");
+    _selectedExerciseListKey.currentState?.loadInitialData(
+      exerciseData,
+      _extractInitialNotes(),
+    );
+    print("✅ Data loading initiated");
+  });
+}
+
+  Map<String, String> _extractInitialNotes() {
+    if (widget.planToEdit == null) return {};
+
+    final Map<String, String> notes = {};
+
+    for (final rowData in widget.planToEdit!.rows) {
+      notes[rowData.exercise_number] = rowData.notes ?? "";
+    }
+
+    return notes;
+  }
+
+  Map<String, List<Map<String, String>>> _extractInitialData() {
+    if (widget.planToEdit == null) return {};
+
+    final Map<String, List<Map<String, String>>> data = {};
+
+    for (final rowData in widget.planToEdit!.rows) {
+      final exerciseId = rowData.exercise_number;
+      data[exerciseId] =
+          rowData.data
+              .map(
+                (row) => {
+                  "colStep": row.colStep.toString(),
+                  "colKg": row.colKg.toString(),
+                  "colRepMin": row.colRepMin.toString(),
+                  "colRepMax": row.colRepMax.toString(),
+                },
+              )
+              .toList();
+    }
+
+    return data;
   }
 
   /// Zapisuje dane planu treningowego
@@ -97,7 +296,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       print("  - Structure: ${payload.keys.toList()}");
       print("  - Full payload: $payload");
 
-      // Zapisywanie planu
       final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
       await exercisePlanNotifier.initializeExercisePlan(payload);
 
@@ -395,7 +593,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _handleBackPress,
         ),
-        title: const Text("Plan Creation"),
+        title:   widget.planToEdit != null ? Text("Edit Plan") : Text("Create Plan"),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -418,57 +616,59 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           ),
         ],
       ),
-      body: 
-
-      CustomScrollView(
-      slivers: [
-        //  ZWIJAJĄCE SIĘ POLE TYTUŁU - NA GÓRZE
-        SliverToBoxAdapter(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
-            child: PlanTitleField(
-              initialValue: exerciseTableTitle,
-              onChanged: (value) => setState(() => exerciseTableTitle = value),
+      body: CustomScrollView(
+        slivers: [
+          //  ZWIJAJĄCE SIĘ POLE TYTUŁU - NA GÓRZE
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+              child: PlanTitleField(
+                initialValue: exerciseTableTitle,
+                onChanged:
+                    (value) => setState(() => exerciseTableTitle = value),
+              ),
             ),
           ),
-        ),
 
-            //  Lista ćwiczeń będzie scrollowana
-           selectedExercise.isEmpty
-  ? SliverFillRemaining(
-      child: _buildEmptyState(),
-    )
-  : SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: SelectedExerciseList(
-          key: _selectedExerciseListKey,
-          onGetTableData: (getterFunction) {
-            _getTableData = getterFunction;
-          },
-          exercises: selectedExercise,
-          onDelete: _removeExerciseFromPlan,
-          onExercisesReordered: _onExercisesReordered,
-          onReplaceExercise: _handleExerciseReplacement,
-        ),
+          //  Lista ćwiczeń będzie scrollowana
+          selectedExercise.isEmpty
+              ? SliverFillRemaining(child: _buildEmptyState())
+              : SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: SelectedExerciseList(
+                    key: _selectedExerciseListKey,
+                    onGetTableData: (getterFunction) {
+                      _getTableData = getterFunction;
+                    },
+                    exercises: selectedExercise,
+                    onDelete: _removeExerciseFromPlan,
+                    initialData:
+                        widget.planToEdit != null
+                            ? _extractInitialData()
+                            : null,
+                    initialNotes:
+                        widget.planToEdit != null
+                            ? _extractInitialNotes()
+                            : null,
+                    onExercisesReordered: _onExercisesReordered,
+                    onReplaceExercise: _handleExerciseReplacement,
+                  ),
+                ),
+              ),
+
+          // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
+          if (selectedExercise.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+                child: ExerciseSelectionButton(onPressed: _addExerciseToPlan),
+              ),
+            ),
+        ],
       ),
-    ),
-
-                  // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
-                   if (selectedExercise.isNotEmpty)
-                      SliverToBoxAdapter(
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-                          child: ExerciseSelectionButton(
-                            onPressed: _addExerciseToPlan,
-             ),
-            ),
-          ),
-      ],
-    ),
-  );
-
-}
+    );
+  }
 
   /// Buduje stan pusty gdy brak ćwiczeń
   Widget _buildEmptyState() {
@@ -498,10 +698,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           ),
           SizedBox(height: 24),
 
-           ExerciseSelectionButton(
-          onPressed: _addExerciseToPlan,
-        ),
-
+          ExerciseSelectionButton(onPressed: _addExerciseToPlan),
         ],
       ),
     );

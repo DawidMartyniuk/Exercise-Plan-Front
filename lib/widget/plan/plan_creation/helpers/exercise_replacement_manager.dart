@@ -9,7 +9,7 @@ class ExerciseReplacementManager {
   Map<String, dynamic> saveExerciseData(
     String exerciseId,
     Map<String, List<TextEditingController>> kgControllers,
-    Map<String, List<TextEditingController>> repControllers,
+    Map<String, List<TextEditingController>> repMinControllers, // ✅ ZMIENIONE
     Map<String, TextEditingController> notesControllers,
   ) {
     final List<Map<String, String>> savedSets = [];
@@ -17,9 +17,9 @@ class ExerciseReplacementManager {
     
     print("💾 Saving exercise data for: $exerciseId");
     
-    if (kgControllers[exerciseId] != null && repControllers[exerciseId] != null) {
+    if (kgControllers[exerciseId] != null && repMinControllers[exerciseId] != null) {
       final kgCtrlList = kgControllers[exerciseId]!;
-      final repCtrlList = repControllers[exerciseId]!;
+      final repCtrlList = repMinControllers[exerciseId]!;
       
       for (int i = 0; i < kgCtrlList.length && i < repCtrlList.length; i++) {
         final kgValue = kgCtrlList[i].text;
@@ -27,9 +27,9 @@ class ExerciseReplacementManager {
         
         final Map<String, String> setData = <String, String>{
           "colStep": "${i + 1}",
-          "colKg": kgValue,
-          "colRep": repValue,
-        };
+          "colRepMin": repValue, // ✅ ZMIENIONE z colRep
+        "colRepMax": repValue, // ✅ DODAJ TO
+    };
         
         savedSets.add(setData);
         print("  💾 Saved Set ${i + 1}: ${kgValue}kg x ${repValue} reps");
@@ -129,7 +129,8 @@ class ExerciseReplacementManager {
 
     for (int i = 0; i < savedSets.length; i++) {
       final kg = savedSets[i]["colKg"] ?? "0";
-      final reps = savedSets[i]["colRep"] ?? "0";
+      final reps = savedSets[i]["colRepMin"] ?? "0"; //  ZMIENIONE z colRep
+      final repMax = savedSets[i]["colRepMax"] ?? reps;
 
       final kgController = TextEditingController(text: kg);
       final repController = TextEditingController(text: reps);
@@ -152,7 +153,7 @@ class ExerciseReplacementManager {
   void logReplacementData(
     Exercise exercise,
     Map<String, List<TextEditingController>> kgControllers,
-    Map<String, List<TextEditingController>> repControllers,
+    Map<String, List<TextEditingController>> repMinControllers,
     Map<String, TextEditingController> notesControllers,
   ) {
     final exerciseId = exercise.id;
@@ -162,7 +163,7 @@ class ExerciseReplacementManager {
       exerciseId, 
       exercise,
       kgControllers: kgControllers,
-      repControllers: repControllers,
+      repControllers: repMinControllers, // ✅ZMIENIONE
       notesControllers: notesControllers,
     );
   }

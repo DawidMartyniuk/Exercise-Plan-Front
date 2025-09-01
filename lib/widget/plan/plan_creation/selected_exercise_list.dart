@@ -13,6 +13,10 @@ class SelectedExerciseList extends StatefulWidget {
   final void Function(List<Exercise>)? onExercisesReordered;
   final void Function(Exercise oldExercise, Map<String, dynamic> savedData)? onReplaceExercise;
 
+  // ✅ OPCJONALNE DANE POCZĄTKOWE DLA EDYCJI
+  final Map<String, List<Map<String, String>>>? initialData; 
+  final Map<String, String>? initialNotes; 
+
   const SelectedExerciseList({
     Key? key,
     required this.exercises,
@@ -20,6 +24,8 @@ class SelectedExerciseList extends StatefulWidget {
     required this.onGetTableData,
     this.onExercisesReordered,
     this.onReplaceExercise,
+    this.initialData,
+    this.initialNotes,
   }) : super(key: key);
 
   @override
@@ -34,22 +40,184 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   @override
   void initState() {
     super.initState();
+
+    // ✅ INICJALIZUJ MANAGERY
     _dataManager = SelectedExerciseDataManager();
     _replacementManager = ExerciseReplacementManager();
     _reorderedExercises = List.from(widget.exercises);
- 
-    // Inicjalizuj dane dla wszystkich ćwiczeń
+
+    // ✅ ZAŁADUJ DANE POCZĄTKOWE JEŚLI ISTNIEJĄ (EDYCJA)
+    if (widget.initialData != null && widget.initialData!.isNotEmpty) {
+      _loadInitialDataForEdit();
+    } else {
+      // ✅ INICJALIZUJ NORMALNE DANE DLA NOWEGO PLANU
+      _initializeNewPlanData();
+    }
+
+    // ✅ USTAW CALLBACK DLA POBRANIA DANYCH
+    widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
+  }
+
+  // ✅ ŁADOWANIE DANYCH DO EDYCJI
+  void _loadInitialDataForEdit() {
+  print("🔄 Loading initial data for plan editing...");
+  print("📊 Total exercises to load: ${widget.exercises.length}");
+  print("📊 Initial data keys: ${widget.initialData?.keys.toList()}");
+  print("📊 Initial notes keys: ${widget.initialNotes?.keys.toList()}");
+  
+  for (final exercise in widget.exercises) {
+    final exerciseId = exercise.id;
+    print("\n🏋️ Processing exercise: ${exercise.name} (ID: $exerciseId)");
+    
+    // Sprawdź czy mamy dane dla tego ćwiczenia
+    if (widget.initialData!.containsKey(exerciseId)) {
+      final rows = widget.initialData![exerciseId]!;
+      final notes = widget.initialNotes?[exerciseId] ?? "";
+      
+      print("✅ Found data for exercise $exerciseId:");
+      print("  📝 Notes: '$notes'");
+      print("  📊 Sets count: ${rows.length}");
+      
+        for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      print("  📋 Set ${i + 1}: colKg=${row['colKg']}, colRepMin=${row['colRepMin']}, colRepMax=${row['colRepMax']}, colStep=${row['colStep']}, repsType=${row['repsType']}");
+    }
+      
+      // Załaduj dane do managera
+      _dataManager.exerciseRows[exerciseId] = {
+        "exerciseName": exercise.name,
+        "notes": notes,
+        "rows": List<Map<String, String>>.from(rows),
+      };
+      
+      print("  ✅ Data loaded to manager for $exerciseId");
+      
+      // Stwórz kontrolery dla istniejących setów
+      _createControllersForExistingData(exerciseId, rows, notes);
+      
+      print("  ✅ Controllers created for $exerciseId");
+    } else {
+      print("⚠️ No data found for exercise $exerciseId - initializing standard data");
+      // Jeśli nie ma danych - inicjalizuj standardowo
+      _dataManager.initializeExerciseData(exercise, _updateRowValue);
+    }
+  }
+  
+  print("\n✅ Initial data loaded for ${widget.initialData!.length} exercises");
+  print("🔍 Final data manager state:");
+  for (final entry in _dataManager.exerciseRows.entries) {
+    final exerciseId = entry.key;
+    final data = entry.value;
+    final rows = data["rows"] as List<Map<String, String>>;
+    print("  🏋️ $exerciseId: ${rows.length} sets, notes: '${data["notes"]}'");
+  }
+}
+
+  // ✅ INICJALIZACJA NOWEGO PLANU
+  void _initializeNewPlanData() {
     for (final exercise in widget.exercises) {
       _dataManager.initializeExerciseData(exercise, _updateRowValue);
     }
-   
-    widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
+  }
+
+  // ✅ PUBLICZNA METODA DO ŁADOWANIA DANYCH Z ZEWNĄTRZ
+  void loadInitialData(
+    Map<String, List<Map<String, String>>> exerciseData,
+    Map<String, String> exerciseNotes,
+  ) {
+    print("🔄 Loading initial data externally...");
+    
+    for (final entry in exerciseData.entries) {
+      final exerciseId = entry.key;
+      final rows = entry.value;
+      
+      // Załaduj dane setów
+      _dataManager.exerciseRows[exerciseId] = {
+        "exerciseName": widget.exercises.firstWhere(
+          (ex) => ex.id == exerciseId,
+          orElse: () => widget.exercises.first,
+        ).name,
+        "notes": exerciseNotes[exerciseId] ?? "",
+        "rows": List<Map<String, String>>.from(rows),
+      };
+      
+      // Stwórz kontrolery dla istniejących setów
+      _createControllersForExistingData(exerciseId, rows, exerciseNotes[exerciseId] ?? "");
+    }
+    
+    setState(() {
+      // Trigger rebuild
+    });
+    
+    // Wywołaj callback z załadowanymi danymi
+    widget.onGetTableData?.call(() => _dataManager.exerciseRows.map(
+      (key, value) => MapEntry(key, value["rows"] as List<Map<String, String>>),
+    ));
+    
+    print("✅ External initial data loaded for ${exerciseData.length} exercises");
+  }
+
+  // ✅ TWORZENIE KONTROLERÓW DLA ISTNIEJĄCYCH DANYCH
+  void _createControllersForExistingData(String exerciseId, List<Map<String, String>> rows, String notes) {
+    // ✅ DISPOSE POPRZEDNICH KONTROLERÓW
+    _dataManager.kgControllers[exerciseId]?.forEach((c) => c.dispose());
+    _dataManager.repMinControllers[exerciseId]?.forEach((c) => c.dispose()); // ✅ ZMIENIONE
+    _dataManager.repMaxControllers[exerciseId]?.forEach((c) => c.dispose());
+
+    _dataManager.kgControllers[exerciseId] = [];
+    _dataManager.repMinControllers[exerciseId] = []; // ✅ ZMIENIONE
+    _dataManager.repMaxControllers[exerciseId] = [];
+    
+    for (int i = 0; i < rows.length; i++) {
+      final row = rows[i];
+      
+      final kgValue = row["colKg"] ?? "0";
+      final repMinValue = row["colRepMin"] ?? "0"; // ✅ ZMIENIONE z colRep
+      final repMaxValue = row["colRepMax"] ?? row["colRepMin"] ?? "0";
+      final repsType = row["repsType"] ?? "single";
+      
+      print("  🎛️ Set ${i + 1} controllers: kg='$kgValue', repMin='$repMinValue', repMax='$repMaxValue', type='$repsType'");
+      
+      final kgController = TextEditingController(text: kgValue);
+      kgController.addListener(() {
+        print("  📝 KG changed for $exerciseId set ${i + 1}: ${kgController.text}");
+        _updateRowValue(exerciseId, i, "colKg", kgController.text);
+      });
+      _dataManager.kgControllers[exerciseId]!.add(kgController);
+      
+      // ✅ KONTROLER REP MIN (poprzednio rep)
+      final repMinController = TextEditingController(text: repMinValue);
+      repMinController.addListener(() {
+        print("  📝 REP MIN changed for $exerciseId set ${i + 1}: ${repMinController.text}");
+        _updateRowValue(exerciseId, i, "colRepMin", repMinController.text); // ✅ ZMIENIONE
+      });
+      _dataManager.repMinControllers[exerciseId]!.add(repMinController); // ✅ ZMIENIONE
+    
+      final repMaxController = TextEditingController(text: repMaxValue);
+      repMaxController.addListener(() {
+        print("  📝 REP MAX changed for $exerciseId set ${i + 1}: ${repMaxController.text}");
+        _updateRowValue(exerciseId, i, "colRepMax", repMaxController.text);
+      });
+      _dataManager.repMaxControllers[exerciseId]!.add(repMaxController);
+      
+      final currentRows = _dataManager.exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+      if (i < currentRows.length) {
+        currentRows[i]["repsType"] = repsType;
+      }
+    }
+    
+    _dataManager.notesControllers[exerciseId]?.dispose();
+    _dataManager.notesControllers[exerciseId] = TextEditingController(text: notes);
+    _dataManager.notesControllers[exerciseId]!.addListener(() {
+      _updateNotes(exerciseId, _dataManager.notesControllers[exerciseId]!.text);
+    });
   }
 
   @override
   void didUpdateWidget(SelectedExerciseList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // Aktualizuj listę ćwiczeń jeśli się zmieniła
     if (widget.exercises.length != _reorderedExercises.length ||
         !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
       _reorderedExercises = List.from(widget.exercises);
@@ -66,6 +234,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
   }
 
+  // ✅ METODY AKCJI
   void _reorderExercises(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) {
@@ -113,7 +282,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     _replacementManager.logReplacementData(
       exercise,
       _dataManager.kgControllers,
-      _dataManager.repControllers,
+      _dataManager.repMinControllers,
       _dataManager.notesControllers,
     );
     
@@ -121,20 +290,15 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     final savedData = _replacementManager.saveExerciseData(
       exerciseId,
       _dataManager.kgControllers,
-      _dataManager.repControllers,
+      _dataManager.repMinControllers,
       _dataManager.notesControllers,
     );
-    
-    print("💾 Saved data: $savedData");
 
     if (widget.onReplaceExercise != null) {
-      print("🔄 Calling onReplaceExercise callback with saved data");
       widget.onReplaceExercise!(exercise, savedData);
     } else {
-      print("❌ onReplaceExercise callback is null - using fallback");
       widget.onDelete(exercise);
       _replacementManager.storePendingData(exerciseId, savedData);
-      print("🔄 Exercise replacement initiated. Data saved for restoration.");
     }
   }
 
@@ -150,8 +314,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     });
   }
 
-  /// Publiczne metody dla dostępu z zewnątrz
-
+  // ✅ PUBLICZNE METODY DLA DOSTĘPU Z ZEWNĄTRZ
   void restoreExerciseDataWithTransfer({
     required String newExerciseId,
     required String oldExerciseId,
@@ -165,25 +328,17 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
       exerciseRows: _dataManager.exerciseRows,
       notesControllers: _dataManager.notesControllers,
       kgControllers: _dataManager.kgControllers,
-      repControllers: _dataManager.repControllers,
+      repControllers: _dataManager.repMinControllers,
       updateRowCallback: _updateRowValue,
       onStateChanged: () => setState(() {}),
     );
-  }
-
-  void restoreExerciseData(String newExerciseId, String oldExerciseId) {
-    print("🔄 Legacy restore method called - this should NOT be used anymore!");
-    print("❌ Use restoreExerciseDataWithTransfer instead");
-    
-    final exercise = widget.exercises.firstWhere((e) => e.id == newExerciseId);
-    _dataManager.initializeExerciseData(exercise, _updateRowValue);
   }
 
   Map<String, dynamic> saveExerciseDataById(String exerciseId) {
     return _replacementManager.saveExerciseData(
       exerciseId,
       _dataManager.kgControllers,
-      _dataManager.repControllers,
+      _dataManager.repMinControllers,
       _dataManager.notesControllers,
     );
   }
@@ -198,7 +353,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
       shrinkWrap: true,
-       physics: const NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       onReorder: _reorderExercises,
       itemCount: widget.exercises.length,
       proxyDecorator: (child, index, animation) {
@@ -224,7 +379,6 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
           child: child,
         );
       },
-      
       itemBuilder: (context, index) {
         final exercise = widget.exercises[index];
         final exerciseId = exercise.id;
@@ -252,12 +406,10 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                   children: [
                     ReorderableDragStartListener(
                       index: index,
-                      child: Container(
-                        child: Icon(
-                          Icons.drag_handle,
-                          color: Theme.of(context).colorScheme.primary,
-                          size: 20,
-                        ),
+                      child: Icon(
+                        Icons.drag_handle,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 20,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -277,9 +429,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                         showBorder: false,
                       ),
                     ),
-                    
                     const SizedBox(width: 12),
-                    
                     // Nazwa ćwiczenia
                     Expanded(
                       child: Column(
@@ -306,7 +456,6 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                         ],
                       ),
                     ),
-                    
                     // Przyciski akcji
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -317,7 +466,6 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                           icon: const Icon(Icons.refresh),
                           tooltip: "Zamień ćwiczenie",
                         ),
-                     
                         IconButton(
                           onPressed: () => _openInfoExercise(exercise),
                           icon: const Icon(Icons.info_outline),
@@ -334,9 +482,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                     ),
                   ],
                 ),
-                
                 const SizedBox(height: 16),
-                
                 // Pole notatek
                 TextField(
                   controller: _dataManager.notesControllers[exerciseId],
@@ -351,21 +497,17 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
                   ),
                   maxLines: 1,
                 ),
-                
                 const SizedBox(height: 16),
-                
                 // Tabela setów
                 BuildSetsTable(
                   exerciseId: exerciseId,
                   exerciseName: exercise.name,
                   rows: _dataManager.getExerciseTableData(exerciseId),
                   kgControllers: _dataManager.kgControllers,
-                  repControllers: _dataManager.repControllers,
+                  repMinControllers: _dataManager.repMinControllers, // ✅ ZMIENIONE z repControllers
                   repMaxControllers: _dataManager.repMaxControllers,
                 ),
-                
                 const SizedBox(height: 12),
-                
                 // Przyciski akcji dla setów
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,

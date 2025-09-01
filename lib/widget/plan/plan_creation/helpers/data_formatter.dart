@@ -92,15 +92,15 @@ class DataFormatter {
           "notes": "",
           "rep_type": repType, // ✅ single lub range
           "data": rows.map((row) {
-            final repValue = int.tryParse(row["colRep"] ?? "0") ?? 0;
-            final repMaxValue = int.tryParse(row["colRepMax"] ?? row["colRep"] ?? "0") ?? 0;
+            final repMinValue = int.tryParse(row["colRepMin"] ?? "0") ?? 0; // ✅ ZMIENIONE z colRep
+            final repMaxValue = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? 0;
             
             return {
               "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
               "colKg": _parseWeight(row["colKg"] ?? "0"),
-              "colRepMin": repValue,                    // ✅ BACKEND OCZEKUJE
-              "colRepMax": repMaxValue != 0 ? repMaxValue : repValue, // ✅ BACKEND OCZEKUJE
-              "weight_unit": "kg",                      // ✅ BACKEND OCZEKUJE
+              "colRepMin": repMinValue,    // ✅ BACKEND OCZEKUJE
+              "colRepMax": repMaxValue,    // ✅ BACKEND OCZEKUJE
+              "weight_unit": "kg",
             };
           }).toList(),
         };
@@ -230,9 +230,10 @@ class DataFormatter {
       bool hasValidSet = false;
       for (final row in rows) {
         final kg = double.tryParse(row["colKg"] ?? "0") ?? 0;
-        final reps = int.tryParse(row["colRep"] ?? "0") ?? 0;
-        
-        if (kg > 0 && reps > 0) {
+        final repsMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+        final repsMax = int.tryParse(row["colRepMax"] ?? "0") ?? 0;
+
+        if (kg > 0 && repsMin > 0 && repsMax > 0) {
           hasValidSet = true;
           break;
         }

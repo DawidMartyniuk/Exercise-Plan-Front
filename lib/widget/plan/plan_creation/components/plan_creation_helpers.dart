@@ -89,8 +89,8 @@ class PlanCreationHelpers {
   static List<Map<String, String>> generateDefaultSets({int count = 1}) {
     return List.generate(count, (index) => {
       "colStep": "${index + 1}",
-      "colKg": "0",
-      "colRep": "0",
+     "colRepMin": "0", // ✅ ZMIENIONE z colRep
+      "colRepMax": "0", // ✅ DODAJ TO
     });
   }
 
@@ -144,8 +144,9 @@ class PlanCreationHelpers {
 
       final hasValidSet = exerciseData.any((row) {
         final kg = double.tryParse(row["colKg"] ?? "0") ?? 0;
-        final reps = int.tryParse(row["colRep"] ?? "0") ?? 0;
-        return kg > 0 && reps > 0;
+        final repsMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+        final repsMax = int.tryParse(row["colRepMax"] ?? "0") ?? 0;
+        return kg > 0 && repsMin > 0 && repsMax > 0;
       });
 
       if (!hasValidSet) {

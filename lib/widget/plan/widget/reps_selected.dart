@@ -128,7 +128,7 @@ class RepsSelected extends ConsumerWidget {
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: currentRepsType == RepsType.range
                   ? Colors.green.withAlpha(51)
-                  : Theme.of(context).colorScheme.surface,
+                  : Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                 ),

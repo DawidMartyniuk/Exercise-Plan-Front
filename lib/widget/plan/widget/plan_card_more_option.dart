@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
+import 'package:work_plan_front/screens/plan_creation.dart';
 import '../plan_list/components/plan_validation.dart';
 
 class PlanCardMoreOption extends ConsumerWidget {
@@ -161,7 +162,7 @@ class PlanCardMoreOption extends ConsumerWidget {
         break;
         
       case 'edit_plan':
-        if (onEditPlan != null) onEditPlan!();
+        _editPlan(context);
         break;
         
       case 'duplicate_plan':
@@ -188,6 +189,17 @@ class PlanCardMoreOption extends ConsumerWidget {
         _showPlanValidation(context);
         break;
     }
+  }
+
+  // ✅ NOWA METODA - EDYTUJ PLAN
+  void _editPlan(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => PlanCreation(
+          planToEdit: plan, // ✅ PRZEKAŻ PLAN DO EDYCJI
+        ),
+      ),
+    );
   }
 
   void _showResetProgressDialog(BuildContext context) {

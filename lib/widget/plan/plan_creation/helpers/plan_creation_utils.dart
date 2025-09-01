@@ -31,9 +31,9 @@ class PlanCreationUtils {
       if (exerciseData.isEmpty) return false;
       
       // Sprawdź czy przynajmniej jeden set ma dane
-      final hasValidSet = exerciseData.any((row) {
+          final hasValidSet = exerciseData.any((row) {
         final kg = int.tryParse(row["colKg"] ?? "0") ?? 0;
-        final reps = int.tryParse(row["colRep"] ?? "0") ?? 0;
+        final reps = int.tryParse(row["colRepMin"] ?? "0") ?? 0; // ✅ ZMIENIONE z colRep
         return kg > 0 || reps > 0;
       });
       
@@ -69,8 +69,9 @@ class PlanCreationUtils {
         .expand((rows) => rows)
         .map((row) {
           final kg = double.tryParse(row["colKg"] ?? "0") ?? 0;
-          final reps = int.tryParse(row["colRep"] ?? "0") ?? 0;
-          return kg * reps;
+          final repsMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+          final repsMax = int.tryParse(row["colRepMax"] ?? "0") ?? 0;
+          return kg * (repsMin + repsMax) / 2;
         })
         .fold(0.0, (sum, weight) => sum + weight);
   }

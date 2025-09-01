@@ -114,6 +114,24 @@ Future<int> saveExercisePlan({ExerciseTable? onlyThis}) async {
     state = [];
     print("Exercise plans cleared.");
   }
+
+  // ✅ NOWA METODA - AKTUALIZUJ ISTNIEJĄCY PLAN
+  void updatePlan(ExerciseTable updatedPlan) {
+    state = state.map((plan) {
+      if (plan.id == updatedPlan.id) {
+        return updatedPlan;
+      }
+      return plan;
+    }).toList();
+    
+    print("✅ Plan ${updatedPlan.exercise_table} zaktualizowany w providerze");
+  }
+
+  // ✅ NOWA METODA - DODAJ NOWY PLAN
+  void addPlan(ExerciseTable newPlan) {
+    state = [...state, newPlan];
+    print("✅ Nowy plan ${newPlan.exercise_table} dodany do providera");
+  }
 }
 final exerciseServiceProvider = Provider<ExerciseService>((ref) {
   return ExerciseService();
