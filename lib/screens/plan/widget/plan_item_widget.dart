@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_card_more_option.dart';
+import 'package:work_plan_front/widget/plan/widget/plan_card_more_option.dart';
 
 class PlanItemWidget extends StatelessWidget {
   final ExerciseTable plan;
