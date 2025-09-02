@@ -125,7 +125,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           );
             }
 
-          // TODO: Przywróć plan do oryginalnej grupy
+          //  Przywróć plan do oryginalnej grupy
         });
   }
 
@@ -133,11 +133,11 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (ctx) => PlanCreation())).then((_) {
-      // ✅ PO POWROCIE RESETUJ FLAGĘ I WYMUŚ SPRAWDZENIE NOWYCH PLANÓW
+      //  PO POWROCIE RESETUJ FLAGĘ I WYMUŚ SPRAWDZENIE NOWYCH PLANÓW
       print("🔄 Powrót z tworzenia planu - resetuję flagę");
       _hasInitializedGroups = false;
 
-      // ✅ DELAY, ŻEBY DANE ZDĄŻYŁY SIĘ ZAŁADOWAĆ
+      //  DELAY, ŻEBY DANE ZDĄŻYŁY SIĘ ZAŁADOWAĆ
       Future.delayed(Duration(milliseconds: 500), () {
         final exercisePlans = ref.read(exercisePlanProvider);
         if (exercisePlans.isNotEmpty) {
@@ -162,6 +162,36 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text("in develop.")));
+  }
+
+  void _openPlanForEditing(ExerciseTable plan) {
+    print("✏️ Opening plan for editing: ${plan.exercise_table} (ID: ${plan.id})");
+    
+    // ✅ POBIERZ NAJNOWSZE DANE PRZED EDYCJĄ
+    final currentPlans = ref.read(exercisePlanProvider);
+    final currentPlan = currentPlans.firstWhere(
+      (p) => p.id == plan.id,
+      orElse: () => plan,
+    );
+    
+    print("📊 Plan data before editing:");
+    print("  - Widget plan title: '${plan.exercise_table}'");
+    print("  - Provider plan title: '${currentPlan.exercise_table}'");
+    print("  - Using: ${currentPlan.exercise_table == plan.exercise_table ? 'SAME' : 'PROVIDER VERSION'}");
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (ctx) => PlanCreation(planToEdit: currentPlan), // ✅ PRZEKAŻ AKTUALNY PLAN
+      ),
+    ).then((_) {
+      print("🔄 Powrót z edycji planu - pełne odświeżenie danych");
+      _resetGroupsFlag();
+      
+      ref.read(exercisePlanProvider.notifier).fetchExercisePlans().then((_) {
+        final refreshedPlans = ref.read(exercisePlanProvider);
+        ref.read(planGroupsProvider.notifier).initializeWithPlans(refreshedPlans);
+      });
+    });
   }
 
   @override
@@ -461,5 +491,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       context: context,
       builder: (context) => buildAddGroupDialog(context, controller, ref),
     );
+  }
+
+  void _resetGroupsFlag() {
+    print("🔄 Resetowanie flagi grup");
+    _hasInitializedGroups = false;
   }
 }

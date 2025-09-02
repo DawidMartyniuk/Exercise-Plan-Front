@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
+import 'package:work_plan_front/model/weight_type.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/exerciseProvider.dart';
 import 'package:work_plan_front/provider/repsTypeProvider.dart';
+import 'package:work_plan_front/provider/weight_type_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/selected_exercise_list.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/plan_title_field.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/exercise_selection_button.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/data_formatter.dart';
-import 'package:work_plan_front/widget/plan/plan_creation/components/plan_creation_validation.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 
 class PlanCreation extends ConsumerStatefulWidget {
@@ -28,42 +30,95 @@ class PlanCreation extends ConsumerStatefulWidget {
 }
 
 class _StatePlanCreation extends ConsumerState<PlanCreation> {
-  final TextEditingController _planTitleController = TextEditingController();
   List<Exercise> selectedExercise = [];
   Map<String, List<Map<String, String>>> Function()? _getTableData;
-  String exerciseTableTitle = "";
+  String exerciseTableTitle = ""; // ✅ ZOSTAW JAKO STAN
 
-  final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey =
-      GlobalKey<SelectedExerciseListState>();
+  bool get _isEditMode => widget.planToEdit != null;
+
+  // ✅ DODAJ KLUCZ DLA PlanTitleField
+  final GlobalKey<PlanTitleFieldState> _planTitleFieldKey = GlobalKey<PlanTitleFieldState>();
+  final GlobalKey<SelectedExerciseListState> _selectedExerciseListKey = GlobalKey<SelectedExerciseListState>();
+  final String _widgetKey = DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic>? _pendingReplacementData;
   String? _oldExerciseIdForReplacement;
 
   bool get _isPlanReadToSave {
-    return PlanCreationValidation.validatePlanData(
-      exerciseTableTitle,
-      selectedExercise,
-    );
+    final hasTitle = exerciseTableTitle.trim().isNotEmpty;
+    final hasExercises = selectedExercise.isNotEmpty;
+    return hasTitle && hasExercises;
   }
 
   @override
   void initState() {
     super.initState();
-
-    if (widget.planToEdit != null) {
+    
+    print("🔧 PlanCreation initialized in ${_isEditMode ? 'EDIT' : 'CREATE'} mode");
+    
+    if (_isEditMode && widget.planToEdit != null) {
+      print("✏️ Loading plan for editing: ${widget.planToEdit!.exercise_table}");
       _loadPlanForEditing(widget.planToEdit!);
+    } else {
+      print("🆕 Creating new plan");
     }
   }
 
   void _loadPlanForEditing(ExerciseTable plan) {
-    _planTitleController.text = plan.exercise_table;
-    // Ustaw tytuł planu
-    _planTitleController.text = plan.exercise_table;
-
-    _loadExercisesFromPlan(plan);
+    print("\n🔄 Loading plan for editing: ${plan.exercise_table} (ID: ${plan.id})");
+    
+    // ✅ POBIERZ NAJNOWSZE DANE Z PROVIDERA
+    final currentPlans = ref.read(exercisePlanProvider);
+    final currentPlan = currentPlans.firstWhere(
+      (p) => p.id == plan.id,
+      orElse: () => plan, // fallback do przekazanego planu
+    );
+    
+    print("📊 Using plan data: ${currentPlan.rows.length} exercise groups from provider");
+    for (final row in currentPlan.rows) {
+      print("  📋 ${row.exercise_name}: ${row.data.length} sets");
+    }
+    
+    // ✅ USTAW TYTUŁ PLANU Z AKTUALNYCH DANYCH
+    setState(() {
+      exerciseTableTitle = currentPlan.exercise_table;
+    });
+    
+    // ✅ USTAW TYTUŁ W PlanTitleField
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _planTitleFieldKey.currentState?.setValue(currentPlan.exercise_table);
+      }
+    });
+    
+    // ✅ ZAŁADUJ ĆWICZENIA Z AKTUALNYCH DANYCH
+    _loadExercisesFromPlan(currentPlan); // używaj currentPlan zamiast plan
   }
 
- void _loadExercisesFromPlan(ExerciseTable plan) async {
+  //  POPRAWIONY CALLBACK DLA ZMIANY NAZWY PLANU - UŻYJ PostFrameCallback
+  void _onPlanTitleChanged(String newTitle) {
+    //  SPRAWDŹ CZY WIDGET JEST PODCZAS BUDOWANIA
+    if (WidgetsBinding.instance.schedulerPhase == SchedulerPhase.persistentCallbacks) {
+      //  JEŚLI TAK - UŻYJ PostFrameCallback
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            exerciseTableTitle = newTitle;
+          });
+         // print("📝 Plan title changed to: '$newTitle' (via PostFrameCallback)");
+        }
+      });
+    } else {
+      // ✅ JEŚLI NIE - UŻYJ NORMALNEGO setState
+      setState(() {
+        exerciseTableTitle = newTitle;
+      });
+    //  print("📝 Plan title changed to: '$newTitle' (via setState)");
+    }
+  }
+
+
+  void _loadExercisesFromPlan(ExerciseTable plan) async {
   print("\n🔄 Loading exercises from plan...");
   
   final allExercises = ref.read(exerciseProvider);
@@ -92,7 +147,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     print("\n🏋️ Group $groupIndex: Exercise ID '$exerciseId' (${rowData.exercise_name})");
     print("  📊 This group has ${rowData.data.length} sets");
 
-    // ✅ ZNAJDŹ ĆWICZENIE BEZPOŚREDNIO (BEZ WHEN)
+    //  ZNAJDŹ ĆWICZENIE BEZPOŚREDNIO (BEZ WHEN)
     final exercise = allExercises.when(
       data: (exercisesList) {
         return exercisesList.firstWhere(
@@ -100,7 +155,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           orElse: () {
             print("  ⚠️ Exercise with exerciseId '$exerciseId' not found! Creating fallback");
             return Exercise(
-             // id: exerciseId,
               exerciseId: exerciseId,
               name: rowData.exercise_name ?? "Unknown Exercise",
               bodyParts: [],
@@ -114,7 +168,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         );
       },
       loading: () => Exercise(
-       //id: exerciseId,
         exerciseId: exerciseId, 
         name: rowData.exercise_name ?? "Loading Exercise",
         bodyParts: [],
@@ -125,7 +178,6 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         instructions: [],
       ),
       error: (error, stack) => Exercise(
-       // id: exerciseId,
         exerciseId: exerciseId,
         name: rowData.exercise_name ?? "Error Exercise", 
         bodyParts: [],
@@ -139,19 +191,19 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
     print("  ✅ Exercise resolved: ${exercise.name} (ID: ${exercise.id})");
 
-    // ✅ DODAJ ĆWICZENIE DO LISTY
+    //  DODAJ ĆWICZENIE DO LISTY
     if (!selectedExercisesList.any((ex) => ex.id == exercise.id)) {
       selectedExercisesList.add(exercise);
       print("  ➕ Added exercise to selected list: ${exercise.name}");
     }
 
-    // ✅ PRZYGOTUJ DANE SETÓW
+    //  PRZYGOTUJ DANE SETÓW
     if (!exerciseData.containsKey(exercise.id)) {
       exerciseData[exercise.id] = [];
       print("  📊 Initialized exercise data for ${exercise.id}");
     }
 
-    // ✅ DODAJ DANE SETÓW Z PLANU - UŻYWAJ colRepMin
+    //  DODAJ DANE SETÓW Z PLANU - UŻYWAJ colRepMin
     for (int setIndex = 0; setIndex < rowData.data.length; setIndex++) {
       final row = rowData.data[setIndex];
       
@@ -161,7 +213,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       final setData = {
         "colStep": row.colStep.toString(),
         "colKg": row.colKg.toString(),
-        "colRepMin": row.colRepMin.toString(), // ✅ POPRAWIONE z colRep
+        "colRepMin": row.colRepMin.toString(), // POPRAWIONE z colRep
         "colRepMax": row.colRepMax.toString(),
         "repsType": repsType,
       };
@@ -185,15 +237,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     }
   }
 
-  // ✅ ZAKTUALIZUJ STAN
+  //  ZAKTUALIZUJ STAN
   setState(() {
     selectedExercise = selectedExercisesList;
-    exerciseTableTitle = plan.exercise_table; // ✅ DODAJ TO!
+   // exerciseTableTitle = plan.exercise_table; //  DODAJ TO!
     print("✅ State updated with ${selectedExercisesList.length} exercises");
-    print("✅ Plan title set to: '$exerciseTableTitle'");
   });
 
-  // ✅ ZAŁADUJ DANE DO UI
+  //  ZAŁADUJ DANE DO UI
   WidgetsBinding.instance.addPostFrameCallback((_) {
     print("\n📤 PostFrameCallback: Loading data to SelectedExerciseList...");
     _selectedExerciseListKey.currentState?.loadInitialData(
@@ -240,8 +291,10 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   }
 
   /// Zapisuje dane planu treningowego
-  void _savePlanData() async {
+  void _savePlanData(WidgetRef ref) async {
     print("💾 Starting plan save process...");
+
+      final currentTitleFromField = _planTitleFieldKey.currentState?.currentValue?.trim() ?? exerciseTableTitle.trim();
 
     if (!_isPlanReadToSave) {
       ToastUtils.showValidationError(
@@ -259,20 +312,12 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       );
       return;
     }
+     final finalTitle = currentTitleFromField.isNotEmpty ? currentTitleFromField : exerciseTableTitle.trim();
 
     try {
-      // ✅ POBIERZ I POKAŻ SUROWE DANE
       final tableData = _getTableData!();
 
-      print("🔍 Raw table data:");
-      tableData.forEach((exerciseId, rows) {
-        print("  - Exercise $exerciseId:");
-        for (int i = 0; i < rows.length; i++) {
-          print("    - Set ${i + 1}: ${rows[i]}");
-        }
-      });
-
-      // ✅ UTWÓRZ MAPĘ NAZW ĆWICZEŃ
+      // UTWÓRZ MAPĘ NAZW ĆWICZEŃ
       final exerciseNames = <String, String>{};
       final exerciseRepTypes = <String, String>{};
 
@@ -282,31 +327,75 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         final repType = ref.read(exerciseRepsTypeProvider(exercise.id));
         exerciseRepTypes[exercise.id] = repType.toDbString();
       }
-      print("🔍 Exercise names: $exerciseNames");
-
-      // ✅ FORMATUJ Z NAZWAMI ĆWICZEŃ
-      final payload = DataFormatter.formatPlanDataWithNames(
-        tableData: tableData,
-        planTitle: exerciseTableTitle,
-        exerciseNames: exerciseNames,
-        exerciseRepTypes: exerciseRepTypes,
-      );
-
-      print("📤 Final payload to send:");
-      print("  - Structure: ${payload.keys.toList()}");
-      print("  - Full payload: $payload");
-
-      final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
-      await exercisePlanNotifier.initializeExercisePlan(payload);
-
-      final statusCode = await exercisePlanNotifier.saveExercisePlan(
-        onlyThis: exercisePlanNotifier.state.last,
-      );
-
-      if (statusCode == 200 || statusCode == 201) {
-        await _handleSaveSuccess();
+      
+      // ✅ POPRAW POBIERANIE weight_type
+      final rawWeightType = ref.read(weightTypeForExerciseProvider(selectedExercise.first.id));
+      
+      // ✅ KONWERTUJ WeightType enum na string
+      String cleanWeightType;
+      if (rawWeightType == WeightType.kg) {
+        cleanWeightType = "kg";
+      } else if (rawWeightType == WeightType.lbs) {
+        cleanWeightType = "lbs";
       } else {
-        _handleSaveError("Status: $statusCode");
+        cleanWeightType = "kg"; // domyślnie
+      }
+      
+      print("🔍 Weight type conversion: $rawWeightType -> $cleanWeightType");
+
+      if (_isEditMode && widget.planToEdit != null) {
+        // ✅ AKTUALIZACJA
+        try {
+          final statusCode = await ref.read(exercisePlanProvider.notifier).updateExercisePlan(
+            
+            exerciseId: widget.planToEdit!.id, 
+            exerciseTableTitle: finalTitle,
+            tableData: tableData,
+            exerciseNames: exerciseNames,
+            exerciseRepTypes: exerciseRepTypes,
+
+            exerciseNotes: _selectedExerciseListKey.currentState?.getExerciseNotes() ?? {},
+            weightType: cleanWeightType, // ✅ UŻYJ OCZYSZCZONEJ WARTOŚCI
+          );
+
+          if (statusCode == 200 || statusCode == 201) {
+            setState(() {
+            exerciseTableTitle = finalTitle;
+          });
+            await _handleSaveSuccess();
+          } else {
+            _handleSaveError("Status: $statusCode");
+          }
+        } catch (e) {
+          _handleSaveError(e.toString());
+        }
+      } else {
+        // ✅ NOWY PLAN
+        try {
+          final payload = DataFormatter.formatPlanDataWithNames(
+            weightType: cleanWeightType,
+            tableData: tableData,
+            planTitle: finalTitle,
+            exerciseNames: exerciseNames,
+            exerciseRepTypes: exerciseRepTypes,
+            exerciseNotes: _selectedExerciseListKey.currentState?.getExerciseNotes() ?? {},
+          );
+
+          final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);
+          await exercisePlanNotifier.initializeExercisePlan(payload);
+
+          final statusCode = await exercisePlanNotifier.saveExercisePlan(
+            onlyThis: exercisePlanNotifier.state.last,
+          );
+
+          if (statusCode == 200 || statusCode == 201) {
+            await _handleSaveSuccess();
+          } else {
+            _handleSaveError("Status: $statusCode");
+          }
+        } catch (e) {
+          _handleSaveError(e.toString());
+        }
       }
     } catch (e) {
       _handleSaveError(e.toString());
@@ -315,7 +404,8 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
   /// Obsługuje pomyślne zapisanie planu
   Future<void> _handleSaveSuccess() async {
-    ToastUtils.showSaveSuccess(context, itemName: "Plan treningowy");
+     final actionName = _isEditMode ? "zaktualizowany" : "zapisany";
+    ToastUtils.showSaveSuccess(context, itemName: "Plan treningowy $actionName");
     await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
 
     if (mounted) {
@@ -329,13 +419,15 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   }
 
   /// Obsługuje błąd podczas zapisywania
-  void _handleSaveError(String error) {
+ void _handleSaveError(String error) {
+    final actionName = _isEditMode ? "zaktualizować" : "zapisać";
     ToastUtils.showErrorToast(
       context: context,
-      message: "Nie udało się zapisać planu. Spróbuj ponownie.",
+      message: "Nie udało się $actionName planu. Spróbuj ponownie.",
     );
-    print("Błąd zapisywania planu: $error");
+    print("Błąd ${_isEditMode ? 'aktualizacji' : 'zapisywania'} planu: $error");
   }
+  
 
   /// Obsługuje powrót z ekranu z walidacją zmian
   void _handleBackPress() {
@@ -386,7 +478,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     );
   }
 
-  /// ✅ NOWA METODA - OBSŁUGA ZMIANY ĆWICZENIA
+  ///  NOWA METODA - OBSŁUGA ZMIANY ĆWICZENIA
   Future<void> _handleExerciseReplacement(
     Exercise oldExercise,
     Map<String, dynamic> savedData,
@@ -395,16 +487,16 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     print("🔄 Old exercise ID: ${oldExercise.id}");
     print("🔄 Saved data: $savedData");
 
-    // ✅ ZAPISZ DANE DO PRZYWRÓCENIA PÓŹNIEJ
+    //  ZAPISZ DANE DO PRZYWRÓCENIA PÓŹNIEJ
     _pendingReplacementData = savedData;
     _oldExerciseIdForReplacement = oldExercise.id;
 
-    // ✅ USUŃ STARE ĆWICZENIE Z LISTY
+    //  USUŃ STARE ĆWICZENIE Z LISTY
     setState(() {
       selectedExercise.removeWhere((exercise) => exercise.id == oldExercise.id);
     });
 
-    // ✅ PRZEJDŹ DO EKRANU WYBORU ĆWICZENIA
+    //  PRZEJDŹ DO EKRANU WYBORU ĆWICZENIA
     final result = await Navigator.of(context).push<dynamic>(
       MaterialPageRoute(
         builder:
@@ -422,19 +514,19 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       if (result is Exercise) {
         print("🔄 Selected new exercise: ${result.name} (ID: ${result.id})");
 
-        // ✅ DODAJ NOWE ĆWICZENIE
+        //  DODAJ NOWE ĆWICZENIE
         setState(() {
           selectedExercise.add(result);
         });
 
-        // ✅ PRZYWRÓĆ ZAPISANE DANE PO ZBUDOWANIU WIDGETU
+        //  PRZYWRÓĆ ZAPISANE DANE PO ZBUDOWANIU WIDGETU
         WidgetsBinding.instance.addPostFrameCallback((_) {
           print("🔄 Attempting to restore data:");
           print("  - New exercise ID: ${result.id}");
           print("  - Old exercise ID: $_oldExerciseIdForReplacement");
           print("  - Saved data: $_pendingReplacementData");
 
-          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          // UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
           _selectedExerciseListKey.currentState
               ?.restoreExerciseDataWithTransfer(
                 newExerciseId: result.id,
@@ -442,7 +534,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                 savedData: _pendingReplacementData!,
               );
 
-          // ✅ WYCZYŚĆ TYMCZASOWE DANE
+          //  WYCZYŚĆ TYMCZASOWE DANE
           _pendingReplacementData = null;
           _oldExerciseIdForReplacement = null;
 
@@ -450,14 +542,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             "✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}",
           );
 
-          // ✅ POKAŻ TOAST O POWODZENIU
+          // POKAŻ TOAST O POWODZENIU
           ToastUtils.showSuccessToast(
             context: context,
             message: "Zamieniono ${oldExercise.name} na ${result.name}",
           );
         });
       } else if (result is List<Exercise> && result.isNotEmpty) {
-        // ✅ JEŚLI WYBRANO LISTĘ - WEŹ PIERWSZE ĆWICZENIE
+        //  JEŚLI WYBRANO LISTĘ - WEŹ PIERWSZE ĆWICZENIE
         final newExercise = result.first;
         print(
           "🔄 Selected first exercise from list: ${newExercise.name} (ID: ${newExercise.id})",
@@ -472,7 +564,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           print("  - New exercise ID: ${newExercise.id}");
           print("  - Old exercise ID: $_oldExerciseIdForReplacement");
 
-          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          //  UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
           _selectedExerciseListKey.currentState
               ?.restoreExerciseDataWithTransfer(
                 newExerciseId: newExercise.id,
@@ -494,16 +586,15 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         });
       }
     } else {
-      // ✅ UŻYTKOWNIK ANULOWAŁ - PRZYWRÓĆ STARE ĆWICZENIE
+      //  UŻYTKOWNIK ANULOWAŁ - PRZYWRÓĆ STARE ĆWICZENIE
       print("❌ Exercise replacement cancelled - restoring old exercise");
       setState(() {
         selectedExercise.add(oldExercise);
       });
-
-      // ✅ PRZYWRÓĆ DANE STAREGO ĆWICZENIA
+      //  PRZYWRÓĆ DANE STAREGO ĆWICZENIA
       if (_pendingReplacementData != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // ✅ UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
+          //  UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
           _selectedExerciseListKey.currentState
               ?.restoreExerciseDataWithTransfer(
                 newExerciseId: oldExercise.id,
@@ -541,7 +632,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     if (result != null) {
       setState(() {
         if (result is List<Exercise>) {
-          // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE
+          //  LISTA ĆWICZEŃ - DODAJ WSZYSTKIE
           int addedCount = 0;
           for (final exercise in result) {
             if (!selectedExercise.any(
@@ -555,7 +646,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             'Dodano $addedCount nowych ćwiczeń do planu (z ${result.length} otrzymanych)',
           );
         } else if (result is Exercise) {
-          // ✅ POJEDYNCZE ĆWICZENIE - DODAJ JEDNO
+          //  POJEDYNCZE ĆWICZENIE - DODAJ JEDNO
           if (!selectedExercise.any((existing) => existing.id == result.id)) {
             selectedExercise.add(result);
             print('Dodano ćwiczenie: ${result.name}');
@@ -588,28 +679,26 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: ValueKey("plan_creation_$_widgetKey"),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: _handleBackPress,
         ),
-        title:   widget.planToEdit != null ? Text("Edit Plan") : Text("Create Plan"),
+        title: Text(_isEditMode ? "Edytuj Plan" : "Stwórz Plan"),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextButton(
-              onPressed: _isPlanReadToSave ? _savePlanData : null,
+              onPressed: _isPlanReadToSave ? () => _savePlanData(ref) : null,
               child: Text(
-                "Save",
+                _isEditMode ? "Aktualizuj" : "Zapisz",
                 style: TextStyle(
-                  color:
-                      _isPlanReadToSave
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.38),
+                  color: _isPlanReadToSave
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.bold,
-                  fontSize: 24,
+                  fontSize: 22,
                 ),
               ),
             ),
@@ -617,20 +706,23 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         ],
       ),
       body: CustomScrollView(
+        key: ValueKey("plan_creation_$_widgetKey"),
         slivers: [
-          //  ZWIJAJĄCE SIĘ POLE TYTUŁU - NA GÓRZE
           SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
               child: PlanTitleField(
-                initialValue: exerciseTableTitle,
-                onChanged:
-                    (value) => setState(() => exerciseTableTitle = value),
+                key: _planTitleFieldKey,
+                initialValue: exerciseTableTitle, // ✅ TO JEST PRAWIDŁOWA WARTOŚĆ
+                onChanged: _onPlanTitleChanged,
+                isEditMode: _isEditMode,
+                // ❌ NIE PRZEKAZUJ editPlanName - POWODUJE KONFLIKT
+                // editPlanName: widget.planToEdit?.exercise_table,
               ),
             ),
           ),
 
-          //  Lista ćwiczeń będzie scrollowana
+          //  RESZTA WIDOKU POZOSTAJE BEZ ZMIAN
           selectedExercise.isEmpty
               ? SliverFillRemaining(child: _buildEmptyState())
               : SliverToBoxAdapter(
@@ -643,21 +735,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                     },
                     exercises: selectedExercise,
                     onDelete: _removeExerciseFromPlan,
-                    initialData:
-                        widget.planToEdit != null
-                            ? _extractInitialData()
-                            : null,
-                    initialNotes:
-                        widget.planToEdit != null
-                            ? _extractInitialNotes()
-                            : null,
+                    initialData: widget.planToEdit != null ? _extractInitialData() : null,
+                    initialNotes: widget.planToEdit != null ? _extractInitialNotes() : null,
                     onExercisesReordered: _onExercisesReordered,
                     onReplaceExercise: _handleExerciseReplacement,
                   ),
                 ),
               ),
 
-          // Przycisk dodawania ćwiczeń (też scrollowalny razem z listą)
           if (selectedExercise.isNotEmpty)
             SliverToBoxAdapter(
               child: Container(

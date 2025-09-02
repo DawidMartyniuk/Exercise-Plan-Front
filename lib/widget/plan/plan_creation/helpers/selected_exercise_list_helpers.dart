@@ -23,7 +23,7 @@ class SelectedExerciseListHelpers {
 
   /// Sprawdza czy ćwiczenie ma zainicjalizowane dane
   static bool hasInitializedData(String exerciseId, Map<String, Map<String, dynamic>> exerciseRows) {
-    return exerciseRows.containsKey(exerciseId);
+    return exerciseRows.containsKey(exerciseId) && exerciseRows[exerciseId] != null;
   }
 
   /// Pobiera listę setów dla danego ćwiczenia
@@ -31,7 +31,20 @@ class SelectedExerciseListHelpers {
     String exerciseId, 
     Map<String, Map<String, dynamic>> exerciseRows
   ) {
-    return (exerciseRows[exerciseId]?["rows"] as List<Map<String, String>>?) ?? [];
+    if (!hasInitializedData(exerciseId, exerciseRows)) {
+      return [];
+    }
+    
+    try {
+      final exerciseData = exerciseRows[exerciseId]!;
+      final rows = exerciseData["rows"];
+      if (rows == null) return [];
+      
+      return List<Map<String, String>>.from(rows);
+    } catch (e) {
+      print("❌ Error getting exercise table data: $e");
+      return [];
+    }
   }
 
   /// Generuje domyślne dane dla nowego ćwiczenia
@@ -45,25 +58,66 @@ class SelectedExerciseListHelpers {
     };
   }
 
-  /// Kopiuje wartości z ostatniego setu dla nowego setu
+  // ✅ POPRAWIONA METODA generateNewSetFromLast Z ZABEZPIECZENIAMI
   static Map<String, String> generateNewSetFromLast(List<Map<String, String>> rows, int setNumber) {
+    print("🔄 Generating new set $setNumber from existing ${rows.length} sets");
+    
     if (rows.isEmpty) {
-      return {"colStep": "$setNumber", "colKg": "0", "colRep": "0", "colRepMax": "0"};
+      print("  📋 No existing sets, creating default set");
+      return {
+        "colStep": setNumber.toString(),
+        "colKg": "0",
+        "colRepMin": "0",
+        "colRepMax": "0",
+        "repsType": "single",
+      };
     }
     
-    final lastRow = rows.last;
-    return {
-      "colStep": "$setNumber",
-      "colKg": lastRow["colKg"] ?? "0",
-      "colRep": lastRow["colRep"] ?? "0",
-      "colRepMax": lastRow["colRepMax"] ?? "0",
-    };
+    try {
+      final lastRow = rows.last;
+      if (lastRow == null) {
+        print("  ⚠️ Last row is null, creating default set");
+        return {
+          "colStep": setNumber.toString(),
+          "colKg": "0",
+          "colRepMin": "0",
+          "colRepMax": "0",
+          "repsType": "single",
+        };
+      }
+      
+      final newSet = {
+        "colStep": setNumber.toString(),
+        "colKg": lastRow["colKg"] ?? "0",
+        "colRepMin": lastRow["colRepMin"] ?? "0",
+        "colRepMax": lastRow["colRepMax"] ?? lastRow["colRepMin"] ?? "0",
+        "repsType": lastRow["repsType"] ?? "single",
+      };
+      
+      print("  📋 Generated set from last: $newSet");
+      return newSet;
+    } catch (e) {
+      print("  ❌ Error generating set from last: $e, creating default");
+      return {
+        "colStep": setNumber.toString(),
+        "colKg": "0",
+        "colRepMin": "0",
+        "colRepMax": "0",
+        "repsType": "single",
+      };
+    }
   }
 
   /// Aktualizuje numery setów po usunięciu
   static void updateSetNumbers(List<Map<String, String>> rows) {
-    for (int i = 0; i < rows.length; i++) {
-      rows[i]["colStep"] = "${i + 1}";
+    try {
+      for (int i = 0; i < rows.length; i++) {
+        if (rows[i] != null) {
+          rows[i]["colStep"] = (i + 1).toString();
+        }
+      }
+    } catch (e) {
+      print("❌ Error updating set numbers: $e");
     }
   }
 
@@ -96,6 +150,38 @@ class SelectedExerciseListHelpers {
     
     if (notesControllers?[exerciseId] != null) {
       print("💾 Notes: '${notesControllers![exerciseId]!.text}'");
+    }
+  }
+
+  // ✅ DODAJ METODĘ DEBUG
+  static void debugExerciseData(String exerciseId, Map<String, Map<String, dynamic>> exerciseRows) {
+    print("🔍 Debug data for exercise: $exerciseId");
+    
+    if (!exerciseRows.containsKey(exerciseId)) {
+      print("  ❌ Exercise not found in exerciseRows");
+      return;
+    }
+    
+    final exerciseData = exerciseRows[exerciseId];
+    if (exerciseData == null) {
+      print("  ❌ Exercise data is null");
+      return;
+    }
+    
+    print("  📊 Exercise data keys: ${exerciseData.keys.toList()}");
+    print("  📝 Exercise name: ${exerciseData['exerciseName']}");
+    print("  📝 Notes: '${exerciseData['notes']}'");
+    
+    final rows = exerciseData["rows"];
+    if (rows == null) {
+      print("  ❌ Rows are null");
+    } else if (rows is List) {
+      print("  📋 Rows count: ${rows.length}");
+      for (int i = 0; i < rows.length; i++) {
+        print("    Set ${i + 1}: ${rows[i]}");
+      }
+    } else {
+      print("  ❌ Rows are not a List: ${rows.runtimeType}");
     }
   }
 }

@@ -11,7 +11,7 @@ final exerciseWeightTypeProvider = StateProvider.family<WeightType, String>((ref
   return defaultType;
 });
 
-// ✅ HELPER PROVIDER - POBIERA JEDNOSTKĘ DLA ĆWICZENIA LUB DOMYŚLNĄ
+//  HELPER PROVIDER - POBIERA JEDNOSTKĘ DLA ĆWICZENIA LUB DOMYŚLNĄ
 final weightTypeForExerciseProvider = Provider.family<WeightType, String>((ref, exerciseId) {
   return ref.watch(exerciseWeightTypeProvider(exerciseId));
 });

@@ -27,7 +27,7 @@ class SelectedExerciseDataManager {
         {
           "colStep": "1", 
           "colKg": "0", 
-          "colRepMin": "0", //  ZMIENIONE z colRep
+          "colRepMin": "0", 
           "colRepMax": "0",
           "repsType": "single"
         }
@@ -112,9 +112,33 @@ class SelectedExerciseDataManager {
 
   //  DODAJ NOWY SET Z POPRAWNYMI NAZWAMI
   void addRow(String exerciseId, String exerciseName, List<Exercise> exercises, Function(String, int, String, String) updateRowCallback) {
+    
+    
+    if (!exerciseRows.containsKey(exerciseId)) {
+      print("⚠️ Exercise $exerciseId not initialized, initializing now...");
+      final exercise = exercises.firstWhere(
+        (e) => e.id == exerciseId,
+        orElse: () {
+          print("❌ Exercise $exerciseId not found in exercises list!");
+          throw Exception("Exercise $exerciseId not found");
+        },
+      );
+      initializeExerciseData(exercise, updateRowCallback);
+    }
+
+    if (!exerciseRows.containsKey(exerciseId) || exerciseRows[exerciseId] == null) {
+      print("❌ Exercise data is null for $exerciseId");
+      return;
+    }
+
     if (!exerciseRows.containsKey(exerciseId)) {
       final exercise = exercises.firstWhere((e) => e.id == exerciseId);
       initializeExerciseData(exercise, updateRowCallback);
+    }
+    final exerciseData = exerciseRows[exerciseId]!;
+    if (exerciseData["rows"] == null) {
+      print("❌ Exercise rows are null for $exerciseId, initializing...");
+      exerciseData["rows"] = <Map<String, String>>[];
     }
     
     final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
@@ -122,6 +146,19 @@ class SelectedExerciseDataManager {
     
     final newSet = SelectedExerciseListHelpers.generateNewSetFromLast(rows, newSetNumber);
     rows.add(newSet);
+    // zabezpieczenie inicjalizatorów 
+    if (kgControllers[exerciseId] == null) {
+      print("⚠️ KG controllers null for $exerciseId, initializing...");
+      kgControllers[exerciseId] = [];
+    }
+    if (repMinControllers[exerciseId] == null) {
+      print("⚠️ RepMin controllers null for $exerciseId, initializing...");
+      repMinControllers[exerciseId] = [];
+    }
+    if (repMaxControllers[exerciseId] == null) {
+      print("⚠️ RepMax controllers null for $exerciseId, initializing...");
+      repMaxControllers[exerciseId] = [];
+    }
 
     //  ZMIENIONE NAZWY KONTROLERÓW
     final kgController = TextEditingController(text: newSet["colKg"]!);
@@ -144,38 +181,78 @@ class SelectedExerciseDataManager {
   }
 
    void updateRowValue(String exerciseId, int rowIndex, String field, String value) {
-    if (exerciseRows.containsKey(exerciseId)) {
-      final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
-      if (rowIndex < rows.length) {
-        rows[rowIndex][field] = value;
+    if (!exerciseRows.containsKey(exerciseId) || exerciseRows[exerciseId] == null) {
+      print("❌ Cannot update: exercise $exerciseId not found or null");
+      return;
+    }
+    
+    final exerciseData = exerciseRows[exerciseId]!;
+    if (exerciseData["rows"] == null) {
+      print("❌ Cannot update: exercise rows are null for $exerciseId");
+      return;
+    }
+    
+    final rows = exerciseData["rows"] as List<Map<String, String>>;
+    if (rowIndex >= rows.length || rowIndex < 0) {
+      print("❌ Cannot update: invalid row index $rowIndex for exercise $exerciseId");
+      return;
+    }
+    
+    try {
+      rows[rowIndex][field] = value;
+      
+      // AUTOMATYCZNIE AKTUALIZUJ REPS TYPE Z ZABEZPIECZENIAMI
+      if (field == "colRepMin" || field == "colRepMax") {
+        final repMinStr = rows[rowIndex]["colRepMin"] ?? "0";
+        final repMaxStr = rows[rowIndex]["colRepMax"] ?? "0";
         
-        // ✅ AUTOMATYCZNIE AKTUALIZUJ REPS TYPE Z POPRAWNYMI NAZWAMI
-        if (field == "colRepMin" || field == "colRepMax") {
-          final repMin = int.tryParse(rows[rowIndex]["colRepMin"] ?? "0") ?? 0;
-          final repMax = int.tryParse(rows[rowIndex]["colRepMax"] ?? "0") ?? 0;
-          rows[rowIndex]["repsType"] = (repMin != repMax) ? "range" : "single";
-          
-          print("🔄 Updated repsType for $exerciseId set ${rowIndex + 1}: ${rows[rowIndex]["repsType"]}");
-        }
+        final repMin = int.tryParse(repMinStr) ?? 0;
+        final repMax = int.tryParse(repMaxStr) ?? 0;
         
-        print("📝 Updated $exerciseId set ${rowIndex + 1}: $field = '$value'");
+        rows[rowIndex]["repsType"] = (repMin != repMax) ? "range" : "single";
+        
+        print("🔄 Updated repsType for $exerciseId set ${rowIndex + 1}: ${rows[rowIndex]["repsType"]}");
       }
+      
+      print("📝 Updated $exerciseId set ${rowIndex + 1}: $field = '$value'");
+    } catch (e) {
+      print("❌ Error updating row value: $e");
     }
   }
 
   //  USUŃ SET Z POPRAWNYMI NAZWAMI
   void removeRow(String exerciseId, int index) {
-    if (!exerciseRows.containsKey(exerciseId)) return;
+    print("🗑️ Removing row $index from exercise: $exerciseId");
     
-    final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
-    if (!SelectedExerciseListHelpers.canRemoveSet(rows) || index >= rows.length) return;
+    if (!exerciseRows.containsKey(exerciseId) || exerciseRows[exerciseId] == null) {
+      print("❌ Exercise $exerciseId not found or null");
+      return;
+    }
+    
+    final exerciseData = exerciseRows[exerciseId]!;
+    if (exerciseData["rows"] == null) {
+      print("❌ Exercise rows are null for $exerciseId");
+      return;
+    }
+    
+    final rows = exerciseData["rows"] as List<Map<String, String>>;
+    
+    if (!SelectedExerciseListHelpers.canRemoveSet(rows)) {
+      print("❌ Cannot remove set - minimum one set required");
+      return;
+    }
+    
+    if (index >= rows.length || index < 0) {
+      print("❌ Invalid index $index for exercise $exerciseId (max: ${rows.length - 1})");
+      return;
+    }
 
+    //  USUŃ KONTROLERY Z ZABEZPIECZENIAMI
     if (kgControllers[exerciseId] != null && kgControllers[exerciseId]!.length > index) {
       kgControllers[exerciseId]![index].dispose();
       kgControllers[exerciseId]!.removeAt(index);
     }
 
-    //  ZMIENIONE z repControllers na repMinControllers
     if (repMinControllers[exerciseId] != null && repMinControllers[exerciseId]!.length > index) {
       repMinControllers[exerciseId]![index].dispose();
       repMinControllers[exerciseId]!.removeAt(index);
@@ -190,7 +267,10 @@ class SelectedExerciseDataManager {
     SelectedExerciseListHelpers.updateSetNumbers(rows);
 
     print("✅ Removed set ${index + 1} from exercise $exerciseId");
+    print("  📊 Remaining sets: ${rows.length}");
   }
+
+    
 
   //  USUŃ DANE ĆWICZENIA Z POPRAWNYMI NAZWAMI
   void deleteExerciseData(String exerciseId) {

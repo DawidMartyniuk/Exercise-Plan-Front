@@ -60,7 +60,7 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
 
   // ✅ ŁADOWANIE DANYCH DO EDYCJI
   void _loadInitialDataForEdit() {
-  print("🔄 Loading initial data for plan editing...");
+  //print("🔄 Loading initial data for plan editing...");
   print("📊 Total exercises to load: ${widget.exercises.length}");
   print("📊 Initial data keys: ${widget.initialData?.keys.toList()}");
   print("📊 Initial notes keys: ${widget.initialNotes?.keys.toList()}");
@@ -113,14 +113,29 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   }
 }
 
-  // ✅ INICJALIZACJA NOWEGO PLANU
+  // ✅INICJALIZACJA NOWEGO PLANU
   void _initializeNewPlanData() {
     for (final exercise in widget.exercises) {
       _dataManager.initializeExerciseData(exercise, _updateRowValue);
     }
   }
+   Map<String, String> getExerciseNotes() {
+    final notes = <String, String>{};
+    
+    for (final entry in _dataManager.exerciseRows.entries) {
+      final exerciseId = entry.key;
+      final exerciseData = entry.value;
+      notes[exerciseId] = exerciseData["notes"]?.toString() ?? "";
+    }
+    
+    print("📝 Retrieved exercise notes: $notes");
+    return notes;
+  }
+   Map<String, Map<String, dynamic>> getAllExerciseData() {
+    return Map.from(_dataManager.exerciseRows);
+  }
 
-  // ✅ PUBLICZNA METODA DO ŁADOWANIA DANYCH Z ZEWNĄTRZ
+  //  PUBLICZNA METODA DO ŁADOWANIA DANYCH Z ZEWNĄTRZ
   void loadInitialData(
     Map<String, List<Map<String, String>>> exerciseData,
     Map<String, String> exerciseNotes,
@@ -218,20 +233,28 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     super.didUpdateWidget(oldWidget);
 
     // Aktualizuj listę ćwiczeń jeśli się zmieniła
-    if (widget.exercises.length != _reorderedExercises.length ||
-        !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
-      _reorderedExercises = List.from(widget.exercises);
-    }
+   if (widget.exercises.length != _reorderedExercises.length ||
+      !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
     
-    // Inicjalizuj dane dla nowych ćwiczeń
-    for (final exercise in widget.exercises) {
-      if (!_dataManager.hasExerciseData(exercise.id)) {
-        print("🆕 Initializing new exercise: ${exercise.name}");
-        _dataManager.initializeExerciseData(exercise, _updateRowValue);
+    // ✅ UŻYJ PostFrameCallback ZAMIAST setState
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _reorderedExercises = List.from(widget.exercises);
+        });
+        
+        // Inicjalizuj dane dla nowych ćwiczeń
+        for (final exercise in widget.exercises) {
+          if (!_dataManager.hasExerciseData(exercise.id)) {
+            print("🆕 Initializing new exercise: ${exercise.name}");
+            _dataManager.initializeExerciseData(exercise, _updateRowValue);
+          }
+        }
+        
+        widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
       }
-    }
-    
-    widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
+    });
+  }
   }
 
   // ✅ METODY AKCJI

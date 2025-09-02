@@ -60,3 +60,27 @@ enum WeightType {
     return '${weight.toStringAsFixed(decimals)} ${displayName}';
   }
 }
+
+//  EXTENSION DLA ŁATWEJ KONWERSJI
+extension WeightTypeExtension on WeightType {
+  String toApiString() {
+    switch (this) {
+      case WeightType.kg:
+        return "kg";
+      case WeightType.lbs:
+        return "lbs";
+    }
+  }
+  
+  static WeightType fromString(String value) {
+    switch (value.toLowerCase()) {
+      case "kg":
+        return WeightType.kg;
+      case "lbs":
+        return WeightType.lbs;
+      default:
+        return WeightType.kg; // domyślnie
+    }
+  }
+  
+}

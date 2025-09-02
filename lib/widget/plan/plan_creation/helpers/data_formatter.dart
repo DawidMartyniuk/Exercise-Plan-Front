@@ -1,6 +1,3 @@
-import 'package:collection/collection.dart';
-import 'package:work_plan_front/provider/repsTypeProvider.dart';
-
 class DataFormatter {
   
   static Map<String, List<Map<String, String>>> formatTableData({
@@ -16,7 +13,7 @@ class DataFormatter {
     });
   }
 
-  /// ✅ NAPRAWIONA METODA - formatuje dane planu do wysłania na backend
+  ///  NAPRAWIONA METODA - formatuje dane planu do wysłania na backend
   static Map<String, dynamic> formatPlanData({
     required Map<String, List<Map<String, String>>> tableData,
     required String planTitle,
@@ -34,15 +31,15 @@ class DataFormatter {
           "exercise_name": "Exercise $exerciseId",
           "exercise_number": exerciseId,
           "notes": "",
-          "rep_type": exerciseRepTypes[exerciseId] ?? "range", // ✅ DOMYŚLNIE range
+          "rep_type": exerciseRepTypes[exerciseId] ?? "range", //  DOMYŚLNIE range
           "data": rows.map((row) {
             final repValue = int.tryParse(row["colRep"] ?? "0") ?? 0;
             return {
               "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
               "colKg": _parseWeight(row["colKg"] ?? "0"),
-              "colRepMin": repValue,     // ✅ ZMIENIONE z colRep na colRepMin
-              "colRepMax": repValue,     // ✅ DODANE - dla single będzie ta sama wartość
-              "weight_unit": "kg",       // ✅ DODANE
+              "colRepMin": repValue,     //  ZMIENIONE z colRep na colRepMin
+              "colRepMax": repValue,     //  DODANE - dla single będzie ta sama wartość
+              "weight_unit": "kg",       //  DODANE
             };
           }).toList(),
         });
@@ -66,77 +63,135 @@ class DataFormatter {
     return result;
   }
 
-  /// ✅ METODĘ Z NAZWAMI ĆWICZEŃ - ZGODNA Z BACKENDEM
-  static Map<String, dynamic> formatPlanDataWithNames({
+  ///  METODĘ Z NAZWAMI ĆWICZEŃ - ZGODNA Z BACKENDEM
+ static Map<String, dynamic> formatPlanDataWithNames({
     required Map<String, List<Map<String, String>>> tableData,
     required String planTitle,
     required Map<String, String> exerciseNames,
     required Map<String, String> exerciseRepTypes,
+    Map<String, String>? exerciseNotes, 
+    required String weightType,
   }) {
-    print("🔄 DataFormatter: Processing ${tableData.length} exercises with names");
-    print("🔍 exerciseRepTypes received: $exerciseRepTypes");
-    
-    final List<Map<String, dynamic>> groupedList = [];
-    
-    tableData.forEach((exerciseId, rows) {
-      final exerciseName = exerciseNames[exerciseId] ?? "Unknown Exercise";
-      final repType = exerciseRepTypes[exerciseId] ?? "range"; // ✅ DOMYŚLNIE range
-      
-      print("  - Processing exercise: $exerciseName ($exerciseId) with ${rows.length} sets");
-      print("  - Rep type for $exerciseId: $repType");
-    
-      if (rows.isNotEmpty) {
-        final exerciseData = {
-          "exercise_name": exerciseName,
-          "exercise_number": exerciseId,
-          "notes": "",
-          "rep_type": repType, // ✅ single lub range
-          "data": rows.map((row) {
-            final repMinValue = int.tryParse(row["colRepMin"] ?? "0") ?? 0; // ✅ ZMIENIONE z colRep
-            final repMaxValue = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? 0;
-            
-            return {
-              "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
-              "colKg": _parseWeight(row["colKg"] ?? "0"),
-              "colRepMin": repMinValue,    // ✅ BACKEND OCZEKUJE
-              "colRepMax": repMaxValue,    // ✅ BACKEND OCZEKUJE
-              "weight_unit": "kg",
-            };
-          }).toList(),
-        };
-      
-        print("  - Exercise data structure: ${exerciseData.keys.toList()}");
-        print("  - Rep type value: ${exerciseData['rep_type']}");
-        print("  - First set data: ${(exerciseData['data'] as List).isNotEmpty ? (exerciseData['data'] as List)[0] : 'EMPTY'}");
-      
-        groupedList.add(exerciseData);
-        print("    ✅ Added $exerciseName with ${rows.length} sets");
-      }
-    });
+    print("🔄 Formatting plan data with names...");
 
-    final result = {
-      "exercises": [
-        {
-          "exercise_table": planTitle.isNotEmpty ? planTitle : "Plan treningowy",
-          "rows": groupedList,
-        },
-      ],
-    };
+    final exercises = <Map<String, dynamic>>[];
+
+    final groupedData = <String, List<Map<String, String>>>{};
     
-    print("📤 DataFormatter final result:");
-    print("  - exercise_table: ${result['exercises']?[0]['exercise_table']}");
-    print("  - rows count: ${groupedList.length}");
-    
-    if (groupedList.isNotEmpty) {
-      final firstExercise = groupedList[0];
-      print("  - First exercise keys: ${firstExercise.keys.toList()}");
-      print("  - First exercise rep_type: ${firstExercise['rep_type']}");
-      if ((firstExercise['data'] as List).isNotEmpty) {
-        final firstSet = (firstExercise['data'] as List)[0];
-        print("  - First set keys: ${firstSet.keys.toList()}");
+    for (final entry in tableData.entries) {
+      final exerciseId = entry.key;
+      final rows = entry.value;
+      
+      if (groupedData.containsKey(exerciseId)) {
+        groupedData[exerciseId]!.addAll(rows);
+      } else {
+        groupedData[exerciseId] = List.from(rows);
       }
     }
+
+    final exerciseGroupedData = <String, List<List<Map<String, dynamic>>>>{};
     
+    for (final entry in groupedData.entries) {
+      final exerciseId = entry.key;
+      final rows = entry.value;
+
+      final formattedRows = rows.map((row) {
+        final repMinValue = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+        final repMaxValue = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? repMinValue;
+        
+        return {
+          "colStep": int.tryParse(row["colStep"] ?? "0") ?? 0,
+          "colKg": _parseWeight(row["colKg"] ?? "0"),
+          "colRepMin": repMinValue,
+          "colRepMax": repMaxValue,
+          "weight_unit": weightType,
+        };
+      }).toList();
+
+      if (!exerciseGroupedData.containsKey(exerciseId)) {
+        exerciseGroupedData[exerciseId] = [];
+      }
+      exerciseGroupedData[exerciseId]!.add(formattedRows);
+    }
+
+    for (final entry in exerciseGroupedData.entries) {
+      final exerciseId = entry.key;
+      final rowGroups = entry.value;
+
+      for (final rows in rowGroups) {
+        exercises.add({
+          "exercise_table": planTitle,
+          "rows": [
+            {
+              "exercise_name": exerciseNames[exerciseId] ?? "Unknown Exercise",
+              "exercise_number": exerciseId,
+              "notes": exerciseNotes?[exerciseId] ?? "", // ✅ DODAJ NOTATKI
+              "rep_type": exerciseRepTypes[exerciseId] ?? "single", // ✅ DODAJ REP TYPE
+              "data": rows,
+            }
+          ]
+        });
+      }
+    }
+
+    return {"exercises": exercises};
+  }
+  static Map<String, dynamic> formatPlanDataForUpdate({
+    required String planTitle,
+    required Map<String, List<Map<String, String>>> tableData,
+    required Map<String, String> exerciseNames,
+    required Map<String, String> exerciseRepTypes,
+    required Map<String, String> exerciseNotes,
+  }) {
+    print("🔄 Formatting plan data for update...");
+    print("  - Plan title: $planTitle");
+    print("  - Exercises count: ${exerciseNames.length}");
+
+    final rows = <Map<String, dynamic>>[];
+
+    for (final entry in tableData.entries) {
+      final exerciseId = entry.key;
+      final exerciseRows = entry.value;
+
+      print("  📋 Formatting exercise: $exerciseId");
+      print("    - Name: ${exerciseNames[exerciseId]}");
+      print("    - Sets count: ${exerciseRows.length}");
+      print("    - Rep type: ${exerciseRepTypes[exerciseId]}");
+      print("    - Notes: '${exerciseNotes[exerciseId]}'");
+
+      final formattedData = exerciseRows.map((row) {
+        final repMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+        final repMax = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? repMin;
+        final step = int.tryParse(row["colStep"] ?? "1") ?? 1;
+        final weight = _parseWeight(row["colKg"] ?? "0");
+
+        return {
+          "colStep": step,
+          "colKg": weight,
+          "colRepMin": repMin,
+          "colRepMax": repMax,
+          "weight_unit": "kg", // Można dodać obsługę preferencji użytkownika
+        };
+      }).toList();
+
+      rows.add({
+        "exercise_number": exerciseId,
+        "exercise_name": exerciseNames[exerciseId] ?? "Unknown Exercise",
+        "notes": exerciseNotes[exerciseId] ?? "",
+        "rep_type": exerciseRepTypes[exerciseId] ?? "single",
+        "data": formattedData,
+      });
+    }
+
+    final result = {
+      "exercise_table": planTitle,
+      "rows": rows,
+    };
+
+    print("✅ Plan data formatted for update:");
+    print("  - exercise_table: $planTitle");
+    print("  - rows count: ${rows.length}");
+
     return result;
   }
 
