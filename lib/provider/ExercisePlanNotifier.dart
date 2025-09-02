@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/model/weight_type.dart';
@@ -36,65 +37,119 @@ Future<void> fetchExercisePlans() async {
     required Map<String, String> exerciseNames,
     required Map<String, String> exerciseRepTypes,
     required Map<String, String> exerciseNotes,
-    required String weightType
+    required String weightType,
+    List<Exercise>? exerciseOrder,
   }) async {
     try {
-    print("🔄 Starting plan UPDATE process...");
-    print("  - Plan ID to update: $exerciseId");
-    print("  - NEW Plan title: '$exerciseTableTitle'"); // ✅ DEBUG
-    print("  - Exercises count: ${exerciseNames.length}");
 
-    // ✅ SPRAWDŹ CZY PLAN ISTNIEJE
+    //  SPRAWDŹ CZY PLAN ISTNIEJE
     if (!planExists(exerciseId)) {
       print("❌ Plan with ID $exerciseId does not exist - cannot update");
       throw Exception("Plan with ID $exerciseId not found");
     }
 
-    // ✅ ZNAJDŹ ISTNIEJĄCY PLAN DLA PORÓWNANIA
+    if (exerciseOrder != null) {
+      print("  - Exercise order:");
+      for (int i = 0; i < exerciseOrder.length; i++) {
+        print("    ${i + 1}. ${exerciseOrder[i].name} (ID: ${exerciseOrder[i].id})");
+      }
+    }
+
+    
+
+    //  ZNAJDŹ ISTNIEJĄCY PLAN DLA PORÓWNANIA
     final existingPlan = state.firstWhere((plan) => plan.id == exerciseId);
     print("  - OLD Plan title: '${existingPlan.exercise_table}'");
 
-    // ✅ FORMATUJ DANE ZGODNIE Z KONTROLEREM SERWERA
+    // FORMATUJ DANE ZGODNIE Z KONTROLEREM SERWERA
     final formattedRows = <Map<String, dynamic>>[];
 
-    for (final entry in tableData.entries) {
-      final exerciseIdKey = entry.key;
-      final rows = entry.value;
-      
-      print("  📋 Processing exercise: $exerciseIdKey");
-      print("    - Exercise name: ${exerciseNames[exerciseIdKey]}");
-      print("    - Sets count: ${rows.length}");
-      print("    - Rep type: ${exerciseRepTypes[exerciseIdKey]}");
-
-      final formattedData = rows.map((row) {
-        final repMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
-        final repMax = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? repMin;
-        
-        String cleanWeightType = weightType;
-        if (cleanWeightType.startsWith("WeightType.")) {
-          cleanWeightType = cleanWeightType.replaceFirst("WeightType.", "");
-        }
-        
-        return {
-          "colStep": int.tryParse(row["colStep"] ?? "1") ?? 1,
-          "colKg": _parseWeight(row["colKg"] ?? "0"),
-          "colRepMin": repMin,
-          "colRepMax": repMax,
-          "weight_unit": cleanWeightType,
-        };
-      }).toList();
-
-      formattedRows.add({
-        "exercise_number": exerciseIdKey,
-        "exercise_name": exerciseNames[exerciseIdKey] ?? "Unknown Exercise",
-        "notes": exerciseNotes[exerciseIdKey] ?? "",
-        "rep_type": exerciseRepTypes[exerciseIdKey] ?? "single",
-        "data": formattedData,
-      });
+    if (exerciseOrder != null && exerciseOrder.isNotEmpty) {
+  print("📋 Processing exercises in NEW order from exerciseOrder:");
+  
+  for (int i = 0; i < exerciseOrder.length; i++) {
+    final exercise = exerciseOrder[i];
+    final exerciseIdKey = exercise.id;
+    final rows = tableData[exerciseIdKey];
+    
+    if (rows == null || rows.isEmpty) {
+      print("⚠️ No data found for exercise $exerciseIdKey, skipping");
+      continue;
     }
+    
+    print("  ${i + 1}. Processing exercise: $exerciseIdKey (${exercise.name})");
+    print("    - Sets count: ${rows.length}");
+    print("    - Rep type: ${exerciseRepTypes[exerciseIdKey]}");
+
+    final formattedData = rows.map((row) {
+      final repMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+      final repMax = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? repMin;
+      
+      String cleanWeightType = weightType;
+      if (cleanWeightType.startsWith("WeightType.")) {
+        cleanWeightType = cleanWeightType.replaceFirst("WeightType.", "");
+      }
+      
+      return {
+        "colStep": int.tryParse(row["colStep"] ?? "1") ?? 1,
+        "colKg": _parseWeight(row["colKg"] ?? "0"),
+        "colRepMin": repMin,
+        "colRepMax": repMax,
+        "weight_unit": cleanWeightType,
+      };
+    }).toList();
+
+    formattedRows.add({
+      "exercise_number": exerciseIdKey,
+      "exercise_name": exerciseNames[exerciseIdKey] ?? exercise.name,
+      "notes": exerciseNotes[exerciseIdKey] ?? "",
+      "rep_type": exerciseRepTypes[exerciseIdKey] ?? "single",
+      "data": formattedData,
+    });
+  }
+} else {
+  // ✅ FALLBACK - jeśli exerciseOrder jest null
+  print("⚠️ No exercise order provided, using default tableData order");
+  
+  for (final entry in tableData.entries) {
+    final exerciseIdKey = entry.key;
+    final rows = entry.value;
+    
+    print("  📋 Processing exercise: $exerciseIdKey");
+    print("    - Exercise name: ${exerciseNames[exerciseIdKey]}");
+    print("    - Sets count: ${rows.length}");
+    print("    - Rep type: ${exerciseRepTypes[exerciseIdKey]}");
+
+    final formattedData = rows.map((row) {
+      final repMin = int.tryParse(row["colRepMin"] ?? "0") ?? 0;
+      final repMax = int.tryParse(row["colRepMax"] ?? row["colRepMin"] ?? "0") ?? repMin;
+      
+      String cleanWeightType = weightType;
+      if (cleanWeightType.startsWith("WeightType.")) {
+        cleanWeightType = cleanWeightType.replaceFirst("WeightType.", "");
+      }
+      
+      return {
+        "colStep": int.tryParse(row["colStep"] ?? "1") ?? 1,
+        "colKg": _parseWeight(row["colKg"] ?? "0"),
+        "colRepMin": repMin,
+        "colRepMax": repMax,
+        "weight_unit": cleanWeightType,
+      };
+    }).toList();
+
+    formattedRows.add({
+      "exercise_number": exerciseIdKey,
+      "exercise_name": exerciseNames[exerciseIdKey] ?? "Unknown Exercise",
+      "notes": exerciseNotes[exerciseIdKey] ?? "",
+      "rep_type": exerciseRepTypes[exerciseIdKey] ?? "single",
+      "data": formattedData,
+    });
+  }
+}
 
     final updatePayload = {
-      "exercise_table": exerciseTableTitle, // ✅ UŻYJ NOWEJ NAZWY
+      "exercise_table": exerciseTableTitle, // UŻYJ NOWEJ NAZWY
       "rows": formattedRows,
     };
 
@@ -106,17 +161,17 @@ Future<void> fetchExercisePlans() async {
     print("✅ Update response received from backend:");
     print("  - Message: ${response['message']}");
 
-    // ✅ STWÓRZ ZAKTUALIZOWANY PLAN Z NOWĄ NAZWĄ
+    //STWÓRZ ZAKTUALIZOWANY PLAN Z NOWĄ NAZWĄ
     print("🔄 Creating updated plan with NEW title: '$exerciseTableTitle'");
     
-    // ✅ STWÓRZ NOWE DANE WIERSZY Z LOKALNYCH DANYCH
+    // STWÓRZ NOWE DANE WIERSZY Z LOKALNYCH DANYCH
     final updatedRows = <ExerciseRowsData>[];
-    
-    for (final entry in tableData.entries) {
-      final exerciseIdKey = entry.key;
-      final rows = entry.value;
-      
-      final exerciseRowData = rows.map((rowData) {
+    if (exerciseOrder != null && exerciseOrder.isNotEmpty) {
+    for (final entry in exerciseOrder) {
+      final  exerciseId = entry.id;
+      final row = tableData[exerciseId];
+
+      final exerciseRowData = row?.map((rowData) {
         final repMin = int.tryParse(rowData["colRepMin"] ?? "0") ?? 0;
         final repMax = int.tryParse(rowData["colRepMax"] ?? rowData["colRepMin"] ?? "0") ?? repMin;
         
@@ -133,20 +188,49 @@ Future<void> fetchExercisePlans() async {
       }).toList();
       
       updatedRows.add(ExerciseRowsData(
-        exercise_name: exerciseNames[exerciseIdKey] ?? "Unknown Exercise",
-        exercise_number: exerciseIdKey,
-        notes: exerciseNotes[exerciseIdKey] ?? "",
-        data: exerciseRowData,
-        rep_type: _parseRepsType(exerciseRepTypes[exerciseIdKey] ?? "single"),
+        exercise_name: exerciseNames[exerciseId] ?? "Unknown Exercise",
+        exercise_number: exerciseId,
+        notes: exerciseNotes[exerciseId] ?? "",
+        data: exerciseRowData ?? [],
+        rep_type: _parseRepsType(exerciseRepTypes[exerciseId] ?? "single"),
       ));
       
-      print("  ✅ Created updated data for exercise $exerciseIdKey with ${exerciseRowData.length} sets");
-    }
+      print("  ✅ Created updated data for exercise $exerciseId with ${exerciseRowData} sets");
+    }  
+    }else {
+      for (final entry in tableData.entries) {
+        final exerciseId = entry.key;
+        final rows = entry.value;
+        
+        final exerciseRowData = rows.map((rowData) {
+          final repMin = int.tryParse(rowData["colRepMin"] ?? "0") ?? 0;
+          final repMax = int.tryParse(rowData["colRepMax"] ?? rowData["colRepMin"] ?? "0") ?? repMin;
+          
+          return ExerciseRow(
+            colStep: int.tryParse(rowData["colStep"] ?? "1") ?? 1,
+            colKg: _parseWeight(rowData["colKg"] ?? "0"),
+            colRepMin: repMin,
+            colRepMax: repMax,
+            weightType: _getWeightTypeFromString(weightType),
+            isChecked: false,
+            isFailure: false,
+            rowColor: null,
+          );
+        }).toList();
+        
+        updatedRows.add(ExerciseRowsData(
+          exercise_name: exerciseNames[exerciseId] ?? "Unknown Exercise",
+          exercise_number: exerciseId,
+          notes: exerciseNotes[exerciseId] ?? "",
+          data: exerciseRowData,
+          rep_type: _parseRepsType(exerciseRepTypes[exerciseId] ?? "single"),
+        ));
+      }
+    } 
     
-    // ✅ STWÓRZ ZAKTUALIZOWANY PLAN Z NOWĄ NAZWĄ
     final updatedPlan = ExerciseTable(
       id: exerciseId,
-      exercise_table: exerciseTableTitle, // ✅ UŻYJ NOWEJ NAZWY Z FORMULARZA
+      exercise_table: exerciseTableTitle, 
       rows: updatedRows,
     );
     

@@ -171,6 +171,10 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     
     print("✅ External initial data loaded for ${exerciseData.length} exercises");
   }
+  List<Exercise> getCurrentExerciseOrder() {
+  print("📋 Getting current exercise order: ${_reorderedExercises.map((e) => e.name).join(', ')}");
+  return List.from(_reorderedExercises);
+}
 
   // ✅ TWORZENIE KONTROLERÓW DLA ISTNIEJĄCYCH DANYCH
   void _createControllersForExistingData(String exerciseId, List<Map<String, String>> rows, String notes) {

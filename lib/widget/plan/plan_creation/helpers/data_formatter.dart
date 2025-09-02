@@ -1,3 +1,5 @@
+import 'package:work_plan_front/model/exercise.dart';
+
 class DataFormatter {
   
   static Map<String, List<Map<String, String>>> formatTableData({
@@ -71,6 +73,7 @@ class DataFormatter {
     required Map<String, String> exerciseRepTypes,
     Map<String, String>? exerciseNotes, 
     required String weightType,
+    List<Exercise>? exerciseOrder,
   }) {
     print("🔄 Formatting plan data with names...");
 

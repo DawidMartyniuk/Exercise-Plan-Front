@@ -67,7 +67,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   void _loadPlanForEditing(ExerciseTable plan) {
     print("\n🔄 Loading plan for editing: ${plan.exercise_table} (ID: ${plan.id})");
     
-    // ✅ POBIERZ NAJNOWSZE DANE Z PROVIDERA
+    // POBIERZ NAJNOWSZE DANE Z PROVIDERA
     final currentPlans = ref.read(exercisePlanProvider);
     final currentPlan = currentPlans.firstWhere(
       (p) => p.id == plan.id,
@@ -78,20 +78,20 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     for (final row in currentPlan.rows) {
       print("  📋 ${row.exercise_name}: ${row.data.length} sets");
     }
-    
-    // ✅ USTAW TYTUŁ PLANU Z AKTUALNYCH DANYCH
+  
+    //  USTAW TYTUŁ PLANU Z AKTUALNYCH DANYCH
     setState(() {
       exerciseTableTitle = currentPlan.exercise_table;
     });
     
-    // ✅ USTAW TYTUŁ W PlanTitleField
+    // USTAW TYTUŁ W PlanTitleField
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _planTitleFieldKey.currentState?.setValue(currentPlan.exercise_table);
       }
     });
     
-    // ✅ ZAŁADUJ ĆWICZENIA Z AKTUALNYCH DANYCH
+    //  ZAŁADUJ ĆWICZENIA Z AKTUALNYCH DANYCH
     _loadExercisesFromPlan(currentPlan); // używaj currentPlan zamiast plan
   }
 
@@ -109,11 +109,11 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
         }
       });
     } else {
-      // ✅ JEŚLI NIE - UŻYJ NORMALNEGO setState
+      
       setState(() {
         exerciseTableTitle = newTitle;
       });
-    //  print("📝 Plan title changed to: '$newTitle' (via setState)");
+  
     }
   }
 
@@ -295,6 +295,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     print("💾 Starting plan save process...");
 
       final currentTitleFromField = _planTitleFieldKey.currentState?.currentValue?.trim() ?? exerciseTableTitle.trim();
+      final finalTitle = currentTitleFromField.isNotEmpty ? currentTitleFromField : exerciseTableTitle.trim();
 
     if (!_isPlanReadToSave) {
       ToastUtils.showValidationError(
@@ -312,26 +313,34 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       );
       return;
     }
-     final finalTitle = currentTitleFromField.isNotEmpty ? currentTitleFromField : exerciseTableTitle.trim();
+    // final finalTitle = currentTitleFromField.isNotEmpty ? currentTitleFromField : exerciseTableTitle.trim();
+
 
     try {
       final tableData = _getTableData!();
+      final currentExerciseOrder = _selectedExerciseListKey.currentState?.getCurrentExerciseOrder() ?? [];
 
       // UTWÓRZ MAPĘ NAZW ĆWICZEŃ
       final exerciseNames = <String, String>{};
       final exerciseRepTypes = <String, String>{};
 
-      for (final exercise in selectedExercise) {
+      for (final exercise in currentExerciseOrder) {
         exerciseNames[exercise.id] = exercise.name;
-
         final repType = ref.read(exerciseRepsTypeProvider(exercise.id));
         exerciseRepTypes[exercise.id] = repType.toDbString();
       }
+       if (currentExerciseOrder.isEmpty) {
+      ToastUtils.showValidationError(
+        context,
+        customMessage: "Brak ćwiczeń w planie",
+      );
+      return;
+    }
       
-      // ✅ POPRAW POBIERANIE weight_type
+      //  POPRAW POBIERANIE weight_type
       final rawWeightType = ref.read(weightTypeForExerciseProvider(selectedExercise.first.id));
       
-      // ✅ KONWERTUJ WeightType enum na string
+      //  KONWERTUJ WeightType enum na string
       String cleanWeightType;
       if (rawWeightType == WeightType.kg) {
         cleanWeightType = "kg";
@@ -355,12 +364,14 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             exerciseRepTypes: exerciseRepTypes,
 
             exerciseNotes: _selectedExerciseListKey.currentState?.getExerciseNotes() ?? {},
-            weightType: cleanWeightType, // ✅ UŻYJ OCZYSZCZONEJ WARTOŚCI
+            weightType: cleanWeightType, //  UŻYJ OCZYSZCZONEJ WARTOŚCI
+            exerciseOrder: currentExerciseOrder, //   AKTUALNA KOLEJNOŚĆ
           );
 
           if (statusCode == 200 || statusCode == 201) {
             setState(() {
             exerciseTableTitle = finalTitle;
+            selectedExercise = currentExerciseOrder;
           });
             await _handleSaveSuccess();
           } else {
@@ -379,6 +390,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
             exerciseNames: exerciseNames,
             exerciseRepTypes: exerciseRepTypes,
             exerciseNotes: _selectedExerciseListKey.currentState?.getExerciseNotes() ?? {},
+            exerciseOrder: currentExerciseOrder,
           );
 
           final exercisePlanNotifier = ref.read(exercisePlanProvider.notifier);

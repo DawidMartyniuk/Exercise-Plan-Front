@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/LoginResult.dart';
 import 'package:work_plan_front/model/authResponse.dart';
-import 'package:work_plan_front/model/User.dart';
 import 'package:work_plan_front/serwis/AuthService.dart';
 import 'package:work_plan_front/serwis/profileService.dart';
 import 'package:work_plan_front/utils/token_storage.dart';
@@ -10,16 +9,16 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
   final Authservice _authService = Authservice();
 
   AuthNotifier() : super(null) {
-    // ✅ SPRAWDŹ PRZY STARCIE CZY UŻYTKOWNIK JEST JUŻ ZALOGOWANY
+    
     _checkPersistedLogin();
   }
 
-  // ✅ SPRAWDŹ ZAPISANY TOKEN PRZY STARCIE APLIKACJI
+ 
   Future<void> _checkPersistedLogin() async {
     print("🔍 Sprawdzanie zapisanego tokena...");
     
     try {
-      // ✅ TYMCZASOWO UŻYJ PROSTEJ METODY
+      // TYMCZASOWO UŻYJ PROSTEJ METODY
       final token = await getToken();
       if (token == null || token.isEmpty) {
         print("🔍 Brak tokena - wymagane logowanie");
@@ -28,7 +27,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
 
       print("✅ Znaleziono token - próbuję pobrać profil użytkownika");
 
-      // ✅ SPRÓBUJ POBRAĆ PROFIL BEZ WALIDACJI JWT
+      //SPRÓBUJ POBRAĆ PROFIL BEZ WALIDACJI JWT
       try {
         final userProfile = await ProfileService().getCurrentUserProfile();
         if (userProfile != null) {
@@ -53,7 +52,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
-  // ✅ LOGOWANIE Z ZAPISANIEM TOKENA
+  //LOGOWANIE Z ZAPISANIEM TOKENA
   Future<LoginResult?> login(String email, String password) async {
     try {
       print("🔐 Próba logowania dla: $email");
@@ -71,7 +70,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
-  // ✅ DODANA BRAKUJĄCA METODA RESET PASSWORD
+  //  DODANA BRAKUJĄCA METODA RESET PASSWORD
   Future<bool> resetPassword(String email) async {
     try {
       print("🔐 Wysyłanie linku resetowania hasła do: $email");
@@ -90,7 +89,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
-  // ✅ POTWIERDZENIE RESETU HASŁA
+  //  POTWIERDZENIE RESETU HASŁA
   Future<bool> confirmPasswordReset({
     required String email,
     required String token,
@@ -119,7 +118,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
-  // ✅ REJESTRACJA
+  //  REJESTRACJA
   Future<void> register(String name, String email, String password, String repeatPassword) async {
     try {
       print("📝 Próba rejestracji dla: $email");
@@ -139,7 +138,7 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     }
   }
 
-  // ✅ WYLOGOWANIE Z WYCZYSZCZENIEM TOKENA
+  // WYLOGOWANIE Z WYCZYSZCZENIEM TOKENA
   Future<void> logout() async {
     try {
       print("🚪 Wylogowywanie...");
@@ -149,13 +148,12 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
       print("✅ Wylogowanie pomyślne");
     } catch (e) {
       print("❌ Błąd wylogowania: $e");
-      // Zawsze wyczyść lokalny stan, nawet jeśli API zwróci błąd
       await clearToken();
       state = null;
     }
   }
 
-  // ✅ SPRAWDŹ CZY TOKEN JEST NADAL WAŻNY
+  //  SPRAWDŹ CZY TOKEN JEST NADAL WAŻNY
   Future<bool> validateToken() async {
     if (state == null) return false;
     
@@ -168,10 +166,10 @@ class AuthNotifier extends StateNotifier<AuthResponse?> {
     return isValid;
   }
 
-  // ✅ ODŚWIEŻ TOKEN (jeśli backend obsługuje refresh tokens)
+  //  ODŚWIEŻ TOKEN (jeśli backend obsługuje refresh tokens)
   Future<void> refreshToken() async {
     try {
-      // TODO: Implementuj gdy backend będzie obsługiwał refresh tokens
+     
       print("🔄 Odświeżanie tokena...");
     } catch (e) {
       print("❌ Błąd odświeżania tokena: $e");
