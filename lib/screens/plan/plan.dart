@@ -87,11 +87,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   }
 
   void deletePlan(ExerciseTable plan, BuildContext context, int planID) {
-
-      if (!context.mounted) {
-    print("❌ Context is not mounted - cannot delete plan");
-    return;
-  }
+    if (!context.mounted) {
+      print("❌ Context is not mounted - cannot delete plan");
+      return;
+    }
 
     //  NAJPIERW USUŃ Z GRUP
     ref.read(planGroupsProvider.notifier).removePlanFromGroups(plan, '');
@@ -102,28 +101,28 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
         .deleteExercisePlan(planID)
         .then((_) {
           // ✅ SUKCES - plan usunięty
-          if(context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Plan ${plan.exercise_table} deleted successfully.",
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  "Plan ${plan.exercise_table} deleted successfully.",
+                ),
+                backgroundColor: Colors.green,
               ),
-              backgroundColor: Colors.green,
-            ),
-          );
+            );
           }
         })
         .catchError((error) {
           // ✅ BŁĄD - przywróć plan do grup
           print("❌ Błąd usuwania planu: $error");
-            if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Failed to delete plan: $error"),
-              backgroundColor: Colors.red,
-            ),
-          );
-            }
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed to delete plan: $error"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
 
           //  Przywróć plan do oryginalnej grupy
         });
@@ -165,33 +164,46 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   }
 
   void _openPlanForEditing(ExerciseTable plan) {
-    print("✏️ Opening plan for editing: ${plan.exercise_table} (ID: ${plan.id})");
-    
+    print(
+      "✏️ Opening plan for editing: ${plan.exercise_table} (ID: ${plan.id})",
+    );
+
     // ✅ POBIERZ NAJNOWSZE DANE PRZED EDYCJĄ
     final currentPlans = ref.read(exercisePlanProvider);
     final currentPlan = currentPlans.firstWhere(
       (p) => p.id == plan.id,
       orElse: () => plan,
     );
-    
+
     print("📊 Plan data before editing:");
     print("  - Widget plan title: '${plan.exercise_table}'");
     print("  - Provider plan title: '${currentPlan.exercise_table}'");
-    print("  - Using: ${currentPlan.exercise_table == plan.exercise_table ? 'SAME' : 'PROVIDER VERSION'}");
-    
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => PlanCreation(planToEdit: currentPlan), // ✅ PRZEKAŻ AKTUALNY PLAN
-      ),
-    ).then((_) {
-      print("🔄 Powrót z edycji planu - pełne odświeżenie danych");
-      _resetGroupsFlag();
-      
-      ref.read(exercisePlanProvider.notifier).fetchExercisePlans().then((_) {
-        final refreshedPlans = ref.read(exercisePlanProvider);
-        ref.read(planGroupsProvider.notifier).initializeWithPlans(refreshedPlans);
-      });
-    });
+    print(
+      "  - Using: ${currentPlan.exercise_table == plan.exercise_table ? 'SAME' : 'PROVIDER VERSION'}",
+    );
+
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder:
+                (ctx) => PlanCreation(
+                  planToEdit: currentPlan,
+                ), // ✅ PRZEKAŻ AKTUALNY PLAN
+          ),
+        )
+        .then((_) {
+          print("🔄 Powrót z edycji planu - pełne odświeżenie danych");
+          _resetGroupsFlag();
+
+          ref.read(exercisePlanProvider.notifier).fetchExercisePlans().then((
+            _,
+          ) {
+            final refreshedPlans = ref.read(exercisePlanProvider);
+            ref
+                .read(planGroupsProvider.notifier)
+                .initializeWithPlans(refreshedPlans);
+          });
+        });
   }
 
   @override
@@ -461,6 +473,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               itemBuilder: (context, index) {
                 final group = planGroups[index];
                 return PlanGroupWidget(
+                  key: ValueKey(
+                    "group_${group.name}_${exercisePlans.length}",
+                  ), // ✅ DODAJ KEY KTÓRY ZMIENIA SIĘ PO AKTUALIZACJI
                   group: group,
                   allExercises: allExercises,
                   onStartWorkout: (plan, filteredExercises) {

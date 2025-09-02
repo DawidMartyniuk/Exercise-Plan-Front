@@ -105,11 +105,11 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
     },
     onWillAcceptWithDetails: (data) => data != null,
     onAcceptWithDetails: (details) {
-      // ✅ WSTAW PLAN W KONKRETNEJ POZYCJI
+    
       ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
         details.data, 
         widget.group.id, 
-        index + 1 // ✅ PO ELEMENCIE O INDEXIE
+        index + 1 //
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -143,7 +143,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
       
       child: Column(
         children: [
-          // ✅ HEADER GRUPY (pozostaje bez zmian)
+          //  HEADER GRUPY 
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -173,7 +173,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                 ),
                 SizedBox(width: 16),
                 
-                // ✅ NAZWA GRUPY (EDYTOWALNA)
+                //  NAZWA GRUPY (EDYTOWALNA)
                 Expanded(
                   child: _isEditing
                       ? TextField(
@@ -201,7 +201,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                         ),
                 ),
                 
-                // ✅ LICZBA PLANÓW
+                //  LICZBA PLANÓW
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -313,11 +313,11 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                     },
                     onWillAcceptWithDetails: (data) => data != null,
                     onAcceptWithDetails: (details) {
-                      // ✅ DODAJ PLAN NA POCZĄTEK LISTY
+                      //  DODAJ PLAN NA POCZĄTEK LISTY
                       ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
                         details.data, 
                         widget.group.id, 
-                        0 // ✅ POZYCJA 0 = POCZĄTEK
+                        0 //  POZYCJA 0 = POCZĄTEK
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -328,7 +328,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                     },
                   ),
 
-                  // ✅ LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
+                  //  LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
                   widget.group.plans.isEmpty
                       ? Container(
                           padding: EdgeInsets.all(25),
@@ -362,7 +362,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                           },
                         ),
 
-                  // ✅ DRAG TARGET NA DOLE - DLA PRZECIĄGANIA NA KONIEC
+                  // DRAG TARGET NA DOLE - DLA PRZECIĄGANIA NA KONIEC
                   DragTarget<ExerciseTable>(
                     builder: (context, candidateData, rejectedData) {
                       return Container(

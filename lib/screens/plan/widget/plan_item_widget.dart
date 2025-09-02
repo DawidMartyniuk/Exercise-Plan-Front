@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/widget/plan/widget/plan_card_more_option.dart';
+import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 
-class PlanItemWidget extends StatelessWidget {
+class PlanItemWidget extends ConsumerWidget {
   final ExerciseTable plan;
   final List<Exercise> allExercises;
   final Function(ExerciseTable, List<Exercise>) onStartWorkout;
@@ -23,9 +25,15 @@ class PlanItemWidget extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentPlans = ref.watch(exercisePlanProvider);
+    final currentPlan = currentPlans.firstWhere(
+      (p) => p.id == plan.id,
+      orElse: () => plan,
+    );
+
     return Draggable<ExerciseTable>(
-      data: plan,
+      data: currentPlan,
       feedback: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(12),
@@ -37,7 +45,7 @@ class PlanItemWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            plan.exercise_table,
+            currentPlan.exercise_table,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -47,13 +55,13 @@ class PlanItemWidget extends StatelessWidget {
       ),
       childWhenDragging: Opacity(
         opacity: 0.3,
-        child: _buildPlanCard(context),
+        child: _buildPlanCard(context, currentPlan),
       ),
-      child: _buildPlanCard(context),
+      child: _buildPlanCard(context, currentPlan),
     );
   }
 
-  Widget _buildPlanCard(BuildContext context) {
+  Widget _buildPlanCard(BuildContext context, ExerciseTable currentPlan) {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 4),
       color: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
@@ -68,7 +76,7 @@ class PlanItemWidget extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    plan.exercise_table,
+                    currentPlan.exercise_table,
                     style: Theme.of(context).textTheme.titleMedium!.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.bold,
@@ -77,8 +85,8 @@ class PlanItemWidget extends StatelessWidget {
                   ),
                 ),
                 PlanCardMoreOption(
-                  onDeletePlan: () => onDeletePlan(plan, context, plan.id),
-                  plan: plan,
+                  onDeletePlan: () => onDeletePlan(currentPlan, context, currentPlan.id),
+                  plan: currentPlan,
                 ),
               ],
             ),
@@ -86,7 +94,7 @@ class PlanItemWidget extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                plan.rows.map((row) => row.exercise_name).join(", "),
+                currentPlan.rows.map((row) => row.exercise_name).join(", "),
                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface.withAlpha((0.6 * 255).toInt()),
                 ),
@@ -106,8 +114,8 @@ class PlanItemWidget extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  final filteredExercises = _getFilteredExercise(plan, allExercises);
-                  onStartWorkout(plan, filteredExercises);
+                  final filteredExercises = _getFilteredExercise(currentPlan, allExercises);
+                  onStartWorkout(currentPlan, filteredExercises);
                 },
                 child: Text(
                   "Start workout",
