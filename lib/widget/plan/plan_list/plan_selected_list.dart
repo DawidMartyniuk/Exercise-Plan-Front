@@ -20,16 +20,20 @@ import 'components/exercise_table_helpers.dart';
 import 'plan_selected/plan_selected_card.dart';
 import 'plan_selected/plan_selected_appBar.dart';
 import 'plan_selected/plan_selected_details.dart';
-
+ // TODO: ZAZNACZANIE ĆWICZEŃ TAKIE SAMO JAK PODCZAS TWOŻENIA PLANU;
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
   final List<Exercise> exercises;
   final VoidCallback? onStartWorkout;
+  final bool isReadOnly;
+  final bool isWorkoutMode;
 
   const PlanSelectedList({
     super.key,
     required this.plan,
     required this.exercises,
+    required this.isReadOnly,
+    required this.isWorkoutMode,
     this.onStartWorkout,
   });
 

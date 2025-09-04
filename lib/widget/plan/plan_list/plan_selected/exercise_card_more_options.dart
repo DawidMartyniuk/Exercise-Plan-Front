@@ -7,13 +7,16 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
   final VoidCallback? onDeleteCard;
   final VoidCallback? onReplace;
   final VoidCallback? onDuplicateCard;
+  final VoidCallback? onShowPlan;
 
   ExerciseCardMoreOptions({
    // required this.exercise,
     this.onDeleteCard,
     this.onReplace,
     this.onDuplicateCard,
-  });
+    this.onShowPlan,
+    
+      });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

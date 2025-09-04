@@ -5,26 +5,16 @@ import 'package:work_plan_front/screens/plan_creation.dart';
 import '../plan_list/components/plan_validation.dart';
 
 class PlanCardMoreOption extends ConsumerWidget {
-  final ExerciseTable plan;
-  final VoidCallback? onAddExercise;
-  final VoidCallback? onEditPlan;
   final VoidCallback? onDeletePlan;
-  final VoidCallback? onDuplicatePlan;
-  final VoidCallback? onExportPlan;
-  final VoidCallback? onSharePlan;
-  final VoidCallback? onResetProgress;
+  final ExerciseTable? plan;
+  final VoidCallback? onShowPlan; // ✅ DODAJ NOWY CALLBACK
 
   const PlanCardMoreOption({
-    Key? key,
-    required this.plan,
-    this.onAddExercise,
-    this.onEditPlan,
     this.onDeletePlan,
-    this.onDuplicatePlan,
-    this.onExportPlan,
-    this.onSharePlan,
-    this.onResetProgress,
-  }) : super(key: key);
+    this.plan,
+    this.onShowPlan, // ✅ NOWY PARAMETR
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,94 +23,51 @@ class PlanCardMoreOption extends ConsumerWidget {
         Icons.more_vert,
         color: Theme.of(context).colorScheme.onSurface,
       ),
-      onSelected: (value) => _handleMenuSelection(context, value),
+      onSelected: (value) => _handleMenuSelection(value, context, ref),
       itemBuilder: (BuildContext context) => [
-        // ✅ DODAJ ĆWICZENIE
-        // PopupMenuItem<String>(
-        //   value: 'add_exercise',
-        //   child: _buildMenuItem(
-        //     icon: Icons.add,
-        //     title: 'Add Exercise',
-        //     context: context,
-        //   ),
-        // ),
+        // ✅ DODAJ SHOW PLAN NA GÓRZE
+        if (onShowPlan != null)
+          PopupMenuItem(
+            value: 'show_plan',
+            child: _buildMenuItem(
+              icon: Icons.visibility,
+              title: 'Show Plan',
+              context: context,
+              isDestructive: false,
+            ),
+          ),
         
-        const PopupMenuDivider(),
+        // ✅ DIVIDER JEŚLI SHOW PLAN DOSTĘPNE
+        if (onShowPlan != null) const PopupMenuDivider(),
         
-        // ✅ EDYTUJ PLAN
-        PopupMenuItem<String>(
-          value: 'edit_plan',
+        PopupMenuItem(
+          value: 'edit',
           child: _buildMenuItem(
             icon: Icons.edit,
-            title: 'Edit Plan',
+            title: 'Edit',
             context: context,
+            isDestructive: false,
           ),
         ),
-        
-        // ✅ DUPLIKUJ PLAN
-        PopupMenuItem<String>(
-          value: 'duplicate_plan',
+        PopupMenuItem(
+          value: 'duplicate',
           child: _buildMenuItem(
-            icon: Icons.copy,
-            title: 'Duplicate Plan',
+            icon: Icons.content_copy,
+            title: 'Duplicate',
             context: context,
+            isDestructive: false,
           ),
         ),
         
         const PopupMenuDivider(),
         
-        // ✅ RESETUJ POSTĘP
-        // PopupMenuItem<String>(
-        //   value: 'reset_progress',
-        //   child: _buildMenuItem(
-        //     icon: Icons.refresh,
-        //     title: 'Reset Progress',
-        //     context: context,
-        //   ),
-        // ),
-        
-        // ✅ EKSPORTUJ PLAN
-        PopupMenuItem<String>(
-          value: 'export_plan',
-          child: _buildMenuItem(
-            icon: Icons.download,
-            title: 'Export Plan',
-            context: context,
-          ),
-        ),
-        
-        // ✅ UDOSTĘPNIJ PLAN
-        // PopupMenuItem<String>(
-        //   value: 'share_plan',
-        //   child: _buildMenuItem(
-        //     icon: Icons.share,
-        //     title: 'Share Plan',
-        //     context: context,
-        //   ),
-        // ),
-        
-        const PopupMenuDivider(),
-        
-        // ✅ USUŃ PLAN
-        PopupMenuItem<String>(
-          value: 'delete_plan',
+        PopupMenuItem(
+          value: 'delete',
           child: _buildMenuItem(
             icon: Icons.delete,
-            title: 'Delete Plan',
+            title: 'Delete',
             context: context,
             isDestructive: true,
-          ),
-        ),
-        
-        const PopupMenuDivider(),
-        
-        // ✅ WALIDUJ PLAN
-        PopupMenuItem<String>(
-          value: 'validate_plan',
-          child: _buildMenuItem(
-            icon: Icons.check_circle,
-            title: 'Validate Plan',
-            context: context,
           ),
         ),
       ],
@@ -137,17 +84,16 @@ class PlanCardMoreOption extends ConsumerWidget {
       children: [
         Icon(
           icon,
-          color: isDestructive 
-              ? Colors.red 
+          color: isDestructive
+              ? Theme.of(context).colorScheme.error
               : Theme.of(context).colorScheme.onSurface,
-          size: 20,
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 8),
         Text(
           title,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isDestructive 
-                ? Colors.red 
+          style: TextStyle(
+            color: isDestructive
+                ? Theme.of(context).colorScheme.error
                 : Theme.of(context).colorScheme.onSurface,
           ),
         ),
@@ -155,39 +101,24 @@ class PlanCardMoreOption extends ConsumerWidget {
     );
   }
 
-  void _handleMenuSelection(BuildContext context, String value) {
+  void _handleMenuSelection(String value, BuildContext context, WidgetRef ref) {
     switch (value) {
-      case 'add_exercise':
-        if (onAddExercise != null) onAddExercise!();
+      case 'show_plan': // ✅ DODAJ OBSŁUGĘ SHOW PLAN
+        if (onShowPlan != null) onShowPlan!();
         break;
-        
-      case 'edit_plan':
-        _editPlan(context);
+      case 'edit':
+        if (plan != null) {
+          _editPlan(context);
+        }
         break;
-        
-      case 'duplicate_plan':
-        if (onDuplicatePlan != null) onDuplicatePlan!();
-        break;
-        
-      case 'export_plan':
-        if (onExportPlan != null) onExportPlan!();
-        break;
-        
-      case 'share_plan':
-        if (onSharePlan != null) onSharePlan!();
-        break;
-        
-      case 'reset_progress':
-        _showResetProgressDialog(context);
-        break;
-        
-      case 'delete_plan':
+      case 'delete':
         _showDeletePlanDialog(context);
         break;
-        
-      case 'validate_plan':
-        _showPlanValidation(context);
+      case 'duplicate':
+        //_duplicatePlan(context);
         break;
+      default:
+        print('Unknown action: $value');
     }
   }
 
@@ -202,34 +133,34 @@ class PlanCardMoreOption extends ConsumerWidget {
     );
   }
 
-  void _showResetProgressDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Reset Progress'),
-          content: const Text(
-            'Are you sure you want to reset all progress for this plan? '
-            'This will uncheck all completed sets.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                if (onResetProgress != null) onResetProgress!();
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Reset'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showResetProgressDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: const Text('Reset Progress'),
+  //         content: const Text(
+  //           'Are you sure you want to reset all progress for this plan? '
+  //           'This will uncheck all completed sets.',
+  //         ),
+  //         actions: [
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: const Text('Cancel'),
+  //           ),
+  //           TextButton(
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //               if (onResetProgress != null) onResetProgress!();
+  //             },
+  //             style: TextButton.styleFrom(foregroundColor: Colors.red),
+  //             child: const Text('Reset'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void _showDeletePlanDialog(BuildContext context) {
     showDialog(
@@ -238,7 +169,7 @@ class PlanCardMoreOption extends ConsumerWidget {
         return AlertDialog(
           title: const Text('Delete Plan'),
           content: Text(
-            'Are you sure you want to delete "${plan.exercise_table}"? '
+            'Are you sure you want to delete "${plan?.exercise_table}"? '
             'This action cannot be undone.',
           ),
           actions: [
@@ -261,7 +192,7 @@ class PlanCardMoreOption extends ConsumerWidget {
   }
 
   void _showPlanValidation(BuildContext context) {
-    final validation = PlanValidation.validatePlan(plan);
+    final validation = PlanValidation.validatePlan(plan!);
     
     showDialog(
       context: context,

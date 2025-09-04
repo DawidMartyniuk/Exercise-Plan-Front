@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
 import 'package:work_plan_front/widget/plan/widget/plan_card_more_option.dart';
 import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 
@@ -85,6 +86,7 @@ class PlanItemWidget extends ConsumerWidget {
                   ),
                 ),
                 PlanCardMoreOption(
+                  onShowPlan: () => _showPlanSelected(context, currentPlan),
                   onDeletePlan: () => onDeletePlan(currentPlan, context, currentPlan.id),
                   plan: currentPlan,
                 ),
@@ -130,4 +132,24 @@ class PlanItemWidget extends ConsumerWidget {
       ),
     );
   }
+
+  void _showPlanSelected(BuildContext context, ExerciseTable plan) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: Text(plan.exercise_table),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+        ),
+        body: PlanSelectedList(
+          plan: plan,
+          exercises: allExercises,
+          isReadOnly: true, // ✅ TRYB PODGLĄDU
+          isWorkoutMode: false, // ✅ BEZ TRENINGU
+        ),
+      ),
+    ),
+  );
+}
 }

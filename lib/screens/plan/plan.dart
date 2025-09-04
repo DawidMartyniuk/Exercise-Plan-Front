@@ -62,6 +62,8 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onStartWorkout: () {
                 // Możesz dodać obsługę rozpoczęcia treningu
               },
+              isReadOnly: false,
+              isWorkoutMode: true,
             ),
       ),
     );
@@ -92,7 +94,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       return;
     }
 
-    //  NAJPIERW USUŃ Z GRUP
     ref.read(planGroupsProvider.notifier).removePlanFromGroups(plan, '');
 
     // POTEM USUŃ Z BACKENDU
@@ -416,7 +417,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Your plans (${exercisePlans.length})", // ✅ POKAŻ LICZBĘ PLANÓW
+                "Your plans (${exercisePlans.length})", //
                 style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -479,10 +480,13 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                   group: group,
                   allExercises: allExercises,
                   onStartWorkout: (plan, filteredExercises) {
-                    timerController.startTimer();
-                    ref
-                        .read(currentWorkoutPlanProvider.notifier)
-                        .state = Currentworkout(
+                    // ✅ SPRAWDŹ CZY TIMER NIE JEST JUŻ URUCHOMIONY
+                    if (timerController.currentTime == 0) {
+                      print("🕐 Uruchamianie głównego timera");
+                      timerController.startTimer();
+                    }
+                    
+                    ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
                       plan: plan,
                       exercises: filteredExercises,
                     );

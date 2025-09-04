@@ -82,6 +82,8 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
                 (ctx) => PlanSelectedList(
                   exercises: curentWorkout.exercises,
                   plan: curentWorkout.plan!,
+                  isReadOnly: false,
+                  isWorkoutMode: true,
                 ),
           ),
         );
