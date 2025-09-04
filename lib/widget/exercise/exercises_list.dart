@@ -24,7 +24,7 @@ class ExerciseList extends StatefulWidget {
 }
 
 class _ExerciseListState extends State<ExerciseList> {
-  // ✅ LISTA WYBRANYCH ĆWICZEŃ
+  //  LISTA WYBRANYCH ĆWICZEŃ
   Set<String> selectedExerciseIds = <String>{};
 
   // ✅ SPRAWDŹ CZY ĆWICZENIE JEST WYBRANE
@@ -32,7 +32,7 @@ class _ExerciseListState extends State<ExerciseList> {
     return selectedExerciseIds.contains(exercise.id);
   }
 
-  // ✅ PRZEŁĄCZ WYBÓR ĆWICZENIA
+  //  PRZEŁĄCZ WYBÓR ĆWICZENIA
   void _toggleExerciseSelection(Exercise exercise) {
     setState(() {
       if (selectedExerciseIds.contains(exercise.id)) {
@@ -43,7 +43,7 @@ class _ExerciseListState extends State<ExerciseList> {
     });
   }
 
-  // ✅ DODAJ WYBRANE ĆWICZENIA
+  //  DODAJ WYBRANE ĆWICZENIA
   void _addSelectedExercises() {
     final selectedExercises = widget.exercise
         .where((exercise) => selectedExerciseIds.contains(exercise.id))
@@ -51,8 +51,9 @@ class _ExerciseListState extends State<ExerciseList> {
     
     if (selectedExercises.isNotEmpty && widget.onMultipleExercisesSelected != null) {
       widget.onMultipleExercisesSelected!(selectedExercises);
-      Navigator.of(context).pop(selectedExercises); // ✅ WRÓĆ Z LISTĄ
+      // ✅ WRÓĆ Z LISTĄ
     }
+     Navigator.of(context).pop(selectedExercises);
   }
   void navigatorToInfoScreen(Exercise exercise) {
     Navigator.of(context).push(

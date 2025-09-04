@@ -12,7 +12,7 @@ import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
 import 'package:work_plan_front/screens/plan/plan_group_widget.dart';
 import 'package:work_plan_front/screens/plan/widget/dialog_to_add_group.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected_list.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_selected_list.dart';
 import 'dart:async' show scheduleMicrotask, Timer;
 
 class PlanScreen extends ConsumerStatefulWidget {

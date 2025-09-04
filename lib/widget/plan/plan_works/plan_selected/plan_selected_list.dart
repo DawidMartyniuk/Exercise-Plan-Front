@@ -14,12 +14,12 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
-import 'helpers/plan_helpers.dart';
-import 'helpers/exercise_calculator.dart';
-import 'components/exercise_table_helpers.dart';
-import 'plan_selected/plan_selected_card.dart';
-import 'plan_selected/plan_selected_appBar.dart';
-import 'plan_selected/plan_selected_details.dart';
+import '../helpers/plan_helpers.dart';
+import '../helpers/exercise_calculator.dart';
+import '../components/exercise_table_helpers.dart';
+import 'plan_selected_card.dart';
+import 'plan_selected_appBar.dart';
+import 'plan_selected_details.dart';
  // TODO: ZAZNACZANIE ĆWICZEŃ TAKIE SAMO JAK PODCZAS TWOŻENIA PLANU;
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
@@ -131,28 +131,132 @@ String _getOriginalRange(String exerciseNumber, int colStep) {
   }
   return "0";
 }
-  // ✅ DODAJ TĘ METODĘ DO KLASY _PlanSelectedListState
-// Map<String, Map<String, int>> _getOriginalRanges() {
-//   final originalRanges = <String, Map<String, int>>{};
-  
-//   // ✅ UŻYJ ORYGINALNEGO PLANU (NIE KOPII ROBOCZEJ)
-//   for (final rowData in _originalPlan.rows) {
-//     for (final row in rowData.data) {
-//       final key = "${rowData.exercise_number}_${row.colStep}";
-//       originalRanges[key] = {
-//         'min': row.colRepMin,
-//         'max': row.colRepMax,
-//       };
-//     }
-//   }
-  
-//   print("🔍 Oryginalne zakresy:");
-//   originalRanges.forEach((key, range) {
-//     print("  - $key: ${range['min']} - ${range['max']}");
-//   });
-  
-//   return originalRanges;
-// }
+Future<void> _addMultipleExercisesToPlan() async {
+  final result = await Navigator.of(context).push<dynamic>(
+    MaterialPageRoute(
+      builder: (ctx) => ExercisesScreen(
+        isSelectionMode: true,
+        title: 'Select Exercises for Plan',
+        onMultipleExercisesSelected: (exercises) {
+          print('🔧 Callback wywołany z ${exercises.length} ćwiczeniami');
+        },
+      ),
+    ),
+  );
+
+  print('🔧 Navigator.pop zwrócił: $result (typ: ${result.runtimeType})');
+
+  // ✅ OBSŁUGA REZULTATU BEZ ASYNC W setState
+  if (result != null) {
+    if (result is List<Exercise>) {
+      // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE SYNCHRONICZNIE
+      int addedCount = 0;
+      
+      setState(() {
+        for (final exercise in result) {
+          final exerciseExists = _workingPlan.rows.any(
+            (rowData) => rowData.exercise_number == exercise.id,
+          );
+          
+          if (!exerciseExists) {
+            final newRow = ExerciseRowsData(
+              exercise_number: exercise.id,
+              exercise_name: exercise.name,
+              notes: '',
+              rep_type: RepsType.single,
+              data: [
+                ExerciseRow(
+                  colStep: 1,
+                  colKg: 0,
+                  colRepMin: 0,
+                  colRepMax: 0,
+                  isChecked: false,
+                  isFailure: false,
+                  rowColor: Colors.transparent,
+                  isUserModified: false,
+                ),
+              ],
+            );
+            _workingPlan.rows.add(newRow);
+            addedCount++;
+          }
+        }
+      });
+      
+      print('✅ Dodano $addedCount nowych ćwiczeń do planu');
+      
+      // ✅ AKTUALIZUJ PROVIDER PO setState
+      _updateCurrentWorkoutPlan();
+      
+      // ✅ POKAŻ TOAST
+      if (addedCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added $addedCount exercise${addedCount > 1 ? 's' : ''} to plan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('All selected exercises already exist in plan'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } else if (result is Exercise) {
+      // ✅ POJEDYNCZE ĆWICZENIE - DODAJ SYNCHRONICZNIE
+      final exerciseExists = _workingPlan.rows.any(
+        (rowData) => rowData.exercise_number == result.id,
+      );
+      
+      if (!exerciseExists) {
+        setState(() {
+          final newRow = ExerciseRowsData(
+            exercise_number: result.id,
+            exercise_name: result.name,
+            notes: '',
+            rep_type: RepsType.single,
+            data: [
+              ExerciseRow(
+                colStep: 1,
+                colKg: 0,
+                colRepMin: 0,
+                colRepMax: 0,
+                isChecked: false,
+                isFailure: false,
+                rowColor: Colors.transparent,
+                isUserModified: false,
+              ),
+            ],
+          );
+          _workingPlan.rows.add(newRow);
+        });
+        
+        // ✅ AKTUALIZUJ PROVIDER PO setState
+        _updateCurrentWorkoutPlan();
+        
+        print('✅ Dodano ćwiczenie: ${result.name}');
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Added ${result.name} to plan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${result.name} already exists in plan'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  } else {
+    print('⚠️ Użytkownik anulował wybór ćwiczeń');
+  }
+}
 ExerciseRow? _getOriginalRowData(String exerciseNumber, int colStep) {
   // ✅ ZNAJDŹ ORYGINALNĄ WARTOŚĆ Z _originalPlan
   for (final rowData in _originalPlan.rows) {
@@ -356,7 +460,37 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   }
 
   // ✅ DODAWANIE ĆWICZENIA - DO KOPII ROBOCZEJ
-  Future<void> _addExerciseToPlan(Exercise exercise) async {
+  // Future<void> _addExerciseToPlan(Exercise exercise) async {
+  //   setState(() {
+  //     final newRow = ExerciseRowsData(
+  //       exercise_number: exercise.id,
+  //       exercise_name: exercise.name,
+  //       notes: '',
+  //       rep_type: RepsType.single,
+  //       data: [
+  //         ExerciseRow(
+  //           colStep: 1,
+  //           colKg: 0,
+  //           colRepMin: 0,
+  //           colRepMax: 0,
+  //           isChecked: false,
+  //           isFailure: false,
+  //           rowColor: Colors.transparent,
+  //           isUserModified: false,
+  //         ),
+  //       ],
+  //     );
+  //     _workingPlan.rows.add(newRow); // ✅ DODAJ DO KOPII ROBOCZEJ
+  //   });
+    
+  //   _updateCurrentWorkoutPlan();
+  // }
+  void _addSingleExerciseToPlan(Exercise exercise) {
+  final exerciseExists = _workingPlan.rows.any(
+    (rowData) => rowData.exercise_number == exercise.id,
+  );
+  
+  if (!exerciseExists) {
     setState(() {
       final newRow = ExerciseRowsData(
         exercise_number: exercise.id,
@@ -376,11 +510,28 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
           ),
         ],
       );
-      _workingPlan.rows.add(newRow); // ✅ DODAJ DO KOPII ROBOCZEJ
+      _workingPlan.rows.add(newRow);
     });
     
     _updateCurrentWorkoutPlan();
+    
+    print('✅ Dodano ćwiczenie: ${exercise.name}');
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Added ${exercise.name} to plan'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${exercise.name} already exists in plan'),
+        backgroundColor: Colors.orange,
+      ),
+    );
   }
+}
 
   // ✅ KOŃCZENIE TRENINGU - PRZYWRÓĆ ORYGINAŁ
   void _endWorkout(BuildContext context) {
@@ -466,7 +617,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                 ),
               ),
             ),
-            _buildDrawerButton(),
+           // _buildDrawerButton(),
           ],
         ),
       ),
@@ -563,76 +714,133 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     }).toList();
   }
 
+  void _openInfoExercise(Exercise exercise) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ExerciseInfoScreen(exercise: exercise),
+      ),
+    );
+  }
+
   Widget _buildActionButtons() {
+  if (widget.isReadOnly && !widget.isWorkoutMode) {
+    // ✅ TRYB PODGLĄDU - TYLKO PRZYCISK STARTU TRENINGU
     return Column(
       children: [
-        // ✅ ADD EXERCISE BUTTON
-        ElevatedButton.icon(
-          onPressed: () async {
-            final newExercise = await Navigator.of(context).push<Exercise>(
-              MaterialPageRoute(
-                builder: (ctx) => ExercisesScreen(
-                  isSelectionMode: true,
-                  title: 'Select Exercise for Plan',
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PlanSelectedList(
+                    plan: widget.plan,
+                    exercises: widget.exercises,
+                    isReadOnly: false,
+                    isWorkoutMode: true,
+                  ),
                 ),
-              ),
-            );
-
-            if (newExercise != null) {
-              await _addExerciseToPlan(newExercise);
-            }
-          },
-          icon: const Icon(Icons.add),
-          label: const Text("Add Exercise"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Theme.of(context).colorScheme.onSurface,
+              );
+            },
+            icon: const Icon(Icons.fitness_center),
+            label: const Text("Start Workout"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+      ],
+    );
+  } else if (widget.isWorkoutMode) {
+    // ✅ TRYB TRENINGU - WSZYSTKIE PRZYCISKI TRENINGOWE
+    return Column(
+      children: [
+        // ✅ POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _addMultipleExercisesToPlan, // ✅ UŻYJ METODY MULTI-SELECT
+            icon: const Icon(Icons.add),
+            label: const Text("Add Exercises"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
           ),
         ),
         
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         
-        // ✅ END WORKOUT BUTTON
-        ElevatedButton(
-          onPressed: () => _endWorkout(context),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Theme.of(context).colorScheme.onSurface,
+        // ✅ PRZYCISK ZAKOŃCZ TRENING
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () => _endWorkout(context),
+            icon: const Icon(Icons.stop),
+            label: const Text("End Workout"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
           ),
-          child: const Text("End Workout"),
+        ),
+      ],
+    );
+  } else {
+    // ✅ TRYB EDYCJI PLANU - PRZYCISKI EDYCYJNE
+    return Column(
+      children: [
+        // ✅ POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _addMultipleExercisesToPlan, // ✅ UŻYJ METODY MULTI-SELECT
+            icon: const Icon(Icons.add),
+            label: const Text("Add Exercises"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // ✅ START WORKOUT
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PlanSelectedList(
+                    plan: widget.plan,
+                    exercises: widget.exercises,
+                    isReadOnly: false,
+                    isWorkoutMode: true,
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(Icons.fitness_center),
+            label: const Text("Start Workout"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
         ),
       ],
     );
   }
-
-  Widget _buildDrawerButton() {
-    return Positioned(
-      left: 0,
-      top: MediaQuery.of(context).size.height / 2 - 24,
-      child: GestureDetector(
-        onTap: () => _scaffoldKey.currentState?.openDrawer(),
-        child: Container(
-          width: 32,
-          height: 48,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: const BorderRadius.horizontal(
-              right: Radius.circular(24),
-            ),
-          ),
-          child: const Icon(Icons.arrow_forward_ios),
-        ),
-      ),
-    );
-  }
-
-  void _openInfoExercise(Exercise exercise) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (ctx) => ExerciseInfoScreen(exercise: exercise),
-      ),
-    );
-  }
 }
+    }
+
 
 

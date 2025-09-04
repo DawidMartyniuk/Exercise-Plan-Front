@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/build_sets_table.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/components/exercise_image.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/exercise_image.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/selected_exercise_data_manager.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/exercise_replacement_manager.dart';
 

@@ -52,6 +52,8 @@ class SaveWorkout extends ConsumerStatefulWidget {
 }
 
 class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
+
+  //TODO: nie działa: lista wykonanych ćwiczeń oraz inne szczegulowe dane
   File? _selectedImage;
 
   int get allTime => widget.allTime;

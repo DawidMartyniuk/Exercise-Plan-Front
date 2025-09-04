@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/widget/plan/plan_list/plan_selected/exercise_card_more_options.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/exercise_card_more_options.dart';
 import '../helpers/plan_helpers.dart';
 import 'components/exercise_image.dart';
 import 'components/notes_field.dart';

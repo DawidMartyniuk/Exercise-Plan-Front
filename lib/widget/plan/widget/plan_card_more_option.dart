@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
-import '../plan_list/components/plan_validation.dart';
+import '../plan_works/components/plan_validation.dart';
 
 class PlanCardMoreOption extends ConsumerWidget {
   final VoidCallback? onDeletePlan;
