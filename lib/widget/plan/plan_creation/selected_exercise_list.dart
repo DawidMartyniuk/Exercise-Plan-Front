@@ -13,7 +13,7 @@ class SelectedExerciseList extends StatefulWidget {
   final void Function(List<Exercise>)? onExercisesReordered;
   final void Function(Exercise oldExercise, Map<String, dynamic> savedData)? onReplaceExercise;
 
-  // ✅ OPCJONALNE DANE POCZĄTKOWE DLA EDYCJI
+  // OPCJONALNE DANE POCZĄTKOWE DLA EDYCJI
   final Map<String, List<Map<String, String>>>? initialData; 
   final Map<String, String>? initialNotes; 
 
@@ -41,12 +41,12 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   void initState() {
     super.initState();
 
-    // ✅ INICJALIZUJ MANAGERY
+    //  INICJALIZUJ MANAGERY
     _dataManager = SelectedExerciseDataManager();
     _replacementManager = ExerciseReplacementManager();
     _reorderedExercises = List.from(widget.exercises);
 
-    // ✅ ZAŁADUJ DANE POCZĄTKOWE JEŚLI ISTNIEJĄ (EDYCJA)
+    //  ZAŁADUJ DANE POCZĄTKOWE JEŚLI ISTNIEJĄ (EDYCJA)
     if (widget.initialData != null && widget.initialData!.isNotEmpty) {
       _loadInitialDataForEdit();
     } else {
@@ -176,22 +176,22 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
   return List.from(_reorderedExercises);
 }
 
-  // ✅ TWORZENIE KONTROLERÓW DLA ISTNIEJĄCYCH DANYCH
+  //  TWORZENIE KONTROLERÓW DLA ISTNIEJĄCYCH DANYCH
   void _createControllersForExistingData(String exerciseId, List<Map<String, String>> rows, String notes) {
-    // ✅ DISPOSE POPRZEDNICH KONTROLERÓW
+    //  DISPOSE POPRZEDNICH KONTROLERÓW
     _dataManager.kgControllers[exerciseId]?.forEach((c) => c.dispose());
-    _dataManager.repMinControllers[exerciseId]?.forEach((c) => c.dispose()); // ✅ ZMIENIONE
+    _dataManager.repMinControllers[exerciseId]?.forEach((c) => c.dispose()); //  ZMIENIONE
     _dataManager.repMaxControllers[exerciseId]?.forEach((c) => c.dispose());
 
     _dataManager.kgControllers[exerciseId] = [];
-    _dataManager.repMinControllers[exerciseId] = []; // ✅ ZMIENIONE
+    _dataManager.repMinControllers[exerciseId] = []; // ZMIENIONE
     _dataManager.repMaxControllers[exerciseId] = [];
     
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
       
       final kgValue = row["colKg"] ?? "0";
-      final repMinValue = row["colRepMin"] ?? "0"; // ✅ ZMIENIONE z colRep
+      final repMinValue = row["colRepMin"] ?? "0"; // ZMIENIONE z colRep
       final repMaxValue = row["colRepMax"] ?? row["colRepMin"] ?? "0";
       final repsType = row["repsType"] ?? "single";
       
@@ -204,13 +204,13 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
       });
       _dataManager.kgControllers[exerciseId]!.add(kgController);
       
-      // ✅ KONTROLER REP MIN (poprzednio rep)
+      //  KONTROLER REP MIN (poprzednio rep)
       final repMinController = TextEditingController(text: repMinValue);
       repMinController.addListener(() {
         print("  📝 REP MIN changed for $exerciseId set ${i + 1}: ${repMinController.text}");
-        _updateRowValue(exerciseId, i, "colRepMin", repMinController.text); // ✅ ZMIENIONE
+        _updateRowValue(exerciseId, i, "colRepMin", repMinController.text); //  ZMIENIONE
       });
-      _dataManager.repMinControllers[exerciseId]!.add(repMinController); // ✅ ZMIENIONE
+      _dataManager.repMinControllers[exerciseId]!.add(repMinController); //  ZMIENIONE
     
       final repMaxController = TextEditingController(text: repMaxValue);
       repMaxController.addListener(() {

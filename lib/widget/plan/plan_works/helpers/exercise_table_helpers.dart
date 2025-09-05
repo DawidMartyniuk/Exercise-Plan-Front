@@ -32,7 +32,7 @@ class ExerciseTableHelpers {
       }
     }
     
-    print('🔍 Grouped data: ${groupedData.keys.toList()}');
+   // print('🔍 Grouped data: ${groupedData.keys.toList()}');
     return groupedData;
   }
 
@@ -44,7 +44,8 @@ class ExerciseTableHelpers {
     required Function(ExerciseRow, String) onToggleChecked,
     required Function(ExerciseRow, String)? onToggleFailure,
     required WidgetRef ref,
-    required String Function(String, int) getOriginalRange, // ✅ DODAJ ORYGINALNE ZAKRESY
+    required String Function(String, int) getOriginalRange, //  DODAJ ORYGINALNE ZAKRESY
+    bool isReadOnly = false, //  TRYB TYLKO DO ODCZYTU
   }) {
     final List<TableRow> rows = [];
     
@@ -53,13 +54,14 @@ class ExerciseTableHelpers {
         rows.add(
           TableRow(
             decoration: BoxDecoration(
-              color: _getRowColor(row, context),
+              color: _getRowColor(row, context, isReadOnly),
             ),
             children: [
               _buildStepCell(row.colStep.toString(), context),
 
               // ✅ POLE WAGI Z JEDNOSTKĄ
               _buildEditableCell(
+                isReadOnly: isReadOnly, 
                 context,
                 row.colKg.toString(),
                 "weight",
@@ -72,6 +74,7 @@ class ExerciseTableHelpers {
               
               // ✅ POLE POWTÓRZEŃ Z OBSŁUGĄ ZAKRESU
               _buildEditableCell(
+                isReadOnly: isReadOnly,
                 context,
                 row.colRepMin.toString(),
                 "reps",
@@ -82,6 +85,7 @@ class ExerciseTableHelpers {
                getOriginalRange: getOriginalRange // ✅ PRZEKAŻ ZAKRESY
               ),
               
+              if(!isReadOnly) 
               _buildCheckboxCell(
                 context,
                 row,
@@ -98,14 +102,17 @@ class ExerciseTableHelpers {
     return rows;
   }
 
-  static Color _getRowColor(ExerciseRow row, BuildContext context) {
-    if (row.isFailure) {
-      return  const Color.fromARGB(255, 0, 112, 4);
-    } else if (row.isChecked) {
-      return const Color.fromARGB(255, 12, 107, 15);
-    }
+ static Color _getRowColor(ExerciseRow row, BuildContext context, [bool isReadOnly = false]) {
+  if (isReadOnly) {
     return Colors.transparent;
   }
+  if (row.isFailure) {
+    return const Color.fromARGB(255, 139, 69, 19); 
+  } else if (row.isChecked) {
+    return const Color.fromARGB(255, 12, 107, 15);
+  }
+  return Colors.transparent;
+}
 
   static Widget _buildStepCell(String step, BuildContext context) {
     return Container(
@@ -122,7 +129,7 @@ class ExerciseTableHelpers {
   }
 
 
-// ✅ POPRAW _buildEditableCell ABY UŻYWAŁ ORYGINALNYCH ZAKRESÓW
+//  POPRAW _buildEditableCell ABY UŻYWAŁ ORYGINALNYCH ZAKRESÓW
 static Widget _buildEditableCell(
   BuildContext context,
   String value,
@@ -132,6 +139,7 @@ static Widget _buildEditableCell(
   required String exerciseNumber,
   required ExerciseRow row,
    required String Function(String, int) getOriginalRange, 
+   bool isReadOnly = false,
 }) {
   String displayValue = "";
   String hintText = "";
@@ -141,18 +149,18 @@ static Widget _buildEditableCell(
 
     if (repsType == RepsType.range) {
       if (row.isChecked) {
-        // ✅ ZAZNACZONE - POKAZUJ ŚRODKOWĄ WARTOŚĆ
+        // ZAZNACZONE - POKAZUJ ŚRODKOWĄ WARTOŚĆ
         final middleValue = ((row.colRepMin + row.colRepMax) ~/ 2).round();
         displayValue = middleValue.toString();
         hintText = "";
       } else {
         // ✅ SPRAWDŹ CZY UŻYTKOWNIK WPROWADZIŁ ZMIANY
         if (row.isUserModified) {
-          // ✅ UŻYTKOWNIK WPISAŁ WARTOŚĆ - POKAZUJ JĄ
+          //  UŻYTKOWNIK WPISAŁ WARTOŚĆ - POKAZUJ JĄ
           displayValue = row.colRepMin.toString();
           hintText = "";
         } else {
-          // ✅ BRAK ZMIAN UŻYTKOWNIKA - POKAZUJ ORYGINALNY ZAKRES W HINT
+          //  BRAK ZMIAN UŻYTKOWNIKA - POKAZUJ ORYGINALNY ZAKRES W HINT
           displayValue = "";
           hintText = getOriginalRange(exerciseNumber, row.colStep);
         }
@@ -163,12 +171,31 @@ static Widget _buildEditableCell(
       hintText = "0";
     }
   } else if (type == "weight") {
-    // ✅ WAGA
+    //  WAGA
     final weightType = ref.watch(exerciseWeightTypeProvider(exerciseNumber));
     final unit = weightType.displayName;
     
     displayValue = value != "0" ? value : "";
     hintText = "0 $unit";
+  }
+  if (isReadOnly) {
+    // W TRYBIE READ-ONLY POKAZUJ TYLKO TEKST
+    String readOnlyText = displayValue;
+    
+    // JEŚLI BRAK WARTOŚCI, POKAZUJ HINT
+    if (displayValue.isEmpty && hintText.isNotEmpty) {
+      readOnlyText = hintText;
+    }
+    return Container(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        readOnlyText,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
   }
   
  // print("🔍 FINAL: displayValue='$displayValue', hintText='$hintText'");

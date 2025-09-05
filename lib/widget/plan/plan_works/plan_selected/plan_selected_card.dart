@@ -16,6 +16,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
   final Function(String)? onNotesChanged;
   final VoidCallback? onTap; 
   final VoidCallback deleteExerciseCard;
+  final bool isReadOnly;
 
   const PlanSelectedCard({
     super.key,
@@ -29,10 +30,13 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
     this.onNotesChanged,
     required this.deleteExerciseCard,
     this.onTap,
+    this.isReadOnly = false,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasCheckboxColumn = exerciseRows.isNotEmpty && exerciseRows.first.children.length > 3;
+
     return Card(
         color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
         margin: const EdgeInsets.only(bottom: 16),
@@ -41,11 +45,12 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ✅ HEADER Z OBRAZKIEM I NAZWĄ
+              //  HEADER Z OBRAZKIEM I NAZWĄ
               Row(
                 children: [
                   GestureDetector(
-                    onTap: onTap, 
+                    //TODO: JEŚLI NIE MA ĆWICZENIA, TO NIE PRZECHODZIĆ W TRYB ExerciseInfo
+                    onTap: onTap,
                     child: ExerciseImage(
                       exerciseId: exerciseId,
                       size: 50,
@@ -60,6 +65,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                       ),
                     ),
                   ),
+                  if(!isReadOnly)
                   ExerciseCardMoreOptions(
                     onDeleteCard: () {
                       deleteExerciseCard();
@@ -84,7 +90,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                 const SizedBox(height: 12),
               ],
               
-              // ✅ TABELA ĆWICZEŃ
+              //  TABELA ĆWICZEŃ
               Table(
                 border: TableBorder.all(
                   color: Theme.of(context).colorScheme.outline.withAlpha(50),
@@ -99,7 +105,8 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                       headerCellTextStep,
                       headerCellTextKg,
                       headerCellTextReps,
-                      Container(
+                       if (hasCheckboxColumn)
+                       Container(
                         color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                         padding: const EdgeInsets.all(8.0),
                         child: Text(

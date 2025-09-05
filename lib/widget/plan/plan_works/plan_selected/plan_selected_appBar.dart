@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_selected_list.dart';
 
-class PlanSelectedAppBar extends StatelessWidget {
+class PlanSelectedAppBar extends ConsumerWidget {
   final VoidCallback? onBack;
   final String Function(BuildContext) getTime;
   final int Function() getCurrentStep;
   //final VoidCallback? endWorkout;
   final VoidCallback? onSavePlan;
+  final VoidCallback? onEditPlan;
   final String planName;
+  final bool isReadOnly;
+  final bool isWorkoutMode; // Ustaw na true, jeśli w trybie treningu
 
   const PlanSelectedAppBar({
     super.key,
@@ -15,12 +21,44 @@ class PlanSelectedAppBar extends StatelessWidget {
     required this.planName,
     required this.getTime,
     required this.onSavePlan,
+    required this.onEditPlan,
     //required this.endWorkout,
     required this.getCurrentStep,
+    required this.isReadOnly,
+    this.isWorkoutMode = false,
   });
+void hidingScreen(BuildContext context, WidgetRef ref) async {
+  if (isWorkoutMode) {
+    // ✅ TRYB TRENINGU - MINIMALIZUJ I ZOSTAW TIMER AKTYWNY
+    print("🔽 Minimalizowanie treningu - timer pozostaje aktywny globalnie");
+
+    // ✅ USTAW GLOBALNY STAN TRENINGU JEŚLI JESZCZE NIE ISTNIEJE
+    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    if (currentWorkout == null) {
+      // ✅ POTRZEBUJEMY DOSTĘPU DO AKTUALNEGO PLANU I ĆWICZEŃ
+      // Te dane muszą być przekazane z PlanSelectedList
+      print("⚠️ Brak globalnego stanu treningu - ustaw go przed minimalizacją");
+    }
+
+    // ✅ WYWOŁAJ CALLBACK JEŚLI ISTNIEJE (ZAPISZ DANE)
+    if (onBack != null) {
+      onBack!(); // To zapisze dane do provider
+    }
+    
+    // ✅ WYJDŹ BEZ ZATRZYMYWANIA TIMERA
+    Navigator.pop(context);
+  } else {
+    // ✅ TRYB PODGLĄDU/EDYCJI - NORMALNY POWRÓT
+    if (onBack != null) {
+      onBack!();
+    } else {
+      Navigator.pop(context);
+    }
+  }
+}
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
         // Przycisk powrotu
@@ -29,31 +67,28 @@ class PlanSelectedAppBar extends StatelessWidget {
             Icons.arrow_downward,
             color: Theme.of(context).colorScheme.onSurface,
           ),
-          onPressed: () {
-            if (onBack != null) {
-              onBack!();
-            } else {
-              Navigator.pop(context);
-            }
-          },
+          onPressed: () => hidingScreen(context, ref),
         ),
+
         SizedBox(width: 16),
         // Czas
-        Row(
-          children: [
-            Icon(
-              Icons.timelapse,
-              color: Theme.of(context).colorScheme.onSurface,
+        isReadOnly
+            ? Container()
+            : Row(
+              children: [
+                Icon(
+                  Icons.timelapse,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  getTime(context),
+                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 4),
-            Text(
-              getTime(context),
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
         const SizedBox(width: 16),
         // Nazwa planu na środku
         Expanded(
@@ -69,34 +104,38 @@ class PlanSelectedAppBar extends StatelessWidget {
           ),
         ),
         // getCurrentStep na końcu
-        Text(
-          getCurrentStep().toString(),
-          style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(width: 16),
-        // Save Plan na końcu
-        ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 98, 204, 107),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-           onPressed: () {
-            if (onSavePlan != null) onSavePlan!();
-          },
-            child: Text(
-              'Save',
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+        isReadOnly
+            ? Container()
+            : Text(
+              getCurrentStep().toString(),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
+        const SizedBox(width: 16),
+        // Save Plan na końcu
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color.fromARGB(255, 98, 204, 107),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
+          onPressed: () {
+            if (isReadOnly) {
+              if (onEditPlan != null) onEditPlan!();
+            } else {
+              if (onSavePlan != null) onSavePlan!();
+            }
+          },
+          child: Text(
+            isReadOnly ? 'Edit' : 'Save',
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        ),
       ],
     );
   }
 }
-
-

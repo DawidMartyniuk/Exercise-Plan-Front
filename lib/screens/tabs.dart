@@ -61,34 +61,38 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     final curentWorkout = ref.watch(currentWorkoutPlanProvider);
     
    void _endWorkout(BuildContext context) {
-    final currentWorkout = ref.read(currentWorkoutPlanProvider);
-    if (currentWorkout?.plan != null) {
-      // Resetuj plan w providerze z listą planów
-      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
-
-      // Resetuj plan w currentWorkout (lokalnie)
-      resetPlanRows(currentWorkout.plan!);
-    }
-    endWorkoutGlobal(context: context, ref: ref);
-  }
+  print("🛑 Kończymy trening z TabsScreen");
+  
+  // ✅ UŻYJ GLOBALNEJ METODY
+  endWorkoutGlobal(context: context, ref: ref);
+}
 
 
     void backWorkout() {
-      print('Back button pressed');
-      if (curentWorkout != null) {
+      print('🔙 Powrót do aktywnego treningu');
+      final currentWorkout = ref.read(currentWorkoutPlanProvider);
+      
+      if (currentWorkout != null) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder:
-                (ctx) => PlanSelectedList(
-                  exercises: curentWorkout.exercises,
-                  plan: curentWorkout.plan!,
-                  isReadOnly: false,
-                  isWorkoutMode: true,
-                ),
+            builder: (ctx) => PlanSelectedList(
+              exercises: currentWorkout.exercises,
+              plan: currentWorkout.plan!,
+              isReadOnly: false,
+              isWorkoutMode: true,
+            ),
           ),
         );
       } else {
-        print('Brak aktywnego planu treningowego!');
+        print('⚠️ Brak aktywnego planu treningowego!');
+        
+        // ✅ UKRYJ BOTTOM BAR JEŚLI BRAK AKTYWNEGO TRENINGU
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No active workout found'),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
     }
 

@@ -136,19 +136,21 @@ class PlanItemWidget extends ConsumerWidget {
   void _showPlanSelected(BuildContext context, ExerciseTable plan) {
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (context) => Scaffold(
-        appBar: AppBar(
-          title: Text(plan.exercise_table),
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          foregroundColor: Theme.of(context).colorScheme.onSurface,
-        ),
-        body: PlanSelectedList(
+      builder: (context) => 
+      // Scaffold(
+      //   appBar: AppBar(
+      //     title: Text(plan.exercise_table),
+      //     backgroundColor: Theme.of(context).colorScheme.surface,
+      //     foregroundColor: Theme.of(context).colorScheme.onSurface,
+      //   ),
+      //   body: 
+        PlanSelectedList(
           plan: plan,
           exercises: allExercises,
-          isReadOnly: true, // ✅ TRYB PODGLĄDU
-          isWorkoutMode: false, // ✅ BEZ TRENINGU
+          isReadOnly: true, //  TRYB PODGLĄDU
+          isWorkoutMode: false, //  BEZ TRENINGU
         ),
-      ),
+     // ),
     ),
   );
 }

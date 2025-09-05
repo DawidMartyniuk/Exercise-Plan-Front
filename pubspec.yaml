@@ -53,6 +53,7 @@ dependencies:
   calendar_date_picker2: ^2.0.1
   flutter_calendar_carousel: ^2.5.4
   app_links: ^6.4.1
+  step_progress_indicator: ^1.0.2
 
 
 dev_dependencies:

@@ -14,9 +14,10 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/progress_bar.dart';
 import '../helpers/plan_helpers.dart';
 import '../helpers/exercise_calculator.dart';
-import '../components/exercise_table_helpers.dart';
+import '../helpers/exercise_table_helpers.dart';
 import 'plan_selected_card.dart';
 import 'plan_selected_appBar.dart';
 import 'plan_selected_details.dart';
@@ -49,24 +50,59 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
   ScrollController? _scrollController;
   Timer? _timer;
 
-  late ExerciseTable _originalPlan; // ✅ ORYGINAŁ - nigdy nie modyfikowany
-  late ExerciseTable _workingPlan;  // ✅ KOPIA ROBOCZA - na tej pracujemy
+  late ExerciseTable _originalPlan; // 
+  late ExerciseTable _workingPlan;  //  KOPIA ROBOCZA - na tej pracujemy
   bool _isWorkoutActive = false;
+  WorkoutTimeNotifier _workoutTimeNotifier = WorkoutTimeNotifier();
+
 
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
 
-    // ✅ ZACHOWAJ ORYGINAŁ
+    //  ZACHOWAJ ORYGINAŁ
     _originalPlan = _createDeepCopyOfPlan(widget.plan);
     
-    // ✅ STWÓRZ KOPIĘ ROBOCZĄ
+    //  STWÓRZ KOPIĘ ROBOCZĄ
     _workingPlan = _createDeepCopyOfPlan(widget.plan);
+    startTimer();
     
-    _isWorkoutActive = false;
     _initializePlanData();
   }
+
+  void startTimer(){
+  if (widget.isWorkoutMode) {
+    print("🕐 Uruchamianie timera treningu...");
+    _isWorkoutActive = true;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(workoutProvider.notifier).startTimer();
+    });
+  } else {
+    _isWorkoutActive = false;
+  }
+  }
+
+  // void startWorkout(){
+  //   if(_isWorkoutActive){
+  //     _workoutTimeNotifier.startTimer();
+  //     _isWorkoutActive = true;
+  //   }
+  // }
+  @override
+void dispose() {
+  print("🗑️ Disposing PlanSelectedList");
+  
+
+  // if (widget.isWorkoutMode && _isWorkoutActive) {
+  //   ref.read(workoutProvider.notifier).stopTimer();
+  // }
+  
+  _timer?.cancel();
+  _scrollController?.dispose();
+  super.dispose();
+}
 
   ExerciseTable _createDeepCopyOfPlan(ExerciseTable plan) {
     return ExerciseTable(
@@ -96,22 +132,22 @@ void _initializePlanData() {
   
   print("🔍 _initializePlanData: planId=$planId, savedRows.length=${savedRows.length}");
   
-  // ✅ OPÓŹNIJ MODYFIKACJĘ PROVIDERA
+  //  OPÓŹNIJ MODYFIKACJĘ PROVIDERA
   Future(() {
-    // ✅ USTAW POPRAWNY REPS TYPE PO ZBUDOWANIU WIDGETU
+    //  USTAW POPRAWNY REPS TYPE PO ZBUDOWANIU WIDGETU
     for (final rowData in _workingPlan.rows) {
-      // ✅ SPRAWDŹ CZY TO ZAKRES I USTAW ODPOWIEDNI TYP
+      //  SPRAWDŹ CZY TO ZAKRES I USTAW ODPOWIEDNI TYP
       final hasRange = rowData.data.any((row) => 
         row.colRepMin > 0 && row.colRepMax > 0 && row.colRepMin != row.colRepMax
       );
       
       if (hasRange) {
-        // ✅ USTAW RANGE TYPE W PROVIDERZE (OPÓŹNIONE)
+        //  USTAW RANGE TYPE W PROVIDERZE (OPÓŹNIONE)
         ref.read(exerciseRepsTypeProvider(rowData.exercise_number).notifier).state = RepsType.range;
         print("✅ Ustawiono RepsType.range dla ${rowData.exercise_number}");
       } else {
         ref.read(exerciseRepsTypeProvider(rowData.exercise_number).notifier).state = RepsType.single;
-        print("✅ Ustawiono RepsType.single dla ${rowData.exercise_number}");
+        print(" Ustawiono RepsType.single dla ${rowData.exercise_number}");
       }
       
       print("🔍 Exercise ${rowData.exercise_number}: ${rowData.data.first.colRepMin}-${rowData.data.first.colRepMax}");
@@ -146,10 +182,10 @@ Future<void> _addMultipleExercisesToPlan() async {
 
   print('🔧 Navigator.pop zwrócił: $result (typ: ${result.runtimeType})');
 
-  // ✅ OBSŁUGA REZULTATU BEZ ASYNC W setState
+  //  OBSŁUGA REZULTATU BEZ ASYNC W setState
   if (result != null) {
     if (result is List<Exercise>) {
-      // ✅ LISTA ĆWICZEŃ - DODAJ WSZYSTKIE SYNCHRONICZNIE
+      //  LISTA ĆWICZEŃ - DODAJ WSZYSTKIE SYNCHRONICZNIE
       int addedCount = 0;
       
       setState(() {
@@ -185,10 +221,10 @@ Future<void> _addMultipleExercisesToPlan() async {
       
       print('✅ Dodano $addedCount nowych ćwiczeń do planu');
       
-      // ✅ AKTUALIZUJ PROVIDER PO setState
+      //  AKTUALIZUJ PROVIDER PO setState
       _updateCurrentWorkoutPlan();
       
-      // ✅ POKAŻ TOAST
+      //  POKAŻ TOAST
       if (addedCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -205,7 +241,7 @@ Future<void> _addMultipleExercisesToPlan() async {
         );
       }
     } else if (result is Exercise) {
-      // ✅ POJEDYNCZE ĆWICZENIE - DODAJ SYNCHRONICZNIE
+      // POJEDYNCZE ĆWICZENIE - DODAJ SYNCHRONICZNIE
       final exerciseExists = _workingPlan.rows.any(
         (rowData) => rowData.exercise_number == result.id,
       );
@@ -233,7 +269,7 @@ Future<void> _addMultipleExercisesToPlan() async {
           _workingPlan.rows.add(newRow);
         });
         
-        // ✅ AKTUALIZUJ PROVIDER PO setState
+        // AKTUALIZUJ PROVIDER PO setState
         _updateCurrentWorkoutPlan();
         
         print('✅ Dodano ćwiczenie: ${result.name}');
@@ -258,12 +294,12 @@ Future<void> _addMultipleExercisesToPlan() async {
   }
 }
 ExerciseRow? _getOriginalRowData(String exerciseNumber, int colStep) {
-  // ✅ ZNAJDŹ ORYGINALNĄ WARTOŚĆ Z _originalPlan
+  //  ZNAJDŹ ORYGINALNĄ WARTOŚĆ Z _originalPlan
   for (final rowData in _originalPlan.rows) {
     if (rowData.exercise_number == exerciseNumber) {
       for (final row in rowData.data) {
         if (row.colStep == colStep) {
-          return row; // ✅ ZWRÓĆ ORYGINALNY WIERSZ
+          return row; // ZWRÓĆ ORYGINALNY WIERSZ
         }
       }
     }
@@ -302,10 +338,10 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
 }
 
 
-  // ✅ METODA USUWANIA - TYLKO Z KOPII ROBOCZEJ
+  //  METODA USUWANIA - TYLKO Z KOPII ROBOCZEJ
   void _deleteExerciseFromPlan(String exerciseNumber) {
     setState(() {
-      // ✅ USUŃ Z KOPII ROBOCZEJ, NIE Z ORYGINAŁU
+      //  USUŃ Z KOPII ROBOCZEJ, NIE Z ORYGINAŁU
       _workingPlan.rows.removeWhere((rowData) => 
           rowData.exercise_number == exerciseNumber);
     });
@@ -313,7 +349,7 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
     _removeExerciseFromWorkoutState(exerciseNumber);
   }
 
-  // ✅ AKTUALIZUJ WORKOUT PLAN - UŻYJ KOPII ROBOCZEJ
+  //  AKTUALIZUJ WORKOUT PLAN - UŻYJ KOPII ROBOCZEJ
   void _updateCurrentWorkoutPlan() {
     final newRows = _workingPlan.rows.map((rowData) => 
       rowData.copyWithData(
@@ -336,7 +372,7 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
     );
   }
 
-  // ✅ ZAPISZ DANE Z KOPII ROBOCZEJ
+  //  ZAPISZ DANE Z KOPII ROBOCZEJ
   void _saveAllRowsToProvider() {
     final planId = _workingPlan.id;
     final rowStates = <ExerciseRowState>[];
@@ -358,7 +394,8 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
     ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
   }
 
-  // ✅ ROW INTERACTIONS - PRACUJ NA KOPII ROBOCZEJ
+
+  //  ROW INTERACTIONS - PRACUJ NA KOPII ROBOCZEJ
 void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
   print("🔍 PRZED TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}");
   
@@ -373,7 +410,7 @@ void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
     
     if (repsType == RepsType.range) {
       if (row.isChecked) {
-        // ✅ ZAZNACZENIE
+        //  ZAZNACZENIE
         final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
         if (originalRow != null) {
           print("🔍 ZAZNACZENIE: Oryginalny zakres ${originalRow.colRepMin}-${originalRow.colRepMax}");
@@ -418,27 +455,27 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
     
     if (value.isEmpty) {
-      // ✅ PUSTE POLE - UŻYTKOWNIK USUNĄŁ WARTOŚĆ
-      row.isUserModified = false; // ✅ OZNACZ ŻE BRAK ZMIAN UŻYTKOWNIKA
+      //  PUSTE POLE - UŻYTKOWNIK USUNĄŁ WARTOŚĆ
+      row.isUserModified = false; // OZNACZ ŻE BRAK ZMIAN UŻYTKOWNIKA
       
-      // ✅ PRZYWRÓĆ ORYGINALNĄ WARTOŚĆ DOLNEJ GRANICY
+      //  PRZYWRÓĆ ORYGINALNĄ WARTOŚĆ DOLNEJ GRANICY
       final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
       if (originalRow != null) {
-        row.colRepMin = originalRow.colRepMin; // ✅ PRZYWRÓĆ ORYGINALNĄ
+        row.colRepMin = originalRow.colRepMin; // PRZYWRÓĆ ORYGINALNĄ
         if (repsType == RepsType.single) {
           row.colRepMax = originalRow.colRepMax;
         }
       }
     } else {
-      // ✅ WPROWADZONA LICZBA - OZNACZ MODYFIKACJĘ
-      row.isUserModified = true; // ✅ UŻYTKOWNIK WPROWADZIŁ ZMIANY
+      //  WPROWADZONA LICZBA - OZNACZ MODYFIKACJĘ
+      row.isUserModified = true; //  UŻYTKOWNIK WPROWADZIŁ ZMIANY
       final newValue = int.tryParse(value) ?? 0;
       row.colRepMin = newValue;
       
       if (repsType == RepsType.single) {
         row.colRepMax = newValue;
       }
-      // ✅ DLA RANGE - colRepMax POZOSTAJE BEZ ZMIAN
+      //  DLA RANGE - colRepMax POZOSTAJE BEZ ZMIAN
     }
   });
   _updateRowInProvider(row, exerciseNumber);
@@ -446,7 +483,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
 
   void _updateRowInProvider(ExerciseRow row, String exerciseNumber) {
     ref.read(workoutPlanStateProvider.notifier).updateRow(
-      _workingPlan.id, // ✅ UŻYJ ID KOPII ROBOCZEJ
+      _workingPlan.id, //  UŻYJ ID KOPII ROBOCZEJ
       ExerciseRowState(
         colStep: row.colStep,
         colKg: row.colKg,
@@ -485,6 +522,9 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     
   //   _updateCurrentWorkoutPlan();
   // }
+  void _goEditPlan(){
+    print('Edytuj plan');
+  }
   void _addSingleExerciseToPlan(Exercise exercise) {
   final exerciseExists = _workingPlan.rows.any(
     (rowData) => rowData.exercise_number == exercise.id,
@@ -533,9 +573,9 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   }
 }
 
-  // ✅ KOŃCZENIE TRENINGU - PRZYWRÓĆ ORYGINAŁ
+  //  KOŃCZENIE TRENINGU - PRZYWRÓĆ ORYGINAŁ
   void _endWorkout(BuildContext context) {
-    // ✅ ZNAJDŹ I ZASTĄP PLAN W PROVIDERZE ORYGINALNYM
+    //  ZNAJDŹ I ZASTĄP PLAN W PROVIDERZE ORYGINALNYM
     final planIndex = ref.read(exercisePlanProvider).indexWhere(
       (plan) => plan.id == widget.plan.id
     );
@@ -556,14 +596,23 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ UŻYJ KOPII ROBOCZEJ W BUILD
+    //  UŻYJ KOPII ROBOCZEJ W BUILD
     final groupedData = ExerciseTableHelpers.groupExercisesByName(
       _workingPlan, // ✅ KOPIA ROBOCZA
       widget.exercises,
     );
 
-    final totalSteps = ExerciseTableHelpers.calculateTotalSteps(_workingPlan);
-    final currentStep = ExerciseTableHelpers.calculateCurrentStep(_workingPlan);
+    int totalSteps = 0;
+  int currentStep = 0;
+
+    for (final rowData in _workingPlan.rows) {
+    for (final row in rowData.data) {
+      totalSteps++;
+      if (row.isChecked) {
+        currentStep++;
+      }
+    }
+  }
 
     return Container(
       decoration: BoxDecoration(
@@ -574,30 +623,83 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         key: _scaffoldKey,
         drawer: const Drawer(child: PlanSelectedDetails()),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        
+       // bottomNavigationBar: widget.isWorkoutMode 
+          // ? BottomButtonAppBar(
+          //     onBack: () {
+          //       print("🔄 Bottom bar - powrót z treningu");
+          //       if (!widget.isReadOnly) {
+          //         _saveAllRowsToProvider();
+          //       }
+          //       // ✅ ZATRZYMAJ TIMER PRZED WYJŚCIEM
+          //       if (_isWorkoutActive) {
+          //         ref.read(workoutProvider.notifier).stopTimer();
+          //       }
+          //       Navigator.pop(context);
+          //     },
+          //     onEnd: () {
+          //       print("🛑 Bottom bar - koniec treningu");
+          //       _endWorkout(context);
+          //     },
+          //   )
+          // : null, // 
         body: Stack(
           children: [
             SafeArea(
+              
+              
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    // ✅ APP BAR - UŻYJ KOPII ROBOCZEJ
+                    //  APP BAR - UŻYJ KOPII ROBOCZEJ
                     PlanSelectedAppBar(
                       onBack: () {
-                        _saveAllRowsToProvider();
-                        Navigator.pop(context);
-                      },
+                      // ✅ ZAWSZE ZAPISZ DANE
+                      _saveAllRowsToProvider();
+                      
+                      if (widget.isWorkoutMode && _isWorkoutActive) {
+                        // ✅ W TRYBIE TRENINGU - USTAW GLOBALNY STAN, NIE ZATRZYMUJ TIMER
+                        print("🔽 Minimalizowanie treningu - timer pozostaje aktywny globalnie");
+                        
+                        // ✅ USTAW GLOBALNY STAN TRENINGU
+                        ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+                          plan: _workingPlan,
+                          exercises: widget.exercises,
+                        );
+                        
+                        // ✅ NIE ZATRZYMUJ TIMERA - ZOSTAW GO AKTYWNEGO
+                        // ❌ USUŃ TO: ref.read(workoutProvider.notifier).stopTimer();
+                      }
+                      
+                      // ✅ NAVIGATOR.POP ZOSTANIE WYWOŁANY W hidingScreen
+                    },
                       planName: _workingPlan.exercise_table, // ✅ KOPIA ROBOCZA
                       getTime: (ctx) {
-                        final workoutState = ref.watch(workoutProvider.notifier);
-                        return workoutState.currentTime.toString();
+                        if (widget.isWorkoutMode && _isWorkoutActive) {
+                          
+                          final currentTime = ref.watch(workoutProvider);
+                          final minutes = currentTime ~/ 60;
+                          final seconds = currentTime % 60;
+                          return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+                        }
+                        return "00:00";
                       },
                       getCurrentStep: () => currentStep,
                       onSavePlan: _savePlan,
+                      isReadOnly: widget.isReadOnly,
+                      isWorkoutMode: widget.isWorkoutMode,
+                      onEditPlan: _goEditPlan,
                     ),
                     
                     const SizedBox(height: 10),
-                    _buildProgressBar(totalSteps, currentStep),
+                   // _buildProgressBar(totalSteps, currentStep),
+                   ProgressBar(
+                     totalSteps: totalSteps,
+                     currentStep: currentStep,
+                     isReadOnly: widget.isReadOnly,
+                   ),
+
                     const SizedBox(height: 16),
                     
                     // ✅ EXERCISE CARDS - UŻYJ KOPII ROBOCZEJ
@@ -632,26 +734,26 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (ctx) => SaveWorkout(
         allTime: timerController.currentTime,
-        allReps: calculateTotalReps(_workingPlan), // ✅ KOPIA ROBOCZA
-        allWeight: calculateTotalVolume(_workingPlan), // ✅ KOPIA ROBOCZA
+        allReps: calculateTotalReps(_workingPlan), //  KOPIA ROBOCZA
+        allWeight: calculateTotalVolume(_workingPlan), //  KOPIA ROBOCZA
         startHour: startHour,
         startMinute: startMinute,
-        planName: _workingPlan.exercise_table, // ✅ KOPIA ROBOCZA
+        planName: _workingPlan.exercise_table, //  KOPIA ROBOCZA
         onEndWorkout: () => _endWorkout(context),
       ),
     ));
   }
 
-  Widget _buildProgressBar(int totalSteps, int currentStep) {
-    return LinearProgressIndicator(
-      minHeight: 8,
-      value: totalSteps > 0 ? currentStep / totalSteps : 0,
-      backgroundColor: Colors.red,
-      valueColor: AlwaysStoppedAnimation<Color>(
-        Theme.of(context).colorScheme.primary.withOpacity(0.2),
-      ),
-    );
-  }
+  // Widget _buildProgressBar(int totalSteps, int currentStep) {
+  //   return widget.isReadOnly ? Container() : LinearProgressIndicator(
+  //     minHeight: 8,
+  //     value: totalSteps > 0 ? currentStep / totalSteps : 0,
+  //     backgroundColor: Colors.red,
+  //     valueColor: AlwaysStoppedAnimation<Color>(
+  //       Theme.of(context).colorScheme.primary.withOpacity(0.2),
+  //     ),
+  //   );
+  // }
 
   List<Widget> _buildExerciseCards(Map<String, List<ExerciseRowsData>> groupedData) {
  // final originalRanges = _getOriginalRanges(); 
@@ -661,7 +763,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
       final firstRow = exerciseRows.first;
 
       final matchingExercise = widget.exercises.firstWhere(
-        (ex) => ex.id == firstRow.exercise_number, // ✅ POPRAWIONA LOGIKA
+        (ex) => ex.id == firstRow.exercise_number, // POPRAWIONA LOGIKA
         orElse: () => Exercise(
           exerciseId: firstRow.exercise_number,
           name: exerciseName,
@@ -682,6 +784,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         headerCellTextKg: ExerciseTableHelpers.buildHeaderCell(context, "Weight"),
         headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(context, "Reps"),
         notes: firstRow.notes,
+        isReadOnly: widget.isReadOnly,
     exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
             exerciseRows,
             context,
@@ -689,8 +792,9 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
             onRepChanged: (row, value, exerciseNumber) => _onRepChanged(row, value, exerciseNumber),
             onToggleChecked: (row, exerciseNumber) => _onToggleRowChecked(row, exerciseNumber),
             onToggleFailure: (row, exerciseNumber) => _onToggleRowFailure(row, exerciseNumber),
-            ref: ref, // ✅ DODAJ REF
-           getOriginalRange: _getOriginalRange, // ✅ PRZEKAŻ ORYGINALNE ZAKRESY
+            ref: ref, //  DODAJ REF
+           getOriginalRange: _getOriginalRange, // PRZEKAŻ ORYGINALNE ZAKRESY
+          isReadOnly: widget.isReadOnly,
           ),
         onNotesChanged: (value) {
           setState(() {
@@ -724,7 +828,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
 
   Widget _buildActionButtons() {
   if (widget.isReadOnly && !widget.isWorkoutMode) {
-    // ✅ TRYB PODGLĄDU - TYLKO PRZYCISK STARTU TRENINGU
+    // TRYB PODGLĄDU - TYLKO PRZYCISK STARTU TRENINGU
     return Column(
       children: [
         SizedBox(
@@ -754,14 +858,14 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
       ],
     );
   } else if (widget.isWorkoutMode) {
-    // ✅ TRYB TRENINGU - WSZYSTKIE PRZYCISKI TRENINGOWE
+    //  TRYB TRENINGU - WSZYSTKIE PRZYCISKI TRENINGOWE
     return Column(
       children: [
-        // ✅ POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
+        //  POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: _addMultipleExercisesToPlan, // ✅ UŻYJ METODY MULTI-SELECT
+            onPressed: _addMultipleExercisesToPlan, //  UŻYJ METODY MULTI-SELECT
             icon: const Icon(Icons.add),
             label: const Text("Add Exercises"),
             style: ElevatedButton.styleFrom(
@@ -773,8 +877,8 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         ),
         
         const SizedBox(height: 12),
-        
-        // ✅ PRZYCISK ZAKOŃCZ TRENING
+         
+        //  PRZYCISK ZAKOŃCZ TRENING
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
@@ -791,14 +895,14 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
       ],
     );
   } else {
-    // ✅ TRYB EDYCJI PLANU - PRZYCISKI EDYCYJNE
+    //  TRYB EDYCJI PLANU - PRZYCISKI EDYCYJNE
     return Column(
       children: [
-        // ✅ POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
+        //  POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: _addMultipleExercisesToPlan, // ✅ UŻYJ METODY MULTI-SELECT
+            onPressed: _addMultipleExercisesToPlan, //  UŻYJ METODY MULTI-SELECT
             icon: const Icon(Icons.add),
             label: const Text("Add Exercises"),
             style: ElevatedButton.styleFrom(
@@ -811,7 +915,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         
         const SizedBox(height: 12),
         
-        // ✅ START WORKOUT
+        //  START WORKOUT
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(

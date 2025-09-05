@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
-class WordoutTimenotifer extends StateNotifier<int>{
-  WordoutTimenotifer() : super(0);
+class WorkoutTimeNotifier extends StateNotifier<int>{
+  WorkoutTimeNotifier() : super(0);
 
   Timer? _timer;
   bool _isRunning = false;
@@ -39,6 +39,6 @@ class WordoutTimenotifer extends StateNotifier<int>{
   int? get startMinute => _startMinute;
 
 }
-final workoutProvider = StateNotifierProvider<WordoutTimenotifer, int>((ref){
-  return WordoutTimenotifer();
+final workoutProvider = StateNotifierProvider<WorkoutTimeNotifier, int>((ref){
+  return WorkoutTimeNotifier();
 });
