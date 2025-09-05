@@ -21,7 +21,8 @@ import '../helpers/exercise_table_helpers.dart';
 import 'plan_selected_card.dart';
 import 'plan_selected_appBar.dart';
 import 'plan_selected_details.dart';
- // TODO: ZAZNACZANIE ĆWICZEŃ TAKIE SAMO JAK PODCZAS TWOŻENIA PLANU;
+ // TODO: Powrucić do konceptu początkowego czyli wartoiści na początku są w hint potem po zaznaczeniu stają się widoczne 
+ // i zawsze możan je usuwac do " "  i zmineiac
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
   final List<Exercise> exercises;
@@ -129,6 +130,20 @@ void dispose() {
 void _initializePlanData() {
   final planId = _workingPlan.id;
   final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
+
+  for (final exerciseData in _workingPlan.rows) {
+    print("🔍 Ćwiczenie: ${exerciseData.exercise_name}");
+    
+    for (final row in exerciseData.data) {
+      print("🔍 Seria ${row.colStep}: colKg=${row.colKg}, colRepMin=${row.colRepMin}");
+      
+      // ✅ JEŚLI WAGA JEST 0 - USTAW WARTOŚĆ DOMYŚLNĄ
+      if (row.colKg == 0) {
+        row.colKg = 20; // PRZYKŁADOWA WARTOŚĆ
+        print("🔍 Ustawiono domyślną wagę: ${row.colKg}");
+      }
+    }
+  }
   
   print("🔍 _initializePlanData: planId=$planId, savedRows.length=${savedRows.length}");
   
@@ -397,7 +412,7 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
 
   //  ROW INTERACTIONS - PRACUJ NA KOPII ROBOCZEJ
 void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
-  print("🔍 PRZED TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}");
+  print("🔍 PRZED TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
   
   setState(() {
     row.isChecked = !row.isChecked;
@@ -408,40 +423,58 @@ void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
     final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
     print("🔍 repsType: $repsType");
     
-    if (repsType == RepsType.range) {
+    // ✅ TYLKO DLA RANGE I TYLKO JEŚLI UŻYTKOWNIK NIE WPROWADZIŁ WŁASNEJ WARTOŚCI
+    if (repsType == RepsType.range && !row.isUserModified) {
       if (row.isChecked) {
-        //  ZAZNACZENIE
+        // ✅ ZAZNACZENIE - USTAW ŚREDNIĄ TYLKO JEŚLI BRAK MODYFIKACJI
         final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
         if (originalRow != null) {
           print("🔍 ZAZNACZENIE: Oryginalny zakres ${originalRow.colRepMin}-${originalRow.colRepMax}");
           final middleValue = ((originalRow.colRepMin + originalRow.colRepMax) ~/ 2).round();
           row.colRepMin = middleValue;
-          row.isUserModified = true;
+          row.isUserModified = true; // ✅ OZNACZ ŻE TERAZ MA WARTOŚĆ
           print("🔍 ZAZNACZENIE: Ustawiono środkową wartość: $middleValue");
         }
-      } else {
-        // ✅ ODZNACZENIE - PRZYWRÓĆ ORYGINALNĄ
-        final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
-        if (originalRow != null) {
-          row.colRepMin = originalRow.colRepMin;
-          row.isUserModified = false;
-          print("🔍 ODZNACZENIE: Przywrócono oryginalną wartość: ${originalRow.colRepMin}");
-        }
       }
+      // ✅ ODZNACZENIE - NIE RÓB NIC, ZOSTAW WARTOŚĆ UŻYTKOWNIKA
+    }
+    
+    // ✅ JEŚLI UŻYTKOWNIK WPROWADZIŁ WŁASNĄ WARTOŚĆ - NIE ZMIENIAJ JEJ
+    if (row.isUserModified) {
+      print("🔍 TOGGLE: Zachowuję wartość użytkownika: ${row.colRepMin}");
     }
   });
   
-  print("🔍 PO TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}");
+  print("🔍 PO TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
   _updateRowInProvider(row, exerciseNumber);
   _updateCurrentWorkoutPlan();
 }
 
-  void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
-    setState(() {
-      row.colKg = int.tryParse(value) ?? row.colKg;
-    });
-    _updateRowInProvider(row, exerciseNumber);
-  }
+void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
+  print("🏋️ _onKgChanged: value='$value', exerciseNumber=$exerciseNumber");
+  print("🏋️ PRZED: colKg=${row.colKg}");
+  
+  setState(() {
+    if (value.isEmpty) {
+      // ✅ PUSTE POLE - USTAW 0
+      row.colKg = 0;
+      print("🏋️ PUSTE POLE: Ustawiono 0");
+    } else {
+      // ✅ WPROWADZONA WARTOŚĆ
+      final newValue = double.tryParse(value) ?? 0;
+      if (newValue >= 0) { // ✅ POZWÓL NA 0
+        row.colKg = newValue as int;
+        print("🏋️ NOWA WARTOŚĆ: Ustawiono ${newValue}");
+      } else {
+        print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ WAGI: '$value' - ignorowanie");
+        return;
+      }
+    }
+  });
+  
+  print("🏋️ PO: colKg=${row.colKg}");
+  _updateRowInProvider(row, exerciseNumber);
+}
 
   void _onToggleRowFailure(ExerciseRow row, String exerciseNumber) {
     setState(() {
@@ -451,36 +484,50 @@ void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
   }
 
 void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
+  print("🔍 _onRepChanged: value='$value', exerciseNumber=$exerciseNumber");
+  print("🔍 _onRepChanged PRZED: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
+  
   setState(() {
     final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
     
     if (value.isEmpty) {
-      //  PUSTE POLE - UŻYTKOWNIK USUNĄŁ WARTOŚĆ
-      row.isUserModified = false; // OZNACZ ŻE BRAK ZMIAN UŻYTKOWNIKA
+      // ✅ PUSTE POLE - OZNACZ ŻE UŻYTKOWNIK USUNĄŁ WARTOŚĆ
+      row.isUserModified = false;
       
-      //  PRZYWRÓĆ ORYGINALNĄ WARTOŚĆ DOLNEJ GRANICY
+      // ✅ PRZYWRÓĆ ORYGINALNĄ TYLKO JEŚLI JEST DOSTĘPNA
       final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
       if (originalRow != null) {
-        row.colRepMin = originalRow.colRepMin; // PRZYWRÓĆ ORYGINALNĄ
+        row.colRepMin = originalRow.colRepMin;
         if (repsType == RepsType.single) {
           row.colRepMax = originalRow.colRepMax;
         }
+        print("🔍 PUSTE POLE: Przywrócono oryginalną wartość: ${originalRow.colRepMin}");
+      } else {
+        // ✅ BRAK ORYGINALNYCH DANYCH - ZOSTAW OBECNĄ WARTOŚĆ
+        print("🔍 PUSTE POLE: Brak oryginalnych danych - pozostawiam obecną");
       }
     } else {
-      //  WPROWADZONA LICZBA - OZNACZ MODYFIKACJĘ
-      row.isUserModified = true; //  UŻYTKOWNIK WPROWADZIŁ ZMIANY
+      // ✅ WPROWADZONA WARTOŚĆ - ZAWSZE USTAW I OZNACZ JAKO MODYFIKACJĘ
       final newValue = int.tryParse(value) ?? 0;
-      row.colRepMin = newValue;
-      
-      if (repsType == RepsType.single) {
-        row.colRepMax = newValue;
+      if (newValue >= 0) { // ✅ POZWÓL NA 0
+        row.isUserModified = true;
+        row.colRepMin = newValue;
+        
+        if (repsType == RepsType.single) {
+          row.colRepMax = newValue;
+        }
+        
+        print("🔍 NOWA WARTOŚĆ: Ustawiono ${newValue}, isUserModified=true");
+      } else {
+        print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ: '$value' - ignorowanie");
+        return;
       }
-      //  DLA RANGE - colRepMax POZOSTAJE BEZ ZMIAN
     }
   });
+  
+  print("🔍 _onRepChanged PO: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
   _updateRowInProvider(row, exerciseNumber);
 }
-
   void _updateRowInProvider(ExerciseRow row, String exerciseNumber) {
     ref.read(workoutPlanStateProvider.notifier).updateRow(
       _workingPlan.id, //  UŻYJ ID KOPII ROBOCZEJ
@@ -672,7 +719,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                         // ❌ USUŃ TO: ref.read(workoutProvider.notifier).stopTimer();
                       }
                       
-                      // ✅ NAVIGATOR.POP ZOSTANIE WYWOŁANY W hidingScreen
+                      // ✅ NAVIGATOR.POP ZOSTANIE WYWOŁANE W hidingScreen
                     },
                       planName: _workingPlan.exercise_table, // ✅ KOPIA ROBOCZA
                       getTime: (ctx) {

@@ -250,7 +250,7 @@ Future<void> fetchExercisePlans() async {
     
     print("✅ Plan updated in provider state with NEW title");
 
-    // ✅ NATYCHMIASTOWE ODŚWIEŻENIE Z BACKEND DLA SYNCHRONIZACJI
+    //  NATYCHMIASTOWE ODŚWIEŻENIE Z BACKEND DLA SYNCHRONIZACJI
     print("🔄 Immediate refresh from backend to ensure sync...");
     await fetchExercisePlans();
     print("✅ Backend refresh completed");
@@ -374,7 +374,7 @@ WeightType _getWeightTypeFromString(String weightType) {
   }
 }
 
-// Convert string to RepsType enum
+
 RepsType _parseRepsType(String repsType) {
   switch (repsType.toLowerCase()) {
     case 'single':

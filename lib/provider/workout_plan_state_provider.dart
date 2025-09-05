@@ -178,19 +178,19 @@ class WorkoutPlanStateNotifier extends StateNotifier<WorkoutPlanState> {
     _saveToPrefs();
   }
 
-  // ✅ DODATKOWA METODA - sprawdź czy ćwiczenie istnieje w planie
+  //  DODATKOWA METODA - sprawdź czy ćwiczenie istnieje w planie
   bool hasExercise(int planId, String exerciseNumber) {
     final planRows = state.plans[planId] ?? [];
     return planRows.any((row) => row.exerciseNumber == exerciseNumber);
   }
 
-  // ✅ DODATKOWA METODA - pobierz wiersze dla konkretnego ćwiczenia
+  //  DODATKOWA METODA - pobierz wiersze dla konkretnego ćwiczenia
   List<ExerciseRowState> getExerciseRows(int planId, String exerciseNumber) {
     final planRows = state.plans[planId] ?? [];
     return planRows.where((row) => row.exerciseNumber == exerciseNumber).toList();
   }
 
-  // ✅ DODATKOWA METODA - dodaj nowe ćwiczenie do planu
+  //  DODATKOWA METODA - dodaj nowe ćwiczenie do planu
   void addExercise(int planId, String exerciseNumber, {int initialStep = 1, int initialKg = 0, int initialRep = 0}) {
     print("➕ Dodawanie ćwiczenia $exerciseNumber do planu $planId");
     

@@ -4,6 +4,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/provider/repsTypeProvider.dart';
 import 'package:work_plan_front/provider/weightTypeProvider.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/exercise_row.dart';
 
 class ExerciseTableHelpers {
   static Map<String, List<ExerciseRowsData>> groupExercisesByName(
@@ -39,68 +40,78 @@ class ExerciseTableHelpers {
   static List<TableRow> buildExerciseTableRows(
     List<ExerciseRowsData> exerciseRows,
     BuildContext context, {
-    required Function(ExerciseRow, String, String) onKgChanged,
-    required Function(ExerciseRow, String, String) onRepChanged, 
-    required Function(ExerciseRow, String) onToggleChecked,
-    required Function(ExerciseRow, String)? onToggleFailure,
+    Function(ExerciseRow, String, String)? onKgChanged,
+    Function(ExerciseRow, String, String)? onRepChanged,
+    Function(ExerciseRow, String)? onToggleChecked,
+    Function(ExerciseRow, String)? onToggleFailure,
     required WidgetRef ref,
-    required String Function(String, int) getOriginalRange, //  DODAJ ORYGINALNE ZAKRESY
-    bool isReadOnly = false, //  TRYB TYLKO DO ODCZYTU
+    required String Function(String, int) getOriginalRange,
+    bool isReadOnly = false,
   }) {
     final List<TableRow> rows = [];
-    
-    for (final exerciseRowsData in exerciseRows) {
-      for (final row in exerciseRowsData.data) {
+
+    for (final exerciseRowData in exerciseRows) {
+      for (final exerciseRow in exerciseRowData.data) {
         rows.add(
           TableRow(
             decoration: BoxDecoration(
-              color: _getRowColor(row, context, isReadOnly),
+              color: _getRowColor(exerciseRow, context, isReadOnly),
             ),
             children: [
-              _buildStepCell(row.colStep.toString(), context),
-
-              // ✅ POLE WAGI Z JEDNOSTKĄ
-              _buildEditableCell(
-                isReadOnly: isReadOnly, 
-                context,
-                row.colKg.toString(),
-                "weight",
-                (value) => onKgChanged(row, value, exerciseRowsData.exercise_number),
-                ref: ref,
-                exerciseNumber: exerciseRowsData.exercise_number,
-                row: row,
-             getOriginalRange: getOriginalRange // ✅ PRZEKAŻ ZAKRESY
-              ),
+              // ✅ STEP COLUMN
+              _buildStepCell(exerciseRow.colStep.toString(), context),
               
-              // ✅ POLE POWTÓRZEŃ Z OBSŁUGĄ ZAKRESU
+              // ✅ WEIGHT COLUMN
+              isReadOnly 
+                  ? _buildReadOnlyCell(context, exerciseRow.colKg.toString())
+                  : _buildEditableWeightCell(
+                    context, 
+                    exerciseRow.colKg.toString(),
+                    (value) => onKgChanged?.call(exerciseRow, value, exerciseRowData.exercise_number),
+                  ),
+              
+              // ✅ REPS COLUMN - UŻYJ _buildEditableCell
               _buildEditableCell(
-                isReadOnly: isReadOnly,
                 context,
-                row.colRepMin.toString(),
+                exerciseRow.colRepMin.toString(),
                 "reps",
-                (value) => onRepChanged(row, value, exerciseRowsData.exercise_number),
+                (value) => onRepChanged?.call(exerciseRow, value, exerciseRowData.exercise_number),
                 ref: ref,
-                exerciseNumber: exerciseRowsData.exercise_number,
-                row: row,
-               getOriginalRange: getOriginalRange // ✅ PRZEKAŻ ZAKRESY
+                exerciseNumber: exerciseRowData.exercise_number,
+                row: exerciseRow,
+                getOriginalRange: getOriginalRange,
+                isReadOnly: isReadOnly,
               ),
               
-              if(!isReadOnly) 
-              _buildCheckboxCell(
-                context,
-                row,
-                exerciseRowsData.exercise_number,
-                onToggleChecked,
-                onToggleFailure,
-              ),
+              // ✅ CHECKBOX COLUMN - TYLKO JEŚLI NIE isReadOnly
+              if (!isReadOnly)
+                _buildCheckboxCell(
+                  context,
+                  exerciseRow,
+                  exerciseRowData.exercise_number,
+                  onToggleChecked!,
+                  onToggleFailure,
+                ),
             ],
           ),
         );
       }
     }
-    
+
     return rows;
   }
+  static Widget _buildReadOnlyCell(BuildContext context, String value) {
+  return Container(
+    padding: const EdgeInsets.all(8.0),
+    child: Text(
+      value,
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      textAlign: TextAlign.center,
+    ),
+  );
+}
 
  static Color _getRowColor(ExerciseRow row, BuildContext context, [bool isReadOnly = false]) {
   if (isReadOnly) {
@@ -138,8 +149,8 @@ static Widget _buildEditableCell(
   required WidgetRef ref,
   required String exerciseNumber,
   required ExerciseRow row,
-   required String Function(String, int) getOriginalRange, 
-   bool isReadOnly = false,
+  required String Function(String, int) getOriginalRange, 
+  bool isReadOnly = false,
 }) {
   String displayValue = "";
   String hintText = "";
@@ -148,22 +159,19 @@ static Widget _buildEditableCell(
     final repsType = ref.watch(exerciseRepsTypeProvider(exerciseNumber));
 
     if (repsType == RepsType.range) {
-      if (row.isChecked) {
-        // ZAZNACZONE - POKAZUJ ŚRODKOWĄ WARTOŚĆ
+      if (row.isUserModified) {
+        // ✅ UŻYTKOWNIK WPROWADZIŁ WARTOŚĆ - ZAWSZE POKAZUJ JĄ
+        displayValue = row.colRepMin.toString();
+        hintText = "";
+      } else if (row.isChecked) {
+        // ✅ ZAZNACZONE ALE BRAK MODYFIKACJI - POKAZUJ ŚREDNIĄ
         final middleValue = ((row.colRepMin + row.colRepMax) ~/ 2).round();
         displayValue = middleValue.toString();
         hintText = "";
       } else {
-        // ✅ SPRAWDŹ CZY UŻYTKOWNIK WPROWADZIŁ ZMIANY
-        if (row.isUserModified) {
-          //  UŻYTKOWNIK WPISAŁ WARTOŚĆ - POKAZUJ JĄ
-          displayValue = row.colRepMin.toString();
-          hintText = "";
-        } else {
-          //  BRAK ZMIAN UŻYTKOWNIKA - POKAZUJ ORYGINALNY ZAKRES W HINT
-          displayValue = "";
-          hintText = getOriginalRange(exerciseNumber, row.colStep);
-        }
+        // ✅ NIEZAZNACZONE I BRAK MODYFIKACJI - POKAZUJ ZAKRES W HINT
+        displayValue = "";
+        hintText = getOriginalRange(exerciseNumber, row.colStep);
       }
     } else {
       // ✅ SINGLE
@@ -171,18 +179,16 @@ static Widget _buildEditableCell(
       hintText = "0";
     }
   } else if (type == "weight") {
-    //  WAGA
+    // ✅ WAGA
     final weightType = ref.watch(exerciseWeightTypeProvider(exerciseNumber));
     final unit = weightType.displayName;
     
     displayValue = value != "0" ? value : "";
     hintText = "0 $unit";
   }
+  
   if (isReadOnly) {
-    // W TRYBIE READ-ONLY POKAZUJ TYLKO TEKST
     String readOnlyText = displayValue;
-    
-    // JEŚLI BRAK WARTOŚCI, POKAZUJ HINT
     if (displayValue.isEmpty && hintText.isNotEmpty) {
       readOnlyText = hintText;
     }
@@ -197,8 +203,6 @@ static Widget _buildEditableCell(
       ),
     );
   }
-  
- // print("🔍 FINAL: displayValue='$displayValue', hintText='$hintText'");
   
   return Container(
     padding: const EdgeInsets.all(8.0),
@@ -220,6 +224,7 @@ static Widget _buildEditableCell(
       onChanged: (newValue) {
         onChanged(newValue);
       },
+      // ✅ ZAWSZE EDYTOWALNE
     ),
   );
 }
@@ -275,4 +280,42 @@ static Widget _buildEditableCell(
       return sum + rowData.data.where((row) => row.isChecked).length;
     });
   }
+
+// ✅ DODAJ METODĘ DLA WEIGHT FIELD Z LOGAMI
+static Widget _buildEditableWeightCell(
+  BuildContext context, 
+  String initialValue,
+  Function(String) onChanged,
+) {
+ // print("🏋️ _buildEditableWeightCell CALLED:");
+ // print("  - initialValue: '$initialValue'");
+  //print("  - initialValue.runtimeType: ${initialValue.runtimeType}");
+  
+  return Container(
+    padding: const EdgeInsets.all(8.0),
+    child: TextField(
+      keyboardType: TextInputType.number,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      decoration: InputDecoration(
+        hintText: initialValue.isEmpty ? "0 kg" : initialValue, // ✅ POPRAWKA HINT
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.zero,
+        hintStyle: TextStyle(
+          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+        ),
+      ),
+      controller: TextEditingController(text: initialValue), // ✅ USTAW KONTROLER
+      onChanged: (newValue) {
+        print("🏋️ _buildEditableWeightCell onChanged: '$newValue'");
+        onChanged(newValue);
+      },
+      onTap: () {
+        print("🏋️ _buildEditableWeightCell tapped - current value: '$initialValue'");
+      },
+    ),
+  );
+}
 }

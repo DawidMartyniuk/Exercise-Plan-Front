@@ -49,7 +49,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
               Row(
                 children: [
                   GestureDetector(
-                    //TODO: JEŚLI NIE MA ĆWICZENIA, TO NIE PRZECHODZIĆ W TRYB ExerciseInfo
+              
                     onTap: onTap,
                     child: ExerciseImage(
                       exerciseId: exerciseId,
