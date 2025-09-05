@@ -4,7 +4,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/provider/repsTypeProvider.dart';
 
-class WorkoutRepsField extends ConsumerWidget {
+class WorkoutRepsField extends ConsumerStatefulWidget {
   final ExerciseRow row;
   final String exerciseNumber;
   final Function(String) onRepChanged;
@@ -21,38 +21,97 @@ class WorkoutRepsField extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final repsType = ref.watch(exerciseRepsTypeProvider(exerciseNumber));
-    
-    String displayValue = "";
-    String hintText = "";
+  ConsumerState<WorkoutRepsField> createState() => _WorkoutRepsFieldState();
+}
 
+class _WorkoutRepsFieldState extends ConsumerState<WorkoutRepsField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeController();
+  }
+
+  void _initializeController() {
+    final repsType = ref.read(exerciseRepsTypeProvider(widget.exerciseNumber));
+    
+    String initialValue = "";
+    
     if (repsType == RepsType.range) {
-      if (row.isUserModified || row.colRepMin > 0) {
-        // ✅ UŻYTKOWNIK WPROWADZIŁ WARTOŚĆ LUB MA JAKĄŚ WARTOŚĆ - POKAZUJ JĄ
-        displayValue = row.colRepMin.toString();
-        hintText = "";
-      } else {
-        // ✅ BRAK WARTOŚCI - POKAZUJ ZAKRES W HINT
-        displayValue = "";
-        hintText = getOriginalRange(exerciseNumber, row.colStep);
+      // ✅ DLA RANGE - POKAŻ WARTOŚĆ TYLKO JEŚLI UŻYTKOWNIK WPROWADZIŁ
+      if (widget.row.isUserModified && widget.row.colRepMin > 0) {
+        initialValue = widget.row.colRepMin.toString();
+      } else if (widget.row.isChecked && widget.row.colRepMin > 0) {
+        // ✅ ZAZNACZONE ALE BRAK MODYFIKACJI - POKAŻ ŚREDNIĄ
+        initialValue = widget.row.colRepMin.toString();
       }
+      // ✅ W PRZECIWNYM RAZIE ZOSTAW PUSTE - HINT POKAŻE ZAKRES
     } else {
       // ✅ SINGLE/SECONDS
-      displayValue = row.colRepMin > 0 ? row.colRepMin.toString() : "";
-      hintText = repsType == RepsType.single ? "0 " : "0";
+      initialValue = widget.row.colRepMin > 0 ? widget.row.colRepMin.toString() : "";
+    }
+    
+    _controller = TextEditingController(text: initialValue);
+    print("🔍 WorkoutRepsField init: '$initialValue', isUserModified=${widget.row.isUserModified}");
+  }
+
+  @override
+  void didUpdateWidget(WorkoutRepsField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    final repsType = ref.read(exerciseRepsTypeProvider(widget.exerciseNumber));
+    String newValue = "";
+    
+    if (repsType == RepsType.range) {
+      if (widget.row.isUserModified && widget.row.colRepMin > 0) {
+        newValue = widget.row.colRepMin.toString();
+      } else if (widget.row.isChecked && widget.row.colRepMin > 0) {
+        newValue = widget.row.colRepMin.toString();
+      }
+    } else {
+      newValue = widget.row.colRepMin > 0 ? widget.row.colRepMin.toString() : "";
+    }
+    
+    if (newValue != _controller.text) {
+      _controller.text = newValue;
+      print("🔍 WorkoutRepsField update: '$newValue'");
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final repsType = ref.watch(exerciseRepsTypeProvider(widget.exerciseNumber));
+    
+    String hintText = "";
+    
+    if (repsType == RepsType.range) {
+      // ✅ DLA RANGE - POKAŻ PRZEDZIAŁ W HINT JEŚLI POLE PUSTE
+      if (_controller.text.isEmpty) {
+        hintText = widget.getOriginalRange(widget.exerciseNumber, widget.row.colStep);
+      }
+    } else if (repsType == RepsType.single) {
+      hintText = "0 reps";
+    } else {
+      hintText = "0";
     }
 
-    print("🔍 WorkoutRepsField: displayValue='$displayValue', hintText='$hintText', isUserModified=${row.isUserModified}");
+    print("🔍 WorkoutRepsField build: controller='${_controller.text}', hint='$hintText', repsType=$repsType");
 
-    // ✅ JEŚLI isReadOnly - ZWRÓĆ TYLKO TEXT
-    if (isReadOnly) {
-      String readOnlyText = displayValue.isNotEmpty ? displayValue : hintText;
+    // ✅ READ ONLY MODE
+    if (widget.isReadOnly) {
+      String displayText = _controller.text.isNotEmpty ? _controller.text : hintText;
       
       return Container(
         padding: const EdgeInsets.all(8.0),
         child: Text(
-          readOnlyText,
+          displayText,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: Theme.of(context).colorScheme.onSurface,
           ),
@@ -61,10 +120,11 @@ class WorkoutRepsField extends ConsumerWidget {
       );
     }
     
-    // ✅ TRYB EDYCJI - PROSTY TEXTFIELD
+    // ✅ EDITABLE MODE
     return Container(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
+        controller: _controller,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         style: TextStyle(
@@ -79,16 +139,17 @@ class WorkoutRepsField extends ConsumerWidget {
           ),
           contentPadding: EdgeInsets.zero,
         ),
-        controller: TextEditingController(text: displayValue),
-        onChanged: (newValue) {
-          print("🔍 WorkoutRepsField onChanged: '$newValue'");
-          onRepChanged(newValue);
+        onChanged: (value) {
+          print("🔍 Reps changed: '$value'");
+          widget.onRepChanged(value);
         },
-        // ✅ DODAJ onTap DO SELEKCJI CAŁEGO TEKSTU
+        // ✅ ZAZNACZ CAŁY TEKST PRZY KLIKNIĘCIU
         onTap: () {
-          // ✅ AUTOMATYCZNIE ZAZNACZ CAŁY TEKST PRZY KLIKNIĘCIU
-          if (displayValue.isNotEmpty) {
-            print("🔍 TextField tapped - selecting all text");
+          if (_controller.text.isNotEmpty) {
+            _controller.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: _controller.text.length,
+            );
           }
         },
       ),
