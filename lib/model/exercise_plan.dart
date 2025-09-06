@@ -125,7 +125,7 @@ class ExerciseRowsData {
 }
 
 class ExerciseRow {
-  final int colStep;
+  int colStep;
   int colKg;
   int colRepMin;
   int colRepMax;

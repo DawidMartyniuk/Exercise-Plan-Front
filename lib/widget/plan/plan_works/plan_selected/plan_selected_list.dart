@@ -14,6 +14,7 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/action_button.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/progress_bar.dart';
 import '../helpers/plan_helpers.dart';
 import '../helpers/exercise_calculator.dart';
@@ -475,6 +476,107 @@ void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
   print("🏋️ PO: colKg=${row.colKg}");
   _updateRowInProvider(row, exerciseNumber);
 }
+void _addNewSet(String exerciseNumber) {
+  print("➕ Dodawanie nowej serii dla ćwiczenia: $exerciseNumber");
+  
+  setState(() {
+    // Znajdź ćwiczenie
+    final exerciseIndex = _workingPlan.rows.indexWhere(
+      (rowData) => rowData.exercise_number == exerciseNumber
+    );
+    
+    if (exerciseIndex != -1) {
+      final exerciseData = _workingPlan.rows[exerciseIndex];
+      final newStepNumber = exerciseData.data.length + 1;
+      
+      //  SKOPIUJ PARAMETRY Z OSTATNIEJ SERII
+      final lastSet = exerciseData.data.isNotEmpty 
+          ? exerciseData.data.last 
+          : null;
+      
+      final newSet = ExerciseRow(
+        colStep: newStepNumber,
+        colKg: lastSet?.colKg ?? 0, // Skopiuj wagę z ostatniej serii
+        colRepMin: lastSet?.colRepMin ?? 0, // Skopiuj powtórzenia
+        colRepMax: lastSet?.colRepMax ?? 0,
+        isChecked: false,
+        isFailure: false,
+        rowColor: Colors.transparent,
+        isUserModified: false,
+      );
+      
+      // Dodaj nową serię
+      _workingPlan.rows[exerciseIndex].data.add(newSet);
+      
+      print("✅ Dodano serię ${newStepNumber} do ćwiczenia $exerciseNumber");
+      print("   - Waga: ${newSet.colKg}");
+      print("   - Powtórzenia: ${newSet.colRepMin}-${newSet.colRepMax}");
+    }
+  });
+  
+  _updateCurrentWorkoutPlan();
+  
+  // ✅ POKAŻ TOAST
+  // ScaffoldMessenger.of(context).showSnackBar(
+  //   SnackBar(
+  //     content: Text('Added new set'),
+  //     backgroundColor: Colors.green,
+  //     duration: Duration(seconds: 1),
+  //   ),
+  // );
+}
+
+// ✅ USUŃ OSTATNIĄ SERIĘ Z ĆWICZENIA
+void _removeLastSet(String exerciseNumber) {
+  print("➖ Usuwanie ostatniej serii z ćwiczenia: $exerciseNumber");
+  
+  setState(() {
+    // Znajdź ćwiczenie
+    final exerciseIndex = _workingPlan.rows.indexWhere(
+      (rowData) => rowData.exercise_number == exerciseNumber
+    );
+    
+    if (exerciseIndex != -1) {
+      final exerciseData = _workingPlan.rows[exerciseIndex];
+      
+      //  SPRAWDŹ CZY MOŻNA USUNĄĆ (MINIMUM 1 SERIA)
+      if (exerciseData.data.length > 1) {
+        final removedSet = exerciseData.data.removeLast();
+        print("✅ Usunięto serię ${removedSet.colStep} z ćwiczenia $exerciseNumber");
+        
+        //  PRZENUMERUJ POZOSTAŁE SERIE
+        for (int i = 0; i < exerciseData.data.length; i++) {
+          exerciseData.data[i].colStep = i + 1;
+        }
+        
+        print("✅ Przenumerowano serie: ${exerciseData.data.map((s) => s.colStep).join(', ')}");
+      } else {
+        print("⚠️ Nie można usunąć - musi pozostać przynajmniej 1 seria");
+        
+        // ✅ POKAŻ OSTRZEŻENIE
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Cannot remove - minimum 1 set required'),
+        //     backgroundColor: Colors.orange,
+        //     duration: Duration(seconds: 2),
+        //   ),
+        // );
+        return; // Nie kontynuuj
+      }
+    }
+  });
+  
+  _updateCurrentWorkoutPlan();
+  
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Removed last set'),
+      backgroundColor: Colors.red,
+      duration: Duration(seconds: 1),
+    ),
+  );
+}
 
   void _onToggleRowFailure(ExerciseRow row, String exerciseNumber) {
     setState(() {
@@ -670,26 +772,6 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         key: _scaffoldKey,
         drawer: const Drawer(child: PlanSelectedDetails()),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        
-       // bottomNavigationBar: widget.isWorkoutMode 
-          // ? BottomButtonAppBar(
-          //     onBack: () {
-          //       print("🔄 Bottom bar - powrót z treningu");
-          //       if (!widget.isReadOnly) {
-          //         _saveAllRowsToProvider();
-          //       }
-          //       // ✅ ZATRZYMAJ TIMER PRZED WYJŚCIEM
-          //       if (_isWorkoutActive) {
-          //         ref.read(workoutProvider.notifier).stopTimer();
-          //       }
-          //       Navigator.pop(context);
-          //     },
-          //     onEnd: () {
-          //       print("🛑 Bottom bar - koniec treningu");
-          //       _endWorkout(context);
-          //     },
-          //   )
-          // : null, // 
         body: Stack(
           children: [
             SafeArea(
@@ -715,13 +797,12 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                           exercises: widget.exercises,
                         );
                         
-                        // ✅ NIE ZATRZYMUJ TIMERA - ZOSTAW GO AKTYWNEGO
-                        // ❌ USUŃ TO: ref.read(workoutProvider.notifier).stopTimer();
+                        
                       }
                       
-                      // ✅ NAVIGATOR.POP ZOSTANIE WYWOŁANE W hidingScreen
+                   
                     },
-                      planName: _workingPlan.exercise_table, // ✅ KOPIA ROBOCZA
+                      planName: _workingPlan.exercise_table, 
                       getTime: (ctx) {
                         if (widget.isWorkoutMode && _isWorkoutActive) {
                           
@@ -757,7 +838,27 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                         children: [
                           ..._buildExerciseCards(groupedData),
                           const SizedBox(height: 24),
-                          _buildActionButtons(),
+                          ActionButton(
+                            isReadOnly: widget.isReadOnly,
+                            isWorkoutMode: widget.isWorkoutMode,
+                           // onAddExercises: _addMultipleExercisesToPlan,
+                            addMultipleExercisesToPlan: _addMultipleExercisesToPlan,
+                            onEndWorkout: () => _endWorkout(context),
+                            plan: _workingPlan,
+                            exercises: widget.exercises.isNotEmpty
+                                ? widget.exercises.first
+                                : Exercise(
+                                    exerciseId: '',
+                                    name: '',
+                                    bodyParts: [],
+                                    equipments: [],
+                                    gifUrl: '',
+                                    targetMuscles: [],
+                                    secondaryMuscles: [],
+                                    instructions: [],
+                                  ),
+                          ),
+                          //_buildActionButtons(),
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -791,17 +892,6 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     ));
   }
 
-  // Widget _buildProgressBar(int totalSteps, int currentStep) {
-  //   return widget.isReadOnly ? Container() : LinearProgressIndicator(
-  //     minHeight: 8,
-  //     value: totalSteps > 0 ? currentStep / totalSteps : 0,
-  //     backgroundColor: Colors.red,
-  //     valueColor: AlwaysStoppedAnimation<Color>(
-  //       Theme.of(context).colorScheme.primary.withOpacity(0.2),
-  //     ),
-  //   );
-  // }
-
   List<Widget> _buildExerciseCards(Map<String, List<ExerciseRowsData>> groupedData) {
  // final originalRanges = _getOriginalRanges(); 
     return groupedData.entries.map((entry) {
@@ -832,7 +922,10 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(context, "Reps"),
         notes: firstRow.notes,
         isReadOnly: widget.isReadOnly,
-    exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
+        onAddSet: widget.isReadOnly ? null : (exerciseNumber) => _addNewSet(exerciseNumber),
+        onRemoveSet: widget.isReadOnly ? null : _removeLastSet,
+        setsCount: firstRow.data.length,
+        exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
             exerciseRows,
             context,
             onKgChanged: (row, value, exerciseNumber) => _onKgChanged(row, value, exerciseNumber),
@@ -873,125 +966,111 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     );
   }
 
-  Widget _buildActionButtons() {
-  if (widget.isReadOnly && !widget.isWorkoutMode) {
-    // TRYB PODGLĄDU - TYLKO PRZYCISK STARTU TRENINGU
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => PlanSelectedList(
-                    plan: widget.plan,
-                    exercises: widget.exercises,
-                    isReadOnly: false,
-                    isWorkoutMode: true,
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.fitness_center),
-            label: const Text("Start Workout"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ],
-    );
-  } else if (widget.isWorkoutMode) {
-    //  TRYB TRENINGU - WSZYSTKIE PRZYCISKI TRENINGOWE
-    return Column(
-      children: [
-        //  POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _addMultipleExercisesToPlan, //  UŻYJ METODY MULTI-SELECT
-            icon: const Icon(Icons.add),
-            label: const Text("Add Exercises"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
+  // Widget _buildExerciseCard(String exerciseName, List<ExerciseRowsData> exercises) {
+  // final exerciseData = exercises.first;
+  
+  // return Card(
+  //   margin: const EdgeInsets.only(bottom: 16),
+  //   child: Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       // HEADER - bez przycisków
+  //       Container(
+  //         width: double.infinity,
+  //         padding: const EdgeInsets.all(16),
+  //         decoration: BoxDecoration(
+  //           color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+  //           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+  //         ),
+  //         child: Text(
+  //           exerciseName,
+  //           style: Theme.of(context).textTheme.titleMedium?.copyWith(
+  //             fontWeight: FontWeight.bold,
+  //             color: Theme.of(context).colorScheme.onSurface,
+  //           ),
+  //         ),
+  //       ),
         
-        const SizedBox(height: 12),
-         
-        //  PRZYCISK ZAKOŃCZ TRENING
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => _endWorkout(context),
-            icon: const Icon(Icons.stop),
-            label: const Text("End Workout"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ],
-    );
-  } else {
-    //  TRYB EDYCJI PLANU - PRZYCISKI EDYCYJNE
-    return Column(
-      children: [
-        //  POJEDYNCZY PRZYCISK DODAWANIA ĆWICZEŃ
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _addMultipleExercisesToPlan, //  UŻYJ METODY MULTI-SELECT
-            icon: const Icon(Icons.add),
-            label: const Text("Add Exercises"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
+  //       // TABLE
+  //       Table(
+  //         columnWidths: const {
+  //           0: FlexColumnWidth(1), // Step
+  //           1: FlexColumnWidth(2), // Weight
+  //           2: FlexColumnWidth(2), // Reps
+  //           3: FlexColumnWidth(1), // Done
+  //         },
+  //         children: [
+  //           // HEADER ROW
+  //           TableRow(
+  //             decoration: BoxDecoration(
+  //               color: Theme.of(context).colorScheme.surface,
+  //             ),
+  //             children: [
+  //               ExerciseTableHelpers.buildHeaderCell(context, 'Step'),
+  //               ExerciseTableHelpers.buildHeaderCell(context, 'Weight'),
+  //               ExerciseTableHelpers.buildHeaderCell(context, 'Reps'),
+  //               if (!widget.isReadOnly)
+  //                 ExerciseTableHelpers.buildHeaderCell(context, 'Done'),
+  //             ],
+  //           ),
+            
+  //           // DATA ROWS
+  //           ...ExerciseTableHelpers.buildExerciseTableRows(
+  //             exercises,
+  //             context,
+  //             onKgChanged: _onKgChanged,
+  //             onRepChanged: _onRepChanged,
+  //             onToggleChecked: _onToggleRowChecked,
+  //             onToggleFailure: _onToggleRowFailure,
+  //             ref: ref,
+  //             getOriginalRange: _getOriginalRange,
+  //             isReadOnly: widget.isReadOnly,
+  //           ),
+  //         ],
+  //       ),
         
-        const SizedBox(height: 12),
-        
-        //  START WORKOUT
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => PlanSelectedList(
-                    plan: widget.plan,
-                    exercises: widget.exercises,
-                    isReadOnly: false,
-                    isWorkoutMode: true,
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(Icons.fitness_center),
-            label: const Text("Start Workout"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  //       // ✅ PRZYCISKI NA DOLE TABELI
+  //       if (!widget.isReadOnly)
+  //         Container(
+  //           padding: const EdgeInsets.all(8.0),
+  //           decoration: BoxDecoration(
+  //             color: Theme.of(context).colorScheme.surface.withOpacity(0.5),
+  //             borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+  //           ),
+  //           child: Row(
+  //             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //             children: [
+  //               // DODAJ SERIĘ
+  //               ElevatedButton.icon(
+  //                 onPressed: () => _addNewSet(exerciseData.exercise_number),
+  //                 icon: Icon(Icons.add, size: 18),
+  //                 label: Text('Add Set'),
+  //                 style: ElevatedButton.styleFrom(
+  //                   backgroundColor: Theme.of(context).colorScheme.primary,
+  //                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
+  //                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //                 ),
+  //               ),
+                
+  //               // USUŃ SERIĘ
+  //               if (exerciseData.data.length > 1)
+  //                 ElevatedButton.icon(
+  //                   onPressed: () => _removeLastSet(exerciseData.exercise_number),
+  //                   icon: Icon(Icons.remove, size: 18),
+  //                   label: Text('Remove Set'),
+  //                   style: ElevatedButton_buildExerciseCards.styleFrom(
+  //                     backgroundColor: Theme.of(context).colorScheme.error,
+  //                     foregroundColor: Theme.of(context).colorScheme.onError,
+  //                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  //                   ),
+  //                 ),
+  //             ],
+  //           ),
+  //         ),
+  //     ],
+  //   ),
+  // );
 }
-    }
 
 
 

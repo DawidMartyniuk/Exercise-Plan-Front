@@ -33,7 +33,7 @@ class _WorkoutWeightFieldState extends State<WorkoutWeightField> {
     _controller = TextEditingController(text: _lastKnownValue);
     _focusNode = FocusNode();
     
-    print("🏋️ WorkoutWeightField initState: initialValue='$_lastKnownValue'");
+   // print("🏋️ WorkoutWeightField initState: initialValue='$_lastKnownValue'");
   }
 
   @override
@@ -69,7 +69,7 @@ class _WorkoutWeightFieldState extends State<WorkoutWeightField> {
   Widget build(BuildContext context) {
     String hintText = "0 kg";
     
-    print("🏋️ WorkoutWeightField build: controller.text='${_controller.text}', colKg=${widget.row.colKg}");
+   // print("🏋️ WorkoutWeightField build: controller.text='${_controller.text}', colKg=${widget.row.colKg}");
 
     if (widget.isReadOnly) {
       return Container(
@@ -104,7 +104,7 @@ class _WorkoutWeightFieldState extends State<WorkoutWeightField> {
         ),
         onChanged: (value) {
           _lastKnownValue = value; // ✅ ŚLEDŹ ZMIANY
-          print("🏋️ Weight changed to: '$value' (backspace/delete working!)");
+          //print("🏋️ Weight changed to: '$value' (backspace/delete working!)");
           widget.onWeightChanged(value);
         },
         // ✅ OBSŁUŻ TAP - ZAZNACZ CAŁY TEKST
@@ -114,7 +114,7 @@ class _WorkoutWeightFieldState extends State<WorkoutWeightField> {
               baseOffset: 0, 
               extentOffset: _controller.text.length,
             );
-            print("🏋️ Text selected: '${_controller.text}'");
+           // print("🏋️ Text selected: '${_controller.text}'");
           }
         },
       ),

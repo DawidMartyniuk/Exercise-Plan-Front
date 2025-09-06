@@ -53,7 +53,7 @@ class _WorkoutRepsFieldState extends ConsumerState<WorkoutRepsField> {
     }
     
     _controller = TextEditingController(text: initialValue);
-    print("🔍 WorkoutRepsField init: '$initialValue', isUserModified=${widget.row.isUserModified}");
+    //print("🔍 WorkoutRepsField init: '$initialValue', isUserModified=${widget.row.isUserModified}");
   }
 
   @override
@@ -75,7 +75,7 @@ class _WorkoutRepsFieldState extends ConsumerState<WorkoutRepsField> {
     
     if (newValue != _controller.text) {
       _controller.text = newValue;
-      print("🔍 WorkoutRepsField update: '$newValue'");
+    //  print("🔍 WorkoutRepsField update: '$newValue'");
     }
   }
 
@@ -92,7 +92,7 @@ class _WorkoutRepsFieldState extends ConsumerState<WorkoutRepsField> {
     String hintText = "";
     
     if (repsType == RepsType.range) {
-      // ✅ DLA RANGE - POKAŻ PRZEDZIAŁ W HINT JEŚLI POLE PUSTE
+      //  DLA RANGE - POKAŻ PRZEDZIAŁ W HINT JEŚLI POLE PUSTE
       if (_controller.text.isEmpty) {
         hintText = widget.getOriginalRange(widget.exerciseNumber, widget.row.colStep);
       }
@@ -102,7 +102,7 @@ class _WorkoutRepsFieldState extends ConsumerState<WorkoutRepsField> {
       hintText = "0";
     }
 
-    print("🔍 WorkoutRepsField build: controller='${_controller.text}', hint='$hintText', repsType=$repsType");
+   // print("🔍 WorkoutRepsField build: controller='${_controller.text}', hint='$hintText', repsType=$repsType");
 
     // ✅ READ ONLY MODE
     if (widget.isReadOnly) {

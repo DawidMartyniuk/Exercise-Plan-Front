@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/model/reps_type.dart';
-import 'package:work_plan_front/provider/repsTypeProvider.dart';
-import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/exercise_row.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/workout_reps_field.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/workout_weight_filed.dart';
-
 
 class ExerciseTableHelpers {
   static Map<String, List<ExerciseRowsData>> groupExercisesByName(
@@ -102,7 +98,7 @@ class ExerciseTableHelpers {
     return rows;
   }
 
-  // ✅ TYLKO PODSTAWOWE HELPER METODY
+  // ✅ PODSTAWOWE HELPER METODY
   static Widget _buildStepCell(String step, BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8.0),
