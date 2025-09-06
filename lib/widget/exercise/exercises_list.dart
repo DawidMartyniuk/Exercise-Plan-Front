@@ -8,15 +8,15 @@ import 'package:work_plan_front/utils/image_untils.dart';
 class ExerciseList extends StatefulWidget {
   final List<Exercise> exercise;
   final bool isSelectionMode;
-  final Function(Exercise)? onExerciseSelected;
-  final Function(List<Exercise>)? onMultipleExercisesSelected; // ✅ NOWY CALLBACK
+  final Function(Exercise)? onExerciseSelected; // ✅ POJEDYNCZE ĆWICZENIE
+  final Function(List<Exercise>)? onMultipleExercisesSelected; // ✅ WIELE ĆWICZEŃ
 
   const ExerciseList({
     super.key, 
     required this.exercise,
     this.isSelectionMode = false,
     this.onExerciseSelected,
-    this.onMultipleExercisesSelected, // ✅ DODAJ PARAMETR
+    this.onMultipleExercisesSelected,
   });
 
   @override
@@ -24,15 +24,12 @@ class ExerciseList extends StatefulWidget {
 }
 
 class _ExerciseListState extends State<ExerciseList> {
-  //  LISTA WYBRANYCH ĆWICZEŃ
   Set<String> selectedExerciseIds = <String>{};
 
-  // ✅ SPRAWDŹ CZY ĆWICZENIE JEST WYBRANE
   bool _isExerciseSelected(Exercise exercise) {
     return selectedExerciseIds.contains(exercise.id);
   }
 
-  //  PRZEŁĄCZ WYBÓR ĆWICZENIA
   void _toggleExerciseSelection(Exercise exercise) {
     setState(() {
       if (selectedExerciseIds.contains(exercise.id)) {
@@ -43,7 +40,6 @@ class _ExerciseListState extends State<ExerciseList> {
     });
   }
 
-  //  DODAJ WYBRANE ĆWICZENIA
   void _addSelectedExercises() {
     final selectedExercises = widget.exercise
         .where((exercise) => selectedExerciseIds.contains(exercise.id))
@@ -51,16 +47,38 @@ class _ExerciseListState extends State<ExerciseList> {
     
     if (selectedExercises.isNotEmpty && widget.onMultipleExercisesSelected != null) {
       widget.onMultipleExercisesSelected!(selectedExercises);
-      // ✅ WRÓĆ Z LISTĄ
     }
-     Navigator.of(context).pop(selectedExercises);
+    Navigator.of(context).pop(selectedExercises);
   }
+  
   void navigatorToInfoScreen(Exercise exercise) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (ctx) => ExerciseInfoScreen(exercise: exercise),
       ),
     );
+  }
+
+  void _handleExerciseTap(Exercise exercise) {
+    if (widget.isSelectionMode) {
+      if (widget.onExerciseSelected != null) {
+        // ✅ TRYB POJEDYNCZEGO WYBORU - NATYCHMIAST WYWOŁAJ CALLBACK
+        print('🔄 Single exercise selected: ${exercise.name}');
+        widget.onExerciseSelected!(exercise);
+        // ✅ NIE ROBIMY setState() - to jest pojedynczy wybór
+      } else if (widget.onMultipleExercisesSelected != null) {
+        // ✅ TRYB WIELOKROTNEGO WYBORU - DODAJ DO LISTY
+        if (selectedExerciseIds.contains(exercise.id)) {
+          selectedExerciseIds.remove(exercise.id);
+        } else {
+          selectedExerciseIds.add(exercise.id);
+        }
+        setState(() {}); // ✅ TYLKO W TRYBIE MULTIPLE
+      }
+    } else {
+      // ✅ NORMALNY TRYB - OTWÓRZ INFO
+      navigatorToInfoScreen(exercise);
+    }
   }
 
   @override
@@ -106,23 +124,7 @@ class _ExerciseListState extends State<ExerciseList> {
                     : null,
                 child: InkWell(
                   onTap: () {
-                    if (widget.isSelectionMode) {
-                      // ✅ TRYB WYBORU - PRZEŁĄCZ WYBÓR
-                      _toggleExerciseSelection(currentExercise);
-                      
-                      // ✅ WYWOŁAJ STARY CALLBACK DLA KOMPATYBILNOŚCI
-                      if (widget.onExerciseSelected != null) {
-                        widget.onExerciseSelected!(currentExercise);
-                      }
-                    } else {
-                      navigatorToInfoScreen(currentExercise);
-                      // TRYB PRZEGLĄDANIA - POKAŻ SZCZEGÓŁY
-                      // Navigator.of(context).push(
-                      //   MaterialPageRoute(
-                      //     builder: (context) => ExerciseInfoScreen(exercise: currentExercise),
-                      //   ),
-                      // );
-                    }
+                    _handleExerciseTap(currentExercise);
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Padding(

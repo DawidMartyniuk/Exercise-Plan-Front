@@ -12,12 +12,14 @@ class ExercisesScreen extends ConsumerStatefulWidget {
   final bool isSelectionMode; 
   final String? title; 
   final Function(List<Exercise>)? onMultipleExercisesSelected; // ✅ CALLBACK DLA WYBORU ĆWICZENIA
+  final Function(Exercise)? onSingleExerciseSelected; // ✅ DLA POJEDYNCZEGO ĆWICZENIA
 
   const ExercisesScreen({
     super.key,
     this.isSelectionMode = false,
     this.title,
     this.onMultipleExercisesSelected,
+    this.onSingleExerciseSelected, 
   });
 
   @override
@@ -327,17 +329,20 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     Expanded(
                       child: ExerciseList(
                         exercise: _filteredExercises(exerciseList),
-                        isSelectionMode: widget.isSelectionMode, // ✅ PRZEKAŻ TRYB
-                        onExerciseSelected: (exercise) {
-                          // ✅ CALLBACK ZOSTANIE WYWOŁANY AUTOMATYCZNIE
-                          print('Selected exercise: ${exercise.name}');
-                        },
-                        onMultipleExercisesSelected: widget.onMultipleExercisesSelected  != null
-                          ? (exercises) {
-                            widget.onMultipleExercisesSelected!(exercises);
-                            print('Selected ${exercises.length} exercises');
-                          }
-                          : null 
+                        isSelectionMode: widget.isSelectionMode,
+                        // ✅ PRZEKAŻ OBA CALLBACKI
+                        onExerciseSelected: widget.onSingleExerciseSelected != null
+                            ? (exercise) {
+                                print('Single exercise selected: ${exercise.name}');
+                                widget.onSingleExerciseSelected!(exercise);
+                              }
+                            : null,
+                        onMultipleExercisesSelected: widget.onMultipleExercisesSelected != null
+                            ? (exercises) {
+                                widget.onMultipleExercisesSelected!(exercises);
+                                print('Selected ${exercises.length} exercises');
+                              }
+                            : null,
                       ),
                     ),
                   ],

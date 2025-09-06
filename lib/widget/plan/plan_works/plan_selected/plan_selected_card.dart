@@ -23,6 +23,9 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
   final Function(String)? onRemoveSet;
   final int setsCount;
 
+  // ✅ DODAJ NOWY PARAMETR
+  final VoidCallback? onReplaceExercise;
+
   const PlanSelectedCard({
     super.key,
     required this.exerciseId,
@@ -40,6 +43,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
     this.onAddSet,
     this.onRemoveSet,
     this.setsCount = 1,
+    this.onReplaceExercise, // ✅ DODAJ DO KONSTRUKTORA
   });
 
   @override
@@ -77,7 +81,10 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                 ExerciseCardMoreOptions(
                   onDeleteCard: () {
                     deleteExerciseCard();
+                    
                   },
+                  onInfoExercise: onTap,
+                  onReplace: onReplaceExercise, // ✅ PRZEKAŻ CALLBACK
                 ),
               ],
             ),

@@ -8,6 +8,7 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
   final VoidCallback? onReplace;
   final VoidCallback? onDuplicateCard;
   final VoidCallback? onShowPlan;
+  final VoidCallback? onInfoExercise;
 
   ExerciseCardMoreOptions({
    // required this.exercise,
@@ -15,6 +16,7 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
     this.onReplace,
     this.onDuplicateCard,
     this.onShowPlan,
+    this.onInfoExercise
     
       });
 
@@ -54,6 +56,15 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
               isDestructive: false,
               ),
             ),
+            PopupMenuItem(
+            value: 'infoExercise',
+            child: _buildMenuItem(
+              icon: Icons.info,
+              title: 'Exercise Info',
+              context: context,
+              isDestructive: false,
+              ),
+            )
       ],
       );
   }
@@ -95,6 +106,12 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
         break;
       case 'duplicate':
         if (onDuplicateCard != null) onDuplicateCard!();
+        break;
+      case 'infoExercise': 
+      
+        if (onInfoExercise != null) {
+          onInfoExercise!();
+        }
         break;
       default:
         print('Unknown action: $value');

@@ -32,29 +32,31 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
     // ✅ TRYB TRENINGU - MINIMALIZUJ I ZOSTAW TIMER AKTYWNY
     print("🔽 Minimalizowanie treningu - timer pozostaje aktywny globalnie");
 
-    //  USTAW GLOBALNY STAN TRENINGU JEŚLI JESZCZE NIE ISTNIEJE
     final currentWorkout = ref.read(currentWorkoutPlanProvider);
     if (currentWorkout == null) {
-      // ✅ POTRZEBUJEMY DOSTĘPU DO AKTUALNEGO PLANU I ĆWICZEŃ
-      // Te dane muszą być przekazane z PlanSelectedList
       print("⚠️ Brak globalnego stanu treningu - ustaw go przed minimalizacją");
     }
 
-    //  WYWOŁAJ CALLBACK JEŚLI ISTNIEJE (ZAPISZ DANE)
     if (onBack != null) {
       onBack!(); // To zapisze dane do provider
     }
     
-    // WYJDŹ BEZ ZATRZYMYWANIA TIMERA
     Navigator.pop(context);
+    print("🔙 Powrót do poprzedniego ekranu - trening zminimalizowany");
   } else {
     // ✅ TRYB PODGLĄDU/EDYCJI - NORMALNY POWRÓT
+    print("🔙 Tryb ReadOnly/Edycji - normalny powrót");
+    
     if (onBack != null) {
+      print("🔙 Wywołuję callback onBack");
       onBack!();
-    } else {
-      Navigator.pop(context);
     }
+    
+    // ✅ ZAWSZE WYKONAJ Navigator.pop DLA TRYBU READONLY
+    Navigator.pop(context);
+    print("🔙 Navigator.pop() wykonany");
   }
+  print("🔍 hidingScreen zakończony - kliknięcie");
 }
 
   @override

@@ -14,6 +14,7 @@ import 'package:work_plan_front/screens/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
+import 'package:work_plan_front/widget/plan/plan_works/helpers/worokout_exercise_replacement_menager.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/action_button.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/progress_bar.dart';
 import '../helpers/plan_helpers.dart';
@@ -48,6 +49,7 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
     with PlanHelpers, ExerciseCalculations {
   
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final WorkoutExerciseReplacementManager _replacementManager = WorkoutExerciseReplacementManager();
   
   ScrollController? _scrollController;
   Timer? _timer;
@@ -86,21 +88,13 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
   }
   }
 
-  // void startWorkout(){
-  //   if(_isWorkoutActive){
-  //     _workoutTimeNotifier.startTimer();
-  //     _isWorkoutActive = true;
-  //   }
-  // }
+
   @override
 void dispose() {
   print("🗑️ Disposing PlanSelectedList");
   
-
-  // if (widget.isWorkoutMode && _isWorkoutActive) {
-  //   ref.read(workoutProvider.notifier).stopTimer();
-  // }
-  
+    _replacementManager.clearAllPendingData();
+    
   _timer?.cancel();
   _scrollController?.dispose();
   super.dispose();
@@ -176,6 +170,136 @@ void _initializePlanData() {
     print("⚠️ Brak zapisanego progresu - dane pozostają bez zmian");
   }
 }
+
+ Future<void> _replaceExercise(String exerciseNumber) async {
+    print("🔄 Starting exercise replacement for: $exerciseNumber");
+    
+    // Sprawdź czy można zastąpić ćwiczenie
+    if (!_replacementManager.canReplaceExercise(
+      exerciseNumber: exerciseNumber,
+      workingPlan: _workingPlan,
+    )) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cannot replace this exercise - no data found'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+    
+    try {
+      // Zapisz dane obecnego ćwiczenia
+      final savedData = _replacementManager.saveExerciseDataFromPlan(
+        exerciseNumber: exerciseNumber,
+        workingPlan: _workingPlan,
+      );
+      
+      // Loguj informacje o ćwiczeniu
+      _replacementManager.logExerciseReplacementInfo(
+        exerciseNumber: exerciseNumber,
+        workingPlan: _workingPlan,
+      );
+      
+      // Przechowaj dane
+      _replacementManager.storePendingData(exerciseNumber, savedData);
+      
+      // Otwórz ekran wyboru nowego ćwiczenia
+       final result = await Navigator.of(context).push<Exercise>(
+      MaterialPageRoute(
+        builder: (ctx) => ExercisesScreen(
+          isSelectionMode: true,
+          title: 'Replace Exercise',
+          // ✅ TYLKO CALLBACK DLA POJEDYNCZEGO ĆWICZENIA
+          onSingleExerciseSelected: (exercise) {
+            print('🔄 Exercise selected for replacement: ${exercise.name}');
+            Navigator.of(context).pop(exercise); // ✅ ZWRÓĆ POJEDYNCZE ĆWICZENIE
+          },
+          // ✅ NIE PRZEKAZUJ onMultipleExercisesSelected!
+        ),
+      ),
+    );
+      
+      if (result != null) {
+        // Znajdź stare ćwiczenie dla analizy kompatybilności
+        final oldExercise = widget.exercises.firstWhere(
+          (ex) => ex.id == exerciseNumber,
+          orElse: () => Exercise(
+            exerciseId: exerciseNumber,
+            name: "Unknown Exercise",
+            bodyParts: [],
+            equipments: [],
+            gifUrl: '',
+            targetMuscles: [],
+            secondaryMuscles: [],
+            instructions: [],
+          ),
+        );
+        
+        // Analizuj kompatybilność
+        // final compatibility = _replacementManager.analyzeExerciseCompatibility(
+        //   oldExercise: oldExercise,
+        //   newExercise: result,
+        // );
+        
+        // Wykonaj zastąpienie
+        setState(() {
+          _replacementManager.replaceExerciseInPlan(
+            oldExerciseNumber: exerciseNumber,
+            newExercise: result,
+            workingPlan: _workingPlan,
+            savedData: savedData,
+            onStateChanged: () {
+              // Aktualizuj providery
+              _updateCurrentWorkoutPlan();
+              _saveAllRowsToProvider();
+            },
+          );
+        });
+        
+        // Wyczyść przechowane dane
+        _replacementManager.clearPendingData(exerciseNumber);
+        
+        // Pokaż komunikat o powodzeniu
+        // final compatibilityScore = compatibility["compatibilityScore"] as double;
+        // final compatibilityText = compatibilityScore >= 70 
+        //     ? "High compatibility" 
+        //     : compatibilityScore >= 40 
+        //         ? "Medium compatibility" 
+        //         : "Low compatibility";
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:  Text('Exercise replaced successfully! )'),
+           //  Text('Exercise replaced successfully! $compatibilityText (${compatibilityScore.toInt()}%)'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        print("✅ Exercise replacement completed successfully");
+        
+      } else {
+        // Użytkownik anulował - wyczyść przechowane dane
+        _replacementManager.clearPendingData(exerciseNumber);
+        print("❌ Exercise replacement cancelled by user");
+      }
+      
+    } catch (e) {
+      print("❌ Error during exercise replacement: $e");
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error replacing exercise: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      
+      // Wyczyść przechowane dane w przypadku błędu
+      _replacementManager.clearPendingData(exerciseNumber);
+    }
+  }
+
 String _getOriginalRange(String exerciseNumber, int colStep) {
   final originalRow = _getOriginalRowData(exerciseNumber, colStep);
   if (originalRow != null && originalRow.colRepMin != originalRow.colRepMax) {
@@ -515,15 +639,7 @@ void _addNewSet(String exerciseNumber) {
   });
   
   _updateCurrentWorkoutPlan();
-  
-  // ✅ POKAŻ TOAST
-  // ScaffoldMessenger.of(context).showSnackBar(
-  //   SnackBar(
-  //     content: Text('Added new set'),
-  //     backgroundColor: Colors.green,
-  //     duration: Duration(seconds: 1),
-  //   ),
-  // );
+
 }
 
 // ✅ USUŃ OSTATNIĄ SERIĘ Z ĆWICZENIA
@@ -552,15 +668,6 @@ void _removeLastSet(String exerciseNumber) {
         print("✅ Przenumerowano serie: ${exerciseData.data.map((s) => s.colStep).join(', ')}");
       } else {
         print("⚠️ Nie można usunąć - musi pozostać przynajmniej 1 seria");
-        
-        // ✅ POKAŻ OSTRZEŻENIE
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('Cannot remove - minimum 1 set required'),
-        //     backgroundColor: Colors.orange,
-        //     duration: Duration(seconds: 2),
-        //   ),
-        // );
         return; // Nie kontynuuj
       }
     }
@@ -645,32 +752,6 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     );
   }
 
-  // ✅ DODAWANIE ĆWICZENIA - DO KOPII ROBOCZEJ
-  // Future<void> _addExerciseToPlan(Exercise exercise) async {
-  //   setState(() {
-  //     final newRow = ExerciseRowsData(
-  //       exercise_number: exercise.id,
-  //       exercise_name: exercise.name,
-  //       notes: '',
-  //       rep_type: RepsType.single,
-  //       data: [
-  //         ExerciseRow(
-  //           colStep: 1,
-  //           colKg: 0,
-  //           colRepMin: 0,
-  //           colRepMax: 0,
-  //           isChecked: false,
-  //           isFailure: false,
-  //           rowColor: Colors.transparent,
-  //           isUserModified: false,
-  //         ),
-  //       ],
-  //     );
-  //     _workingPlan.rows.add(newRow); // ✅ DODAJ DO KOPII ROBOCZEJ
-  //   });
-    
-  //   _updateCurrentWorkoutPlan();
-  // }
   void _goEditPlan(){
     print('Edytuj plan');
   }
@@ -784,24 +865,29 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                     //  APP BAR - UŻYJ KOPII ROBOCZEJ
                     PlanSelectedAppBar(
                       onBack: () {
-                      // ✅ ZAWSZE ZAPISZ DANE
-                      _saveAllRowsToProvider();
-                      
-                      if (widget.isWorkoutMode && _isWorkoutActive) {
-                        // ✅ W TRYBIE TRENINGU - USTAW GLOBALNY STAN, NIE ZATRZYMUJ TIMER
-                        print("🔽 Minimalizowanie treningu - timer pozostaje aktywny globalnie");
-                        
-                        // ✅ USTAW GLOBALNY STAN TRENINGU
-                        ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
-                          plan: _workingPlan,
-                          exercises: widget.exercises,
-                        );
-                        
-                        
-                      }
-                      
-                   
-                    },
+                         print("🔙 PlanSelectedAppBar onBack wywołany");
+    
+                          if (widget.isWorkoutMode && _isWorkoutActive) {
+                            // ✅ W TRYBIE TRENINGU - ZAPISZ DANE I USTAW GLOBALNY STAN
+                            print("🔽 Tryb treningu - zapisuję dane i minimalizuję");
+                            _saveAllRowsToProvider();
+                            
+                            ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+                              plan: _workingPlan,
+                              exercises: widget.exercises,
+                            );
+                            
+                            print("✅ Globalny stan treningu ustawiony");
+                          } else if (widget.isReadOnly) {
+                            //  TRYB READONLY - TYLKO POWRÓT, BEZ ZAPISYWANIA
+                            print("🔙 Tryb ReadOnly - zwykły powrót bez zapisywania");
+                            // Navigator.pop jest obsługiwany w hidingScreen
+                          } else {
+                            // ✅ TRYB EDYCJI - ZAPISZ ZMIANY
+                            print("💾 Tryb edycji - zapisuję zmiany");
+                            _saveAllRowsToProvider();
+                          }
+                        },
                       planName: _workingPlan.exercise_table, 
                       getTime: (ctx) {
                         if (widget.isWorkoutMode && _isWorkoutActive) {
@@ -925,6 +1011,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         onAddSet: widget.isReadOnly ? null : (exerciseNumber) => _addNewSet(exerciseNumber),
         onRemoveSet: widget.isReadOnly ? null : _removeLastSet,
         setsCount: firstRow.data.length,
+        onReplaceExercise: widget.isReadOnly ? null : () => _replaceExercise(firstRow.exercise_number),
         exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
             exerciseRows,
             context,
