@@ -10,7 +10,7 @@ import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/repsTypeProvider.dart';
 import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
-import 'package:work_plan_front/screens/exercise_info.dart';
+import 'package:work_plan_front/screens/exercise_info/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';

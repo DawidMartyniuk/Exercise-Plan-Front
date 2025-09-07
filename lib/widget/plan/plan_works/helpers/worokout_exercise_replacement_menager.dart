@@ -7,7 +7,6 @@ class WorkoutExerciseReplacementManager {
   final Map<String,Map<String, dynamic>> _pendingReplacementData ={};
 
 //TODO : ABY PRZEDZIAŁ TEŻ ZAPAMIĘTYWALO
-  // zapisz dane ćwiczenie przed zmiana 
 
   Map<String,dynamic> saveExerciseDataFromPlan({
     required String exerciseNumber,

@@ -27,12 +27,15 @@ class ImageUtils {
     BoxFit fit = BoxFit.cover,
     Widget? placeholder,
     Widget Function(BuildContext, Object, StackTrace?)? errorBuilder,
+    bool isLargeImage = false,
   }) {
     final imageBytes = decodeBase64Image(imageUrl);
+
+    Widget imageWidget;
     
     if (imageBytes != null) {
-      // ✅ BASE64 - użyj Image.memory()
-      return Image.memory(
+      // BASE64 - użyj Image.memory()
+      imageWidget = Image.memory(
         imageBytes,
         width: width,
         height: height,
@@ -45,8 +48,8 @@ class ImageUtils {
     } else if (imageUrl != null && 
                imageUrl.isNotEmpty && 
                imageUrl.startsWith('http')) {
-      // ✅ HTTP URL - użyj Image.network()
-      return Image.network(
+      //  HTTP URL - użyj Image.network()
+      imageWidget = Image.network(
         imageUrl,
         width: width,
         height: height,
@@ -67,9 +70,38 @@ class ImageUtils {
         },
       );
     } else {
-      // ✅ BRAK OBRAZKA - placeholder
+      //  BRAK OBRAZKA - placeholder
       return placeholder ?? _buildDefaultPlaceholder(context, width, height);
     }
+    if(isLargeImage) {
+      return Container(
+        width: width,
+        height: height,
+        constraints: BoxConstraints(
+          maxWidth: width ?? double.infinity,
+          maxHeight: height ?? 200,
+           minHeight: 200,
+        ),
+        decoration: BoxDecoration(
+          borderRadius:BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: imageWidget,
+        ),
+      );
+    }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: imageWidget,
+      );
   }
 
   /// Tworzy ImageProvider z obsługą base64 i HTTP URL
@@ -130,28 +162,39 @@ class ImageUtils {
   }
 
   /// Placeholder dla dużych obrazków (szczegóły)
-  static Widget buildLargePlaceholder(BuildContext context, {double width = double.infinity, double height = 300}) {
-    return Container(
-      width: width,
-      height: height,
+static Widget buildLargePlaceholder(BuildContext context, {double width = double.infinity, double height = 250}) {
+  return Container(
+    width: width,
+    height: height,
+    decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.fitness_center,
-            size: 100,
-            color: Theme.of(context).colorScheme.primary,
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.gif_box_outlined, // ✅ IKONA DLA GIF
+          size: 80,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        SizedBox(height: 12),
+        Text(
+          'Exercise Animation',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+            fontWeight: FontWeight.w500,
           ),
-          SizedBox(height: 8),
-          Text(
-            'No image available',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
-            ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          'Loading...',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurface.withAlpha(100),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

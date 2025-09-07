@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/screens/exercise_info.dart';
+import 'package:work_plan_front/screens/exercise_info/exercise_info.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:work_plan_front/utils/image_untils.dart';
