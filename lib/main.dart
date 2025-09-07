@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:work_plan_front/model/exercise.dart';
+import 'package:work_plan_front/model/favorite_exercise.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/screens/auth/reset_password_page.dart';
 import 'package:work_plan_front/screens/tabs.dart';
@@ -14,9 +15,16 @@ import 'dart:async';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ INICJALIZACJA HIVE
   await Hive.initFlutter();
-  Hive.registerAdapter(ExerciseAdapter());
+  
+  // ✅ BEZPIECZNA REJESTRACJA ADAPTERÓW
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(ExerciseAdapter());
+  }
+  
+  if (!Hive.isAdapterRegistered(1)) {
+    Hive.registerAdapter(FavoriteExerciseAdapter());
+  }
 
   // ✅ PRELOAD ĆWICZEŃ
   try {

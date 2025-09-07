@@ -100,6 +100,8 @@ flutter:
     - assets/muscles/upper_legs.png
     - assets/muscles/waist.png
     - assets/muscles/all.png
+    - assets/icon/favourite_enable.png
+    - assets/icon/favourite_disable.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

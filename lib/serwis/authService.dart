@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/LoginResult.dart';
-import 'package:work_plan_front/model/authResponse.dart';
 import 'package:flutter/foundation.dart';
+import 'package:work_plan_front/model/auth_response.dart';
 import 'dart:io' show Platform;
 
 import 'package:work_plan_front/utils/token_storage.dart';

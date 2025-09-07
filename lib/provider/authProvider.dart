@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/LoginResult.dart';
-import 'package:work_plan_front/model/authResponse.dart';
+import 'package:work_plan_front/model/auth_response.dart';
 import 'package:work_plan_front/serwis/AuthService.dart';
 import 'package:work_plan_front/serwis/profileService.dart';
 import 'package:work_plan_front/utils/token_storage.dart';
