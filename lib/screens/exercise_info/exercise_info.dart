@@ -24,11 +24,12 @@ with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+      _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
+     _tabController?.dispose();
     super.dispose();
   }
 
@@ -75,6 +76,7 @@ with SingleTickerProviderStateMixin {
         ),
       ),
       body: TabBarView(
+        controller: _tabController,
         children: [
           InfoTab(exercise: exercise),
           InstructionsTab(exercise: exercise),
