@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:work_plan_front/core/app_initializer.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 
@@ -13,9 +12,10 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen> 
     with TickerProviderStateMixin {
   
-  late AnimationController _animationController;
   late AnimationController _fadeController;
+  late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
   
   bool _isInitialized = false;
   String _loadingText = 'Initializing...';
@@ -28,13 +28,13 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _initializeAnimations() {
-    _animationController = AnimationController(
-      duration: Duration(seconds: 3),
+    _fadeController = AnimationController(
+      duration: Duration(milliseconds: 1200),
       vsync: this,
     );
 
-    _fadeController = AnimationController(
-      duration: Duration(milliseconds: 800),
+    _scaleController = AnimationController(
+      duration: Duration(seconds: 2),
       vsync: this,
     );
 
@@ -46,18 +46,26 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeInOut,
     ));
 
-    _animationController.forward();
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.easeOutBack,
+    ));
+
+    _scaleController.forward();
     _fadeController.repeat(reverse: true);
   }
 
   Future<void> _startInitialization() async {
     try {
-      _updateLoadingText('Initializing Hive database...');
+      _updateLoadingText('Initializing...');
       await Future.delayed(Duration(milliseconds: 500));
       
       await AppInitializer.initialize();
       
-      _updateLoadingText('Loading exercises...');
+      _updateLoadingText('Loading data...');
       await Future.delayed(Duration(milliseconds: 800));
       
       _updateLoadingText('Almost ready...');
@@ -65,20 +73,15 @@ class _SplashScreenState extends State<SplashScreen>
       
       setState(() {
         _isInitialized = true;
-        _loadingText = 'Welcome to Flex Plan!';
+        _loadingText = 'Welcome!';
       });
 
-      await Future.wait([
-        _animationController.forward(),
-        Future.delayed(Duration(seconds: 2)),
-      ]);
-
+      await Future.delayed(Duration(milliseconds: 800));
       _navigateToMain();
       
     } catch (e) {
       print('❌ Initialization error: $e');
       _updateLoadingText('Error occurred. Retrying...');
-      
       await Future.delayed(Duration(seconds: 2));
       _startInitialization();
     }
@@ -95,144 +98,179 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateToMain() {
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          transitionDuration: Duration(milliseconds: 800),
-        ),
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
     _fadeController.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    //TODO WYDŁUŻYC ZACZAS ANIMACJE ABY TRFAŁO DŁUŻEJ I WOLNIEJ 
-    //  POBIERZ ROZMIAR EKRANU
-    final screenSize = MediaQuery.of(context).size;
-    final screenHeight = screenSize.height;
-    final screenWidth = screenSize.width;
-    
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-          ),
-          child: Column(
-            children: [
-              //  ANIMACJA - ZAJMUJE WIĘKSZOŚĆ EKRANU
-              Expanded(
-                flex: 5, //  ZWIĘKSZ FLEX
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: screenWidth * 0.8, //  MAKSYMALNIE 80% SZEROKOŚCI
-                      maxHeight: screenHeight * 0.6, //  MAKSYMALNIE 60% WYSOKOŚCI
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1.0, // ✅ KWADRATOWY STOSUNEK
-                      child: Lottie.asset(
-                        'assets/animations/FlexPlanAnimation.json',
-                        controller: _animationController,
-                        fit: BoxFit.contain, // ✅ DOPASUJ DO KONTENERA
-                        repeat: true,
-                        onLoaded: (composition) {
-                          _animationController.duration = composition.duration;
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        // ✅ USUŃ GRADIENT - UŻYJ STANDARDOWEGO TŁA JAK W INNYCH EKRANACH
+        color: Theme.of(context).colorScheme.surface,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height - 
+                          MediaQuery.of(context).padding.top - 
+                          MediaQuery.of(context).padding.bottom,
               ),
-              
-              // ✅ LOADING SECTION - ELASTYCZNA WYSOKOŚĆ
-              Expanded(
-                flex: 2, // ✅ MNIEJSZY FLEX
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(height: 80),
+                  
+                  AnimatedBuilder(
+                    animation: _scaleController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _scaleController.value.clamp(0.0, 1.0), 
+                        child: _buildLogo(),
+                      );
+                    },
+                  ),
+                  
+                  SizedBox(height: 32),
+                  
+                  AnimatedBuilder(
+                    animation: _scaleController,
+                    builder: (context, child) {
+                      return Opacity(
+                        opacity: _scaleController.value.clamp(0.0, 1.0), // 
+                        child: Column(
+                          children: [
+                           
+                            SizedBox(height: 8),
+                            
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  SizedBox(height: 80), // ✅ ZAMIAST Spacer
+                  
+                  // ✅ LOADING SECTION
+                  Column(
                     children: [
-                      // Loading indicator
                       Container(
                         width: 32,
                         height: 32,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).colorScheme.primary,
-                          ),
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           strokeWidth: 3,
                         ),
                       ),
                       
                       SizedBox(height: 16),
                       
-                      // Tekst ładowania z animacją fade
                       FadeTransition(
                         opacity: _fadeAnimation,
                         child: Text(
                           _loadingText,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
                           textAlign: TextAlign.center,
-                          maxLines: 2, // ✅ MAKSYMALNIE 2 LINIE
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       
                       SizedBox(height: 24),
                       
-                      // Progress bar
                       Container(
-                        width: screenWidth * 0.6,
+                        width: MediaQuery.of(context).size.width * 0.6,
                         height: 4,
                         child: AnimatedBuilder(
-                          animation: _animationController,
+                          animation: _scaleController,
                           builder: (context, child) {
                             return LinearProgressIndicator(
-                              value: _isInitialized ? 1.0 : _animationController.value,
-                              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).colorScheme.primary,
-                              ),
+                              value: _isInitialized ? 1.0 : _scaleController.value.clamp(0.0, 1.0), // ✅ CLAMP
+                              backgroundColor: Colors.white.withOpacity(0.3),
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             );
                           },
                         ),
                       ),
                     ],
                   ),
-                ),
-              ),
-              
-              // ✅ FOOTER - STAŁA WYSOKOŚĆ
-              Container(
-                padding: EdgeInsets.only(bottom: 24),
-                child: Text(
-                  'Version 1.0.0',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  
+                  SizedBox(height: 80), 
+                  
+                  // ✅ FOOTER
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 32),
+                    child: Text(
+                      'Version 1.0.0',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  // ✅ LOGO Z MULTIPLE FALLBACKS
+  Widget _buildLogo() {
+    return Container(
+      width: 300,
+      height: 300,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: _buildLogoWithFallback(),
+      ),
+    );
+  }
+
+  Widget _buildLogoWithFallback() {
+    // ✅ PRÓBUJ RÓŻNE PLIKI W KOLEJNOŚCI
+    return Image.asset(
+      'assets/icon/FlexPlan.png', // ✅ PIERWSZY WYBÓR
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        print('❌ FlexPlan.png not found, trying logoFlex.png');
+        return Image.asset(
+          'assets/icon/logoFlex.png', // ✅ DRUGI WYBÓR
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ logoFlex.png not found, using icon fallback');
+            return Icon(
+              Icons.fitness_center,
+              size: 60,
+              color: Theme.of(context).colorScheme.primary,
+            );
+          },
+        );
+      },
     );
   }
 }
