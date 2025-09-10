@@ -82,8 +82,11 @@ class SaveWorkoutImageAndDescription extends StatelessWidget {
                     ),
                 textAlign: TextAlign.left,
                 maxLines: 5,
-                decoration: const InputDecoration(
+                decoration:InputDecoration(
                   hintText: "Tutaj możesz dodać szczegóły dotyczące treningu.",
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                  ),
                   border: InputBorder.none,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,

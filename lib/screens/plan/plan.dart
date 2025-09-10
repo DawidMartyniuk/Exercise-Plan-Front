@@ -23,11 +23,7 @@ class PlanScreen extends ConsumerStatefulWidget {
     return _PlanScreenState();
   }
 }
-
-// void openPlanCreation(BuildContext context) {
-//   Navigator.of(context).push(MaterialPageRoute(builder: (ctx) => PlanCreation()));
-// }
-
+//TODO : mniejsze karty , przesówanie w dół ekran teń się przesuwa 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   Timer? _timer;
   bool isTimerRunning = false;

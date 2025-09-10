@@ -359,6 +359,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   final TrainingSessionService _trainingService = TrainingSessionService();
 
   try {
+     //final success = await ApiService.saveCompletedWorkout(workoutData);
     final status = await _trainingService.saveTrainingSession(trainingSession);
     
     if (status == 200 || status == 201) {
@@ -369,7 +370,8 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       );
       
       // ✅ ZAKOŃCZ TRENING I PRZEJDŹ DO PLANÓW
-      await _endWorkoutAndNavigateToPlans();
+     // await _endWorkoutAndNavigateToPlans();
+       await _endWorkoutAfterSave();
       
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -382,42 +384,75 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     );
   }
 }
-
-// ✅ NOWA METODA - KOŃCZY TRENING I PRZECHODZI DO PLANÓW
-Future<void> _endWorkoutAndNavigateToPlans() async {
+Future<void> _endWorkoutAfterSave() async {
   try {
-    final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    print("🔚 Kończenie treningu po zapisie...");
     
-    if (currentWorkout?.plan != null) {
-      // ✅ RESETUJ PLAN W PROVIDERZE
-      ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
-      
-      // ✅ RESETUJ LOKALNIE
-      resetPlanRows(currentWorkout.plan!);
-    }
+    //  ZAKOŃCZ TRENING GLOBALNIE (z workout_utils.dart)
+    await endWorkoutGlobal(context: context, ref: ref,showConfirmationDialog: false);
     
-    // ✅ ZAKOŃCZ TRENING GLOBALNIE
-    endWorkoutGlobal(context: context, ref: ref);
-    
-    // ✅ WYWOŁAJ CALLBACK KOŃCA TRENINGU (JEŚLI ISTNIEJE)
+    //  WYWOŁAJ CALLBACK KOŃCA TRENINGU (JEŚLI ISTNIEJE)
     if (widget.onEndWorkout != null) {
       widget.onEndWorkout!();
     }
     
     print("✅ Trening zakończony po zapisie");
     
-    // ✅ PRZEJDŹ DO EKRANU PLANÓW (TAB INDEX 2)
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => TabsScreen(selectedPageIndex: 2), // ✅ INDEX 2 = PLANY
-      ),
-      (route) => false, // ✅ USUŃ WSZYSTKIE POPRZEDNIE ROUTE
-    );
+    //  PRZEJDŹ DO EKRANU PLANÓW (TAB INDEX 2)
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => TabsScreen(selectedPageIndex: 2), // INDEX 2 = PLANY
+        ),
+        (route) => false, //  USUŃ WSZYSTKIE POPRZEDNIE ROUTE
+      );
+    }
     
   } catch (e) {
     print("❌ Błąd podczas kończenia treningu: $e");
+    
+    //  FALLBACK - przynajmniej przejdź do planów
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }
+
+// ✅ NOWA METODA - KOŃCZY TRENING I PRZECHODZI DO PLANÓW
+// Future<void> _endWorkoutAndNavigateToPlans() async {
+//   try {
+//     final currentWorkout = ref.read(currentWorkoutPlanProvider);
+    
+//     if (currentWorkout?.plan != null) {
+//       // ✅ RESETUJ PLAN W PROVIDERZE
+//       ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
+      
+//       // ✅ RESETUJ LOKALNIE
+//       resetPlanRows(currentWorkout.plan!);
+//     }
+    
+//     // ✅ ZAKOŃCZ TRENING GLOBALNIE
+//     endWorkoutGlobal(context: context, ref: ref);
+    
+//     // ✅ WYWOŁAJ CALLBACK KOŃCA TRENINGU (JEŚLI ISTNIEJE)
+//     if (widget.onEndWorkout != null) {
+//       widget.onEndWorkout!();
+//     }
+    
+//     print("✅ Trening zakończony po zapisie");
+    
+//     // ✅ PRZEJDŹ DO EKRANU PLANÓW (TAB INDEX 2)
+//     Navigator.of(context).pushAndRemoveUntil(
+//       MaterialPageRoute(
+//         builder: (context) => TabsScreen(selectedPageIndex: 2), // ✅ INDEX 2 = PLANY
+//       ),
+//       (route) => false, // ✅ USUŃ WSZYSTKIE POPRZEDNIE ROUTE
+//     );
+    
+//   } catch (e) {
+//     print("❌ Błąd podczas kończenia treningu: $e");
+//   }
+// }
 
   @override
   Widget build(BuildContext context) {

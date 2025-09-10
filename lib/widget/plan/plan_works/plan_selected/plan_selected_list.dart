@@ -25,6 +25,8 @@ import 'plan_selected_appBar.dart';
 import 'plan_selected_details.dart';
  // TODO: Powrucić do konceptu początkowego czyli wartoiści na początku są w hint potem po zaznaczeniu stają się widoczne 
  // i zawsze możan je usuwac do " "  i zmineiac
+
+ //TODO  ODSTĘP MIĘDZY PRZYciskami , kolor tekstu na opise ma być bardziej widoczny, 
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
   final List<Exercise> exercises;

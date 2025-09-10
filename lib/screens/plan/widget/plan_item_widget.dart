@@ -68,7 +68,7 @@ class PlanItemWidget extends ConsumerWidget {
       color: Theme.of(context).colorScheme.primary.withAlpha((0.1 * 255).toInt()),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          vertical: 16.0,
+          vertical: 6.0,
           horizontal: 16.0,
         ),
         child: Column(
@@ -92,7 +92,7 @@ class PlanItemWidget extends ConsumerWidget {
                 ),
               ],
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 2),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
@@ -105,9 +105,10 @@ class PlanItemWidget extends ConsumerWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 4),
             SizedBox(
               width: double.infinity,
+             // height:36,
               child: TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -137,13 +138,7 @@ class PlanItemWidget extends ConsumerWidget {
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (context) => 
-      // Scaffold(
-      //   appBar: AppBar(
-      //     title: Text(plan.exercise_table),
-      //     backgroundColor: Theme.of(context).colorScheme.surface,
-      //     foregroundColor: Theme.of(context).colorScheme.onSurface,
-      //   ),
-      //   body: 
+  
         PlanSelectedList(
           plan: plan,
           exercises: allExercises,

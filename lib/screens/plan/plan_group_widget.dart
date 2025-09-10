@@ -11,7 +11,7 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
   final List<Exercise> allExercises;
   final Function(ExerciseTable, List<Exercise>) onStartWorkout;
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
-  final VoidCallback? onCreateNewPlan; // ✅ DODAJ NOWY PARAMETR
+  final VoidCallback? onCreateNewPlan; //  DODAJ NOWY PARAMETR
 
   const PlanGroupWidget({
     Key? key,
@@ -19,7 +19,7 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
     required this.allExercises,
     required this.onStartWorkout,
     required this.onDeletePlan,
-    this.onCreateNewPlan, // ✅ OPCJONALNY CALLBACK
+    this.onCreateNewPlan, //  OPCJONALNY CALLBACK
   }) : super(key: key);
 
   @override
@@ -161,7 +161,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
             ),
             child: Row(
               children: [
-                // ✅ IKONA ROZWIJANIA
+                //  IKONA ROZWIJANIA
                 GestureDetector(
                   onTap: () {
                     ref.read(planGroupsProvider.notifier).toggleGroupExpanded(widget.group.id);

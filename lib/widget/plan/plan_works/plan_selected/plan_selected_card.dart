@@ -17,13 +17,11 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
   final VoidCallback? onTap; 
   final VoidCallback deleteExerciseCard;
   final bool isReadOnly;
-  
-  // ✅ DODAJ NOWE PARAMETRY DLA PRZYCISKÓW
   final Function(String)? onAddSet;
   final Function(String)? onRemoveSet;
   final int setsCount;
 
-  // ✅ DODAJ NOWY PARAMETR
+
   final VoidCallback? onReplaceExercise;
 
   const PlanSelectedCard({
@@ -39,11 +37,11 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
     required this.deleteExerciseCard,
     this.onTap,
     this.isReadOnly = false,
-    // ✅ NOWE PARAMETRY
+    
     this.onAddSet,
     this.onRemoveSet,
     this.setsCount = 1,
-    this.onReplaceExercise, // ✅ DODAJ DO KONSTRUKTORA
+    this.onReplaceExercise, //  DODAJ DO KONSTRUKTORA
   });
 
   @override
@@ -84,7 +82,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                     
                   },
                   onInfoExercise: onTap,
-                  onReplace: onReplaceExercise, // ✅ PRZEKAŻ CALLBACK
+                  onReplace: onReplaceExercise, //  PRZEKAŻ CALLBACK
                 ),
               ],
             ),
@@ -148,7 +146,10 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisAlignment: setsCount > 1 
+                      ? MainAxisAlignment.spaceBetween 
+                      : MainAxisAlignment.center,
+                  
                   children: [
                     // DODAJ SERIĘ
                     ElevatedButton.icon(
@@ -161,7 +162,8 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
                     ),
-                    
+                   //SizedBox(width: 5),
+
                     // USUŃ SERIĘ (tylko jeśli więcej niż 1)
                     if (setsCount > 1)
                       ElevatedButton.icon(

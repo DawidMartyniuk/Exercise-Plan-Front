@@ -31,14 +31,17 @@ Future<void> startWorkoutGlobal({
 Future<void> endWorkoutGlobal({
   required BuildContext context,
   required WidgetRef ref,
+  bool showConfirmationDialog = true,
 }) async {
   print("🛑 Próba zakończenia treningu globalnie...");
   
   // ✅ POKAŻ ALERT POTWIERDZENIA
+  if(showConfirmationDialog == true){
   final bool? shouldEnd = await showDialog<bool>(
     context: context,
     barrierDismissible: false, // Nie można zamknąć przez kliknięcie poza alertem
     builder: (BuildContext context) {
+
       return AlertDialog(
         
         content: Column(
@@ -49,7 +52,7 @@ Future<void> endWorkoutGlobal({
               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
               child: Text(
                 'Are you sure you want to end this workout \n and clear all progress?',
-                style: TextStyle(fontSize: 22, fontWeight: 
+                style: TextStyle(fontSize: 18, fontWeight: 
                 FontWeight.bold
                 ),
                 textAlign: TextAlign.center,
@@ -64,10 +67,10 @@ Future<void> endWorkoutGlobal({
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // ✅ PRZYCISK ANULOWANIA - container z jaśniejszym tłem, biały tekst
+              //  PRZYCISK ANULOWANIA - container z jaśniejszym tłem, biały tekst
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withAlpha(100), // ✅ JAŚNIEJSZY OD TŁA
+                  color: Theme.of(context).colorScheme.surface.withAlpha(100), //  JAŚNIEJSZY OD TŁA
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextButton(
@@ -75,14 +78,14 @@ Future<void> endWorkoutGlobal({
                     Navigator.of(context).pop(false); // Zwróć false
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(50), // ✅ PRZEZROCZYSTE TŁO (CONTAINER DAJE KOLOR)
-                    shadowColor: Colors.transparent, // ✅ BEZ CIENIA
-                    elevation: 0, // ✅ BEZ ELEVATION
+                    backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(50), //  PRZEZROCZYSTE TŁO (CONTAINER DAJE KOLOR)
+                    shadowColor: Colors.transparent, // BEZ CIENIA
+                    elevation: 0, //  BEZ ELEVATION
                   ),
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: Colors.white, // ✅ BIAŁY TEKST
+                      color: Colors.white, //  BIAŁY TEKST
                       fontSize: 16,
                     ),
                   ),
@@ -92,7 +95,7 @@ Future<void> endWorkoutGlobal({
               // ✅ PRZYCISK POTWIERDZENIA - container z jaśniejszym tłem, czerwony tekst
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface.withAlpha(100), // ✅ JAŚNIEJSZY OD TŁA
+                  color: Theme.of(context).colorScheme.surface.withAlpha(100), //  JAŚNIEJSZY OD TŁA
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: TextButton(
@@ -101,8 +104,8 @@ Future<void> endWorkoutGlobal({
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(50), // ✅ PRZEZROCZYSTE TŁO (CONTAINER DAJE KOLOR)
-                    shadowColor: Colors.transparent, // ✅ BEZ CIENIA
-                    elevation: 0, // ✅ BEZ ELEVATION
+                    shadowColor: Colors.transparent, //  BEZ CIENIA
+                    elevation: 0, // BEZ ELEVATION
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -127,12 +130,15 @@ Future<void> endWorkoutGlobal({
       );
     },
   );
-
-
+  
   if (shouldEnd != true) {
     print("❌ Użytkownik anulował zakończenie treningu");
     return; // Nie rób nic jeśli użytkownik anulował
   }
+  }
+  
+
+
 
   print("✅ Użytkownik potwierdził - kończenie treningu...");
 
@@ -154,23 +160,6 @@ Future<void> endWorkoutGlobal({
   ref.read(currentWorkoutPlanProvider.notifier).state = null;
 
   print("✅ Trening zakończony globalnie");
-
-  // POKAŻ KOMUNIKAT O ZAKOŃCZENIU
-  // if (context.mounted) {
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(
-  //       content: Row(
-  //         children: [
-  //           Icon(Icons.check_circle, color: Colors.white),
-  //           SizedBox(width: 8),
-  //           Text('Workout ended successfully'),
-  //         ],
-  //       ),
-  //       backgroundColor: Colors.green,
-  //       duration: Duration(seconds: 3),
-  //     ),
-  //   );
-  // }
 }
 
 // MINIMALIZUJ TRENING (zostaw aktywny w tle)
