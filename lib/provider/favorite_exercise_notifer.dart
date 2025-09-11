@@ -13,13 +13,13 @@ class FavoriteExerciseNotifier extends StateNotifier<Set<String>> {
   Future<void> _initialize() async {
     try {
       _box = await Hive.openBox<FavoriteExercise>(boxName);
-      _loadFavorites();
+      loadFavorites();
     } catch (e) {
       print('Error initializing favorites box: $e');
     }
   }
 
-  void _loadFavorites() {
+  void loadFavorites() {
     if (_box != null) {
       final favoriteIds = _box!.values.map((fav) => fav.exerciseId).toSet();
       state = favoriteIds;

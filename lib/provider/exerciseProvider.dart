@@ -4,57 +4,50 @@ import 'package:work_plan_front/serwis/exerciseService.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
 
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
-  ExerciseNotifier() : super(const AsyncValue.loading());
+  final ExerciseService _exerciseService;
 
-  final ExerciseService _exerciseService = ExerciseService();
+  ExerciseNotifier(this._exerciseService) : super(const AsyncValue.loading()) {
+    fetchExercises();
+  }
+
+  // ✅ DODAJ METODĘ RESETOWANIA
+  Future<void> resetAndFetch() async {
+    try {
+      state = const AsyncValue.loading();
+      await _exerciseService.clearCache();
+      await fetchExercises();
+    } catch (e) {
+      print("❌ Reset failed: $e");
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
 
   Future<void> fetchExercises({bool forceRefresh = false}) async {
     try {
-      state = const AsyncValue.loading();
+      print("🔄 ExerciseNotifier: Fetching exercises...");
       
-      final exercises = await _exerciseService.exerciseList(forceRefresh: forceRefresh);
-      
-      if (exercises != null && exercises.isNotEmpty) {
-        state = AsyncValue.data(exercises);
-        print("✅ Provider: Załadowano ${exercises.length} ćwiczeń");
-      } else {
-        state = AsyncValue.data([]);
-        print("⚠️ Provider: Brak ćwiczeń do załadowania");
+      if (forceRefresh) {
+        state = const AsyncValue.loading();
       }
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e, stackTrace);
+      
+      final exercises = await _exerciseService.getExercises();
+      state = AsyncValue.data(exercises);
+      print("✅ ExerciseNotifier: Loaded ${exercises.length} exercises");
+    } catch (e) {
       print("❌ Provider: Błąd ładowania ćwiczeń: $e");
+      state = AsyncValue.error(e, StackTrace.current);
     }
   }
   
-  Future<void> loadMoreExercises() async {
-    try {
-      final currentState = state;
-      if (currentState is AsyncData<List<Exercise>>) {
-        final currentCount = currentState.value.length;
-        
-        // ✅ SPRAWDŹ CZY NIE PRZEKROCZONO LIMITU
-        if (currentCount >= AppConstants.exerciseMaxLimit) {
-          print("⚠️ Osiągnięto maksymalny limit ćwiczeń: ${AppConstants.exerciseMaxLimit}");
-          return;
-        }
-        
-        await _exerciseService.loadMoreExercises(
-          skip: currentCount,
-          take: AppConstants().exerciseBatchSize,
-        );
-        
-        // Odśwież dane
-        await fetchExercises();
-      }
-    } catch (e) {
-      print("❌ Błąd ładowania kolejnych ćwiczeń: $e");
-    }
-  }
+  // ✅ USUŃ - TA METODA NIE ISTNIEJE W SERVICE
+  // Future<void> loadMoreExercises() async {
+  //   // USUNIĘTO - BRAK IMPLEMENTACJI W SERVICE
+  // }
 
-  void clearExercises() async {
+  // ✅ ZMIEŃ NAZWĘ METODY
+  Future<void> clearExercises() async {
     try {
-      await _exerciseService.clearLocalExercises();
+      await _exerciseService.clearCache(); // ✅ UŻYJ ISTNIEJĄCEJ METODY
       state = const AsyncValue.data([]);
       print("🗑️ Provider: Wyczyszczono ćwiczenia");
     } catch (e) {
@@ -62,11 +55,18 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
     }
   }
 
-  Future<Map<String, int>> getStats() async {
-    return await _exerciseService.getExerciseStats();
-  }
+  // ✅ USUŃ - TA METODA NIE ISTNIEJE W SERVICE
+  // Future<Map<String, int>> getStats() async {
+  //   return await _exerciseService.getExerciseStats();
+  // }
 }
 
+// ✅ DODAJ PROVIDER DLA SERVICE
+final exerciseServiceProvider = Provider<ExerciseService>((ref) {
+  return ExerciseService();
+});
+
+// ✅ POPRAW PROVIDER
 final exerciseProvider = StateNotifierProvider<ExerciseNotifier, AsyncValue<List<Exercise>>>(
-  (ref) => ExerciseNotifier(),
+  (ref) => ExerciseNotifier(ref.read(exerciseServiceProvider)),
 );

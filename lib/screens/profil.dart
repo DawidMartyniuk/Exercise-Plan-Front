@@ -23,7 +23,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(completedTrainingSessionProvider.notifier).fetchSessions();
+      ref.read(trainingSessionAsyncProvider.notifier).fetchSessions();
     });
   }
 
@@ -38,8 +38,12 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
   }
 
   int _getTotalWorkouts() {
-    final trainingSession = ref.watch(completedTrainingSessionProvider);
-    return trainingSession.length;
+    final trainingSession = ref.watch(trainingSessionAsyncProvider);
+    return trainingSession.when(
+      data: (sessions) => sessions.length,
+      loading: () => 0,
+      error: (err, stack) => 0,
+    );
   }
 
   String _getProfileDescription() {

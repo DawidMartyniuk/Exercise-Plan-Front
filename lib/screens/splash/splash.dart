@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/core/app_initializer.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
+import 'package:work_plan_front/screens/splash/app_initializer.dart';
+import 'package:work_plan_front/screens/tabs.dart';
+import 'package:work_plan_front/provider/authProvider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {  // ✅ ZMIEŃ NA ConsumerStatefulWidget
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();  // ✅ ConsumerState
 }
 
-class _SplashScreenState extends State<SplashScreen> 
+class _SplashScreenState extends ConsumerState<SplashScreen> 
     with TickerProviderStateMixin {
   
   late AnimationController _fadeController;
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
-  late Animation<double> _scaleAnimation;
   
   bool _isInitialized = false;
   String _loadingText = 'Initializing...';
+  int _currentStep = 0;
+  int _totalSteps = 6;
 
   @override
   void initState() {
@@ -46,59 +50,90 @@ class _SplashScreenState extends State<SplashScreen>
       curve: Curves.easeInOut,
     ));
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOutBack,
-    ));
-
     _scaleController.forward();
     _fadeController.repeat(reverse: true);
   }
 
   Future<void> _startInitialization() async {
     try {
-      _updateLoadingText('Initializing...');
+      // ✅ KROK 1: PODSTAWOWA INICJALIZACJA
+      _updateLoadingText('Initializing app...', 1);
       await Future.delayed(Duration(milliseconds: 500));
       
       await AppInitializer.initialize();
       
-      _updateLoadingText('Loading data...');
-      await Future.delayed(Duration(milliseconds: 800));
+      // ✅ KROK 2: SPRAWDŹ STAN LOGOWANIA
+      _updateLoadingText('Checking authentication...', 2);
+      await Future.delayed(Duration(milliseconds: 300));
       
-      _updateLoadingText('Almost ready...');
-      await Future.delayed(Duration(milliseconds: 500));
+      final authResponse = ref.read(authProviderLogin);
+      final isLoggedIn = authResponse != null;
       
-      setState(() {
-        _isInitialized = true;
-        _loadingText = 'Welcome!';
-      });
+      if (isLoggedIn) {
+        // ✅ KROK 3-6: ŁADUJ WSZYSTKIE DANE
+        _updateLoadingText('Loading exercises...', 3);
+        await Future.delayed(Duration(milliseconds: 400));
+        
+        _updateLoadingText('Loading workout plans...', 4);
+        await Future.delayed(Duration(milliseconds: 400));
+        
+        _updateLoadingText('Loading training history...', 5);
+        await Future.delayed(Duration(milliseconds: 400));
+        
+        // ✅ ŁADUJ WSZYSTKIE DANE
+       
+        await AppInitializer.loadAllData(ref);
 
-      await Future.delayed(Duration(milliseconds: 800));
-      _navigateToMain();
+        _updateLoadingText('Preparing dashboard...', 6);
+        await Future.delayed(Duration(milliseconds: 500));
+        
+        setState(() {
+          _isInitialized = true;
+          _loadingText = 'Welcome back!';
+        });
+
+        await Future.delayed(Duration(milliseconds: 800));
+        _navigateToMain(true); // ✅ PRZEJDŹ DO DASHBOARDU
+        
+      } else {
+        // ✅ UŻYTKOWNIK NIEZALOGOWANY
+        _updateLoadingText('Preparing login...', 6);
+        await Future.delayed(Duration(milliseconds: 500));
+        
+        setState(() {
+          _isInitialized = true;
+          _loadingText = 'Welcome!';
+        });
+
+        await Future.delayed(Duration(milliseconds: 800));
+        _navigateToMain(false); // ✅ PRZEJDŹ DO LOGOWANIA
+      }
       
     } catch (e) {
       print('❌ Initialization error: $e');
-      _updateLoadingText('Error occurred. Retrying...');
+      _updateLoadingText('Error occurred. Retrying...', _currentStep);
       await Future.delayed(Duration(seconds: 2));
       _startInitialization();
     }
   }
 
-  void _updateLoadingText(String text) {
+  void _updateLoadingText(String text, int step) {
     if (mounted) {
       setState(() {
         _loadingText = text;
+        _currentStep = step;
       });
     }
   }
 
-  void _navigateToMain() {
+  void _navigateToMain(bool isLoggedIn) {
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(
+          builder: (context) => isLoggedIn 
+            ? TabsScreen(selectedPageIndex: 0) //  PRZEJDŹ DO DASHBOARDU
+            : LoginScreen(), //  PRZEJDŹ DO LOGOWANIA
+        ),
       );
     }
   }
@@ -112,11 +147,12 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final progressValue = _currentStep / _totalSteps;
+    
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        // ✅ USUŃ GRADIENT - UŻYJ STANDARDOWEGO TŁA JAK W INNYCH EKRANACH
         color: Theme.of(context).colorScheme.surface,
         child: SafeArea(
           child: SingleChildScrollView(
@@ -131,11 +167,12 @@ class _SplashScreenState extends State<SplashScreen>
                 children: [
                   SizedBox(height: 80),
                   
+                  // ✅ LOGO
                   AnimatedBuilder(
                     animation: _scaleController,
                     builder: (context, child) {
                       return Transform.scale(
-                        scale: _scaleController.value.clamp(0.0, 1.0), 
+                        scale: _scaleController.value.clamp(0.0, 1.0),
                         child: _buildLogo(),
                       );
                     },
@@ -143,32 +180,50 @@ class _SplashScreenState extends State<SplashScreen>
                   
                   SizedBox(height: 32),
                   
+                  // ✅ NAZWA APLIKACJI
                   AnimatedBuilder(
                     animation: _scaleController,
                     builder: (context, child) {
                       return Opacity(
-                        opacity: _scaleController.value.clamp(0.0, 1.0), // 
+                        opacity: _scaleController.value.clamp(0.0, 1.0),
                         child: Column(
                           children: [
-                           
+                            Text(
+                              'Flex Plan',
+                              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
+                              ),
+                            ),
                             SizedBox(height: 8),
-                            
+                            Text(
+                              'Your Personal Training Assistant',
+                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+                                letterSpacing: 0.5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
                           ],
                         ),
                       );
                     },
                   ),
                   
-                  SizedBox(height: 80), // ✅ ZAMIAST Spacer
+                  SizedBox(height: 80),
                   
-                  // ✅ LOADING SECTION
+                  // ✅ LOADING SECTION Z POSTĘPEM
                   Column(
                     children: [
                       Container(
                         width: 32,
                         height: 32,
                         child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          value: progressValue, // ✅ POKAZUJ REALNY POSTĘP
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.primary,
+                          ),
                           strokeWidth: 3,
                         ),
                       ),
@@ -180,7 +235,7 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Text(
                           _loadingText,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -188,26 +243,35 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       
+                      SizedBox(height: 8),
+                      
+                      // ✅ POSTĘP W TEKŚCIE
+                      Text(
+                        'Step $_currentStep of $_totalSteps',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withAlpha(127),
+                          fontSize: 12,
+                        ),
+                      ),
+                      
                       SizedBox(height: 24),
                       
+                      // ✅ PASEK POSTĘPU
                       Container(
                         width: MediaQuery.of(context).size.width * 0.6,
                         height: 4,
-                        child: AnimatedBuilder(
-                          animation: _scaleController,
-                          builder: (context, child) {
-                            return LinearProgressIndicator(
-                              value: _isInitialized ? 1.0 : _scaleController.value.clamp(0.0, 1.0), // ✅ CLAMP
-                              backgroundColor: Colors.white.withOpacity(0.3),
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                            );
-                          },
+                        child: LinearProgressIndicator(
+                          value: progressValue,
+                          backgroundColor: Theme.of(context).colorScheme.onSurface.withAlpha(50),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).colorScheme.primary,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   
-                  SizedBox(height: 80), 
+                  SizedBox(height: 80),
                   
                   // ✅ FOOTER
                   Padding(
@@ -215,7 +279,7 @@ class _SplashScreenState extends State<SplashScreen>
                     child: Text(
                       'Version 1.0.0',
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withAlpha(127),
                         fontSize: 12,
                       ),
                     ),
@@ -229,17 +293,17 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  // ✅ LOGO Z MULTIPLE FALLBACKS
+  // ✅ LOGO BEZ ZMIAN
   Widget _buildLogo() {
     return Container(
-      width: 300,
-      height: 300,
+      width: 120,
+      height: 120,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.primary.withAlpha(25),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.shadow.withAlpha(50),
             blurRadius: 20,
             offset: Offset(0, 10),
           ),
@@ -252,17 +316,14 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Widget _buildLogoWithFallback() {
-    // ✅ PRÓBUJ RÓŻNE PLIKI W KOLEJNOŚCI
     return Image.asset(
-      'assets/icon/FlexPlan.png', // ✅ PIERWSZY WYBÓR
+      'assets/icon/FlexPlan.png',
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
-        print('❌ FlexPlan.png not found, trying logoFlex.png');
         return Image.asset(
-          'assets/icon/logoFlex.png', // ✅ DRUGI WYBÓR
+          'assets/icon/logoFlex.png',
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
-            print('❌ logoFlex.png not found, using icon fallback');
             return Icon(
               Icons.fitness_center,
               size: 60,

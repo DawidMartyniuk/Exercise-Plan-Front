@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_helpers.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/helper/workout_card_helpers.dart';
 import 'package:work_plan_front/screens/home_dashboard/workout_info/exercise_list_view.dart';
 import 'package:work_plan_front/screens/home_dashboard/workout_info/workout_info_summary.dart';
 

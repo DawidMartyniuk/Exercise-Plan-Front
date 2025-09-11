@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/screens/splash.dart';
+import 'package:work_plan_front/screens/splash/splash.dart';
 
 class AppRouter {
 //  static const String splash = '/';

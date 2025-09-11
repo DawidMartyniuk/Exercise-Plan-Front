@@ -25,7 +25,7 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
         await ref.read(exerciseProvider.notifier).fetchExercises();
         
   
-        await ref.read(completedTrainingSessionProvider.notifier).fetchSessions(forceRefresh: true);
+        await ref.read(trainingSessionAsyncProvider.notifier).fetchSessions(forceRefresh: true);
         
       } catch (e) {
         print("❌ Błąd ładowania danych w recent_workout_section.dart: $e");
@@ -37,48 +37,104 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
   Widget build(BuildContext context) {
     print("🔍 RecentWorkoutsSection: Wywołuję ref.watch()...");
   
-    // ✅ ZWYKŁA LISTA - bez .when()
-    final trainingSessions = ref.watch(completedTrainingSessionProvider);
-
-    print("🔍 RecentWorkoutsSection build() wywołane");
-    print("🔍 trainingSessions.length: ${trainingSessions.length}");
-
-    if (trainingSessions.isEmpty) {
-      return Container(
+    // ✅ UŻYJ ASYNCVALUE DO OBSŁUGI STANÓW ŁADOWANIA
+    final trainingSessionsAsync = ref.watch(trainingSessionAsyncProvider);
+    
+    return trainingSessionsAsync.when(
+      // ✅ KÓŁKO ŁADOWANIA
+      loading: () => Container(
+        padding: EdgeInsets.all(32.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Loading workouts...',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface.withAlpha(180),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      
+      // ✅ BŁĄD ŁADOWANIA
+      error: (error, stackTrace) => Container(
         padding: EdgeInsets.all(16.0),
         child: Card(
           child: Padding(
             padding: EdgeInsets.all(16.0),
             child: Column(
               children: [
-                Icon(Icons.fitness_center, size: 48, color: Colors.grey),
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
                 SizedBox(height: 16),
                 Text(
-                  'No completed workouts yet',
+                  'Error loading workouts',
                   style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Start your first workout to see it here',
+                  error.toString(),
                   style: Theme.of(context).textTheme.bodySmall,
                   textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 16),
+                TextButton(
+                  onPressed: () {
+                    ref.read(trainingSessionAsyncProvider.notifier).fetchSessions(forceRefresh: true);
+                  },
+                  child: Text('Retry'),
                 ),
               ],
             ),
           ),
         ),
-      );
-    }
+      ),
+      
+      // ✅ DANE ZAŁADOWANE
+      data: (trainingSessions) {
+        print("🔍 RecentWorkoutsSection build() wywołane");
+        print("🔍 trainingSessions.length: ${trainingSessions.length}");
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // ✅ HEADER
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        if (trainingSessions.isEmpty) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Icon(Icons.fitness_center, size: 48, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      'No completed workouts yet',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Start your first workout to see it here!',
+                      style: Theme.of(context).textTheme.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        // ✅ POKAŻ KARTY TRENINGÓW
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 'Recent Workouts',
@@ -86,22 +142,37 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-             
+              SizedBox(height: 16),
+              ListView.separated(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: trainingSessions.length > 20 ? 20 : trainingSessions.length, // ✅ MAKSYMALNIE 5 KART
+                separatorBuilder: (context, index) => SizedBox(height: 8),
+                itemBuilder: (context, index) {
+                  final session = trainingSessions[index];
+                  return WorkoutCard(
+                    trainingSession: session,
+                    showAsFullScreen: false,
+                  );
+                },
+              ),
+              // if (trainingSessions.length > 5) // ✅ PRZYCISK "SEE MORE" JEŚLI WIĘCEJ NIŻ 5
+              //   Padding(
+              //     padding: EdgeInsets.only(top: 16),
+              //     child: Center(
+              //       child: TextButton(
+              //         onPressed: () {
+              //           // TODO: Przejdź do pełnej listy treningów
+              //           Navigator.pushNamed(context, '/all-workouts');
+              //         },
+              //         child: Text('See All Workouts'),
+              //       ),
+              //     ),
+              //   ),
             ],
           ),
-        ),
-        
-        // ✅ LISTA SESJI
-        ListView.builder(
-          shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
-          itemCount: trainingSessions.length > 5 ? 5 : trainingSessions.length,
-          itemBuilder: (context, index) {
-            final session = trainingSessions[index];
-            return WorkoutCard(trainingSession: session);
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

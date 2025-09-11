@@ -34,7 +34,7 @@ class ExerciseTableHelpers {
     return groupedData;
   }
 
-  // ✅ JEDNA PROSTA METODA - UŻYWA TYLKO WorkoutWeightField I WorkoutRepsField
+  //JEDNA PROSTA METODA - UŻYWA TYLKO WorkoutWeightField I WorkoutRepsField
   static List<TableRow> buildExerciseTableRows(
     List<ExerciseRowsData> exerciseRows,
     BuildContext context, {
@@ -99,9 +99,12 @@ class ExerciseTableHelpers {
   }
 
   // ✅ PODSTAWOWE HELPER METODY
-  static Widget _buildStepCell(String step, BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
+static Widget _buildStepCell(String step, BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.all(8.0),
+    // ✅ DODAJ HEIGHT ŻEBY WYRÓWNAĆ Z INNYMI POLAMI
+    height: 48, // ✅ TAKA SAMA WYSOKOŚĆ JAK WorkoutWeightField
+    child: Center( // ✅ WYŚRODKUJ ZAWARTOŚĆ
       child: Text(
         step,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -110,8 +113,9 @@ class ExerciseTableHelpers {
         ),
         textAlign: TextAlign.center,
       ),
-    );
-  }
+    ),
+  );
+}
 
   static Color _getRowColor(ExerciseRow row, BuildContext context, [bool isReadOnly = false]) {
     if (isReadOnly) {

@@ -2,104 +2,68 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/serwis/trainingSessions.dart';
 
-class CompletedTrainingSessionNotifier extends StateNotifier<List<TrainingSession>> {
-  CompletedTrainingSessionNotifier() : super([]) {
-    print("🚀 KONSTRUKTOR: CompletedTrainingSessionNotifier tworzony!");
-    _autoLoad(); 
+// ✅ ZMIEŃ NA ASYNCVALUE
+class CompletedTrainingSessionNotifier extends StateNotifier<AsyncValue<List<TrainingSession>>> {
+  final TrainingSessionService _service;
+
+  CompletedTrainingSessionNotifier(this._service) : super(const AsyncValue.loading()) {
+    fetchSessions(); // ✅ AUTOMATYCZNE ŁADOWANIE
   }
 
-  final TrainingSessionService _service = TrainingSessionService();
-
-  void _autoLoad() async {
-    print("🔄 _autoLoad: Rozpoczynam!");
-    try {
-    //  print("🔄 TrainingSessionNotifier: Auto-loading sessions...");
-      await fetchSessions(); 
-      print("✅ TrainingSessionNotifier: Auto-load completed with ${state.length} sessions");
-    } catch (e) {
-      print("❌ Auto-load training sessions error: $e");
-      print("❌ Stack trace: ${StackTrace.current}");
-    }
-    print("🔄 _autoLoad: Kończę!");
-  }
-
-  void addSession(TrainingSession session) {
-   // print("🔍 Provider: Dodaję sesję do stanu");
-    state = [...state, session];
-   // print("🔍 Provider: Nowy stan ma ${state.length} sesji");
-  }
-
-  // ✅ Pobierz sesje dla zalogowanego użytkownika
   Future<void> fetchSessions({bool forceRefresh = false}) async {
-   // print("🔍 Provider: fetchSessions() WEJŚCIE (forceRefresh: $forceRefresh)");
-    
     try {
-    //  print("🔍 Provider: Rozpoczynam pobieranie sesji... (forceRefresh: $forceRefresh)");
-      
-      final sessions = await _service.getUserTrainingSessions().timeout(
-        Duration(seconds: 10),
-        onTimeout: () {
-          print("⏰ TIMEOUT: getUserTrainingSessions() trwało zbyt długo");
-          return <TrainingSession>[];
-        },
-      );
-      
-    // print("🔍 Provider: Pobrano ${sessions.length} sesji z serwisu");
-      
-      if (sessions.isEmpty) {
-     //   print("⚠️ Provider: Serwis zwrócił 0 sesji - sprawdź API");
+      // ✅ USTAW LOADING TYLKO PRZY FORCE REFRESH
+      if (forceRefresh) {
+        state = const AsyncValue.loading();
       }
       
-      // ✅ SORTUJ OD NAJNOWSZYCH
-      sessions.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+      print("🔍 Provider: fetchSessions() WEJŚCIE");
+      final sessions = await _service.getUserTrainingSessions();
+      print("🔍 Provider: Pobrano ${sessions.length} sesji");
       
-      // ✅ DEBUG - POKAŻ PIERWSZE 3 SESJE
-      for (final session in sessions.take(3)) {
-       // print("🕐 Sesja ID=${session.id}, Data=${session.startedAt}, PlanID=${session.exerciseTableId}");
-      }
+      // ✅ USTAW DANE
+      state = AsyncValue.data(sessions);
       
-      state = sessions;
-    //  print("🔍 Provider: Stan zaktualizowany, teraz ma ${state.length} sesji");
-    // print("🔍 Provider: fetchSessions() WYJŚCIE - SUCCESS");
-     
+      print("🔍 Provider: fetchSessions() WYJŚCIE - SUCCESS");
     } catch (e, stackTrace) {
       print('❌ Provider: Błąd pobierania sesji: $e');
       print('❌ Stack trace: $stackTrace');
+      
+      // ✅ USTAW BŁĄD
+      state = AsyncValue.error(e, stackTrace);
+      
       print("🔍 Provider: fetchSessions() WYJŚCIE - ERROR");
     }
   }
+
   Future<void> deleteTrainingSessions(int id) async {
-    try{
-      await _service.deleteTrainingSession(id);
-      state = state.where((session) => session.id != id).toList();
-      print("✅ Sesja o ID $id została usunięta");
-    } catch (e) {
-      print("❌ Błąd podczas usuwania sesji: $e");
-    }
-  }
-
-  // ✅ Zapisz sesję do backendu i dodaj do stanu
-  Future<void> saveSession(TrainingSession session) async {
     try {
-      await _service.saveTrainingSession(session);
+      await _service.deleteTrainingSession(id);
       
-      // ✅ ODŚWIEŻ CAŁY STAN PO ZAPISANIU
-      await fetchSessions(forceRefresh: true);
+      // ✅ USUŃ Z AKTUALNEGO STANU
+      state.whenData((sessions) {
+        state = AsyncValue.data(
+          sessions.where((session) => session.id != id).toList()
+        );
+      });
       
-      print("✅ Sesja zapisana i stan odświeżony");
-    } catch (e) {
-      print('❌ Error saving session: $e');
-      rethrow;
+      print("✅ Sesja o ID $id została usunięta");
+    } catch (e, stackTrace) {
+      print("❌ Błąd podczas usuwania sesji: $e");
+      state = AsyncValue.error(e, stackTrace);
     }
   }
 
-  // ✅ WYCZYŚĆ WSZYSTKIE SESJE
-  void clearSessions() {
-    state = [];
-    print("🗑️ Wyczyszczono wszystkie sesje");
+  // ✅ DODAJ METODĘ DO DODAWANIA SESJI
+  void addSession(TrainingSession session) {
+    state.whenData((sessions) {
+      state = AsyncValue.data([session, ...sessions]);
+    });
   }
 }
 
-final completedTrainingSessionProvider = StateNotifierProvider<CompletedTrainingSessionNotifier, List<TrainingSession>>(
-  (ref) => CompletedTrainingSessionNotifier(),
-);
+// ✅ ZMIEŃ PROVIDER NA ASYNCVALUE
+final trainingSessionAsyncProvider = 
+    StateNotifierProvider<CompletedTrainingSessionNotifier, AsyncValue<List<TrainingSession>>>((ref) {
+  return CompletedTrainingSessionNotifier(TrainingSessionService());
+});

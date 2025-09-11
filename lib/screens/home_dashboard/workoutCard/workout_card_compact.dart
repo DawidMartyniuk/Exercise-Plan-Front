@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
 import 'package:work_plan_front/model/TrainingSesions.dart';
 import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
-import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_helpers.dart';
+import 'package:work_plan_front/screens/home_dashboard/workoutCard/helper/workout_card_helpers.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_fullscreen.dart';
@@ -49,11 +49,11 @@ void _deleteTrainingSession(int sessionId) {
               Navigator.of(context).pop(); // Zamknij dialog
               
               try {
-                // ✅ WYWOŁAJ PROVIDER DO USUNIĘCIA
-                await ref.read(completedTrainingSessionProvider.notifier)
+
+                await ref.read(trainingSessionAsyncProvider.notifier)
                     .deleteTrainingSessions(sessionId);
                 
-                // ✅ POKAŻ SUKCES
+                //  POKAŻ SUKCES
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Workout deleted successfully'),
@@ -61,7 +61,7 @@ void _deleteTrainingSession(int sessionId) {
                   ),
                 );
               } catch (e) {
-                // ✅ POKAŻ BŁĄD
+                //  POKAŻ BŁĄD
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('Failed to delete workout: $e'),
@@ -113,7 +113,7 @@ void _deleteTrainingSession(int sessionId) {
         padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // ✅ HEADER - KOMPONENT
+            //  HEADER - KOMPONENT
             WorkoutHeader(
               userName: getUserName(ref),
               date: session.startedAt,
@@ -165,7 +165,7 @@ void _deleteTrainingSession(int sessionId) {
             SizedBox(height: 8),
             Divider(),
             
-            // ✅ ĆWICZENIA - UPROSZCZONE
+            //  ĆWICZENIA - UPROSZCZONE
             ConstrainedBox(
               constraints: BoxConstraints(maxHeight: 80),
               child: _buildExercisesList(),
@@ -187,23 +187,23 @@ void _deleteTrainingSession(int sessionId) {
           width: 1,
         ),
       ),
-      clipBehavior: Clip.hardEdge, // ✅ TWARDKIE OBCIĘCIE
+      clipBehavior: Clip.hardEdge, //  TWARDKIE OBCIĘCIE
       child: ListView.builder(
-        padding: EdgeInsets.zero, // ✅ USUŃ DOMYŚLNY PADDING
+        padding: EdgeInsets.zero, //  USUŃ DOMYŚLNY PADDING
         shrinkWrap: true,
         itemCount: widget.trainingSession.exercises.take(2).length,
         itemBuilder: (context, index) {
           final exercise = widget.trainingSession.exercises[index];
           return Container(
-            // ✅ WŁASNY CONTAINER ZAMIAST LISTTILE (LEPSZĄ KONTROLA)
+            //  WŁASNY CONTAINER ZAMIAST LISTTILE (LEPSZĄ KONTROLA)
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             margin: EdgeInsets.only(bottom: 4),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface, // ✅ KONTROLOWANE TŁO
+              color: Theme.of(context).colorScheme.surface, //  KONTROLOWANE TŁO
             ),
             child: Row(
               children: [
-                // ✅ IKONA ĆWICZENIA
+                // IKONA ĆWICZENIA
                 Container(
                   width: 32,
                   height: 32,

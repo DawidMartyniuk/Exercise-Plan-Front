@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/core/app_router.dart';
-import 'package:work_plan_front/screens/splash.dart';
+import 'package:work_plan_front/screens/splash/splash.dart';
 
 import 'package:work_plan_front/theme/app_theme.dart';
 

@@ -40,10 +40,9 @@ class _WorkoutWeightFieldState extends State<WorkoutWeightField> {
   void didUpdateWidget(WorkoutWeightField oldWidget) {
     super.didUpdateWidget(oldWidget);
     
-    // ✅ AKTUALIZUJ KONTROLER TYLKO JEŚLI WARTOŚĆ ZMIENIŁA SIĘ ZEWNĘTRZNIE
+
     final newValue = widget.row.colKg > 0 ? widget.row.colKg.toString() : "";
     
-    // ✅ SPRAWDŹ CZY TO ZEWNĘTRZNA ZMIANA (NIE OD UŻYTKOWNIKA)
     if (newValue != _lastKnownValue && newValue != _controller.text) {
       print("🏋️ External update detected: '$_lastKnownValue' -> '$newValue'");
       _lastKnownValue = newValue;

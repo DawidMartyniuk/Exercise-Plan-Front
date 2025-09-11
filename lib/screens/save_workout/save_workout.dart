@@ -363,7 +363,7 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     final status = await _trainingService.saveTrainingSession(trainingSession);
     
     if (status == 200 || status == 201) {
-      ref.read(completedTrainingSessionProvider.notifier).addSession(trainingSession);
+      ref.read(trainingSessionAsyncProvider.notifier).addSession(trainingSession);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Trening zapisany!')),
@@ -417,43 +417,6 @@ Future<void> _endWorkoutAfterSave() async {
     }
   }
 }
-
-// ✅ NOWA METODA - KOŃCZY TRENING I PRZECHODZI DO PLANÓW
-// Future<void> _endWorkoutAndNavigateToPlans() async {
-//   try {
-//     final currentWorkout = ref.read(currentWorkoutPlanProvider);
-    
-//     if (currentWorkout?.plan != null) {
-//       // ✅ RESETUJ PLAN W PROVIDERZE
-//       ref.read(exercisePlanProvider.notifier).resetPlanById(currentWorkout!.plan!.id);
-      
-//       // ✅ RESETUJ LOKALNIE
-//       resetPlanRows(currentWorkout.plan!);
-//     }
-    
-//     // ✅ ZAKOŃCZ TRENING GLOBALNIE
-//     endWorkoutGlobal(context: context, ref: ref);
-    
-//     // ✅ WYWOŁAJ CALLBACK KOŃCA TRENINGU (JEŚLI ISTNIEJE)
-//     if (widget.onEndWorkout != null) {
-//       widget.onEndWorkout!();
-//     }
-    
-//     print("✅ Trening zakończony po zapisie");
-    
-//     // ✅ PRZEJDŹ DO EKRANU PLANÓW (TAB INDEX 2)
-//     Navigator.of(context).pushAndRemoveUntil(
-//       MaterialPageRoute(
-//         builder: (context) => TabsScreen(selectedPageIndex: 2), // ✅ INDEX 2 = PLANY
-//       ),
-//       (route) => false, // ✅ USUŃ WSZYSTKIE POPRZEDNIE ROUTE
-//     );
-    
-//   } catch (e) {
-//     print("❌ Błąd podczas kończenia treningu: $e");
-//   }
-// }
-
   @override
   Widget build(BuildContext context) {
     Widget imageContent = TextButton.icon(

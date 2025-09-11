@@ -49,22 +49,35 @@ class ExerciseRowWidget extends StatelessWidget {
                 : Colors.transparent,
       ),
       child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Step Number
-          Expanded(
+            Expanded(
             flex: 1,
             child: Container(
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                stepNumber.toString(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+              child: TextField(
+                
+              controller: TextEditingController(text: stepNumber.toString()),
+              enabled: false,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+            decoration: InputDecoration(
+               isDense: true,
+               
+            hintText: stepNumber.toString(),
+            border: InputBorder.none,
+            hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+          ),
+          contentPadding: EdgeInsets.zero,
+        ),
               ),
             ),
-          ),
+            ),
 
           //Weight Input
           Expanded(

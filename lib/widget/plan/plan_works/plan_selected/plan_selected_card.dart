@@ -136,7 +136,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
               ],
             ),
             
-            // ✅ DODAJ PRZYCISKI NA DOLE KARTY
+            //  DODAJ PRZYCISKI NA DOLE KARTY
             if (!isReadOnly && onAddSet != null && onRemoveSet != null)
               Container(
                 margin: const EdgeInsets.only(top: 12),

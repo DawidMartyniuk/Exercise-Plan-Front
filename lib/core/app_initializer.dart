@@ -8,7 +8,9 @@ class AppInitializer {
   // inicjalizuje wszytskie serwisy 
   static Future<void> initialize() async {
     await initializeHive();
-    await _preloadExercises();  
+    
+    // ✅ WYCZYŚĆ CACHE I ZAŁADUJ Z PLIKU JSON
+    await _forceLoadFromJson();
   }
 
   //inicjalizuje baze danych hive i rejestruje adaptery
@@ -21,30 +23,35 @@ class AppInitializer {
     if(!Hive.isAdapterRegistered(1)){
       Hive.registerAdapter(FavoriteExerciseAdapter());
     }
-       print("✅ Hive zainicjalizowany");
-
+    print("✅ Hive zainicjalizowany");
   }
-  //wczytuje ćwiczenia 
-  static Future<void> _preloadExercises()async{
+
+  // ✅ NOWA METODA - WYMUŚ ŁADOWANIE Z JSON
+  static Future<void> _forceLoadFromJson() async {
     try {
-      print("🔄 Wstępne ładowanie ćwiczeń...");
+      print("🔄 Wymuszam ładowanie ćwiczeń z pliku JSON...");
+      
+      // ✅ WYCZYŚĆ STARY CACHE
+      await clearCacheInDebug();
+      
       final exerciseService = ExerciseService();
-      final exercises = await exerciseService.exerciseList(forceRefresh: true);
-      print("🚀 Załadowano ${exercises?.length ?? 0} ćwiczeń przy starcie");
+      
+      // ✅ ZAŁADUJ Z PLIKU JSON
+      final exercises = await exerciseService.loadFromJsonAsset();
+      print("🚀 Załadowano ${exercises.length} ćwiczeń z pliku JSON");
+      
     } catch (e) {
-      print("❌ Błąd ładowania ćwiczeń przy starcie: $e");
+      print("❌ Błąd ładowania ćwiczeń z JSON: $e");
     } 
   }
 
-   static Future<void> clearCacheInDebug() async {
+  static Future<void> clearCacheInDebug() async {
     try {
       await Hive.deleteBoxFromDisk('favoriteExercisesBox');
-      await Hive.deleteBoxFromDisk('exerciseBox');
+      await Hive.deleteBoxFromDisk('exercisebox');
       print("🗑️ Wyczyszczono cache Hive");
     } catch (e) {
       print("ℹ️ Nie udało się wyczyścić cache: $e");
-    }
+    } 
   }
-
-
 }
