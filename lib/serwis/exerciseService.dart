@@ -3,30 +3,29 @@ import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/utils/token_storage.dart';
 
 class ExerciseService {
   static const String _boxName = 'exercisebox';
 
-  // ✅ NOWA METODA - ŁADOWANIE Z PLIKU JSON
+  //  NOWA METODA - ŁADOWANIE Z PLIKU JSON
   Future<List<Exercise>> loadFromJsonAsset() async {
     try {
       print("📄 Ładowanie ćwiczeń z assets/data/exercises.json...");
       
-      // ✅ ZAŁADUJ PLIK JSON
+      //  ZAŁADUJ PLIK JSON
       final String jsonString = await rootBundle.loadString('assets/data/exercises.json');
       final List<dynamic> jsonData = json.decode(jsonString);
       
       print("📊 Znaleziono ${jsonData.length} ćwiczeń w pliku JSON");
       
-      // ✅ PRZEKONWERTUJ NA OBIEKTY EXERCISE
+      //  PRZEKONWERTUJ NA OBIEKTY EXERCISE
       final exercises = <Exercise>[];
       
       for (int i = 0; i < jsonData.length; i++) {
         try {
           final exerciseData = jsonData[i] as Map<String, dynamic>;
           
-          // ✅ SPRAWDŹ CZY DANE SĄ KOMPLETNE
+          //  SPRAWDŹ CZY DANE SĄ KOMPLETNE
           if (exerciseData.containsKey('exerciseId') && 
               exerciseData.containsKey('name') &&
               exerciseData['exerciseId'] != null &&
@@ -57,7 +56,7 @@ class ExerciseService {
     }
   }
 
-  // ✅ ZAPISZ DO CACHE
+  //  ZAPISZ DO CACHE
   Future<void> _saveToCache(List<Exercise> exercises) async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
@@ -74,12 +73,12 @@ class ExerciseService {
     }
   }
 
-  // ✅ ZMODYFIKOWANA METODA GŁÓWNA
+  //  ZMODYFIKOWANA METODA GŁÓWNA
   Future<List<Exercise>> getExercises() async {
     try {
       final box = await Hive.openBox<Exercise>(_boxName);
       
-      // ✅ SPRAWDŹ CACHE
+      //  SPRAWDŹ CACHE
       if (box.isNotEmpty) {
         final exercises = box.values.toList();
         print("📱 Loaded ${exercises.length} exercises from cache");
@@ -104,7 +103,7 @@ class ExerciseService {
     }
   }
 
-  // ✅ POZOSTAŁE METODY BEZ ZMIAN
+  //  POZOSTAŁE METODY BEZ ZMIAN
   Future<void> clearCache() async {
     try {
       await Hive.deleteBoxFromDisk(_boxName);

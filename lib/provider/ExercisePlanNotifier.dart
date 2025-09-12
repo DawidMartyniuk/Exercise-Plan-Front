@@ -56,8 +56,6 @@ Future<void> fetchExercisePlans() async {
     }
 
     
-
-    //  ZNAJDŹ ISTNIEJĄCY PLAN DLA PORÓWNANIA
     final existingPlan = state.firstWhere((plan) => plan.id == exerciseId);
     print("  - OLD Plan title: '${existingPlan.exercise_table}'");
 
@@ -108,7 +106,7 @@ Future<void> fetchExercisePlans() async {
     });
   }
 } else {
-  // ✅ FALLBACK - jeśli exerciseOrder jest null
+  //  FALLBACK - jeśli exerciseOrder jest null
   print("⚠️ No exercise order provided, using default tableData order");
   
   for (final entry in tableData.entries) {

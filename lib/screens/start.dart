@@ -58,23 +58,23 @@ class _StartscreenState extends ConsumerState<Startscreen> {
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 2,
         actions: [
-          IconButton(
-            padding: EdgeInsets.symmetric(horizontal: 30),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (ctx) => LoginScreen()),
-              );
-            },
-            icon: Icon(Icons.login),
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
-          IconButton(
-            onPressed: () async {
-              await logout(context);
-            },
-            icon: Icon(Icons.logout),
-            color: Theme.of(context).colorScheme.onSurface,
-          ),
+          // IconButton(
+          //   padding: EdgeInsets.symmetric(horizontal: 30),
+          //   onPressed: () {
+          //     Navigator.of(context).push(
+          //       MaterialPageRoute(builder: (ctx) => LoginScreen()),
+          //     );
+          //   },
+          //   icon: Icon(Icons.login),
+          //   color: Theme.of(context).colorScheme.onSurface,
+          // ),
+          // IconButton(
+          //   onPressed: () async {
+          //     await logout(context);
+          //   },
+          //   icon: Icon(Icons.logout),
+          //   color: Theme.of(context).colorScheme.onSurface,
+          // ),
         ],
       ),
       body: 

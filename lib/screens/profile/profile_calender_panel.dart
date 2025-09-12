@@ -396,15 +396,15 @@ class _ProfileCalenderState extends ConsumerState<ProfileCalenderPanel> {
     );
   }
 
-  // ✅ KARTA TRENINGU
+  //  KARTA TRENINGU
   Widget _buildTrainingCard(TrainingSession training, BuildContext context) {
     return Card(
       margin: EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: training.completed ? Colors.green : Colors.orange,
+          backgroundColor: training.completed ? Theme.of(context).colorScheme.primary : Colors.orange,
           child: Icon(
-            training.completed ? Icons.check : Icons.fitness_center,
+            Icons.fitness_center,
             color: Colors.white,
           ),
         ),

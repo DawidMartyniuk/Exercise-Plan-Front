@@ -39,7 +39,7 @@ class ProfileUserPanel extends ConsumerWidget {
                       ClipOval(child: buildAvatarImage),
                     ),
         
-                    SizedBox(width: 16), // ✅ ODSTĘP MIĘDZY AVATAREM A TEKSTEM
+                    SizedBox(width: 16), //  ODSTĘP MIĘDZY AVATAREM A TEKSTEM
                     // ✅ TEKST
                     Expanded(
                       child: Column(
