@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
@@ -11,7 +12,13 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
   final List<Exercise> allExercises;
   final Function(ExerciseTable, List<Exercise>) onStartWorkout;
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
-  final VoidCallback? onCreateNewPlan; //  DODAJ NOWY PARAMETR
+  final ScrollController mainScrollController;
+  final VoidCallback? onCreateNewPlan;
+
+
+  static double? globalPointerDy;
+  static VoidCallback? globalAutoScrollCallback;
+  static VoidCallback? globalStopAutoScrollCallback;
 
   const PlanGroupWidget({
     Key? key,
@@ -19,7 +26,8 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
     required this.allExercises,
     required this.onStartWorkout,
     required this.onDeletePlan,
-    this.onCreateNewPlan, //  OPCJONALNY CALLBACK
+    required this.mainScrollController,
+    this.onCreateNewPlan,
   }) : super(key: key);
 
   @override
@@ -27,21 +35,28 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
 }
 
 class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
-
   final TextEditingController _nameController = TextEditingController();
   bool _isEditing = false;
+  Timer? _autoScrollTimer;
+  DragTargetDetails? _lastDragDetails;
+  bool _isDragging = false;
+  double? _lastPointerDy;
 
-  @override
-  void initState() {
-    super.initState();
-    _nameController.text = widget.group.name;
-  }
+@override
+void initState() {
+  super.initState();
+  PlanGroupWidget.globalAutoScrollCallback = _startAutoScroll;
+  PlanGroupWidget.globalStopAutoScrollCallback = _stopAutoScroll;
+}
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
+ @override
+void dispose() {
+  PlanGroupWidget.globalAutoScrollCallback = null;
+  PlanGroupWidget.globalStopAutoScrollCallback = null;
+  _stopAutoScroll();
+  _nameController.dispose();
+  super.dispose();
+}
 
   void _startEditing() {
     setState(() {
@@ -67,62 +82,121 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
       _isEditing = false;
     });
   }
+void _startAutoScroll() {
+  if (_autoScrollTimer != null && _autoScrollTimer!.isActive) return;
+
+  _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+    final dy = PlanGroupWidget.globalPointerDy;
+    if (dy == null) return;
+
+    final scrollPos = widget.mainScrollController.position;
+    const edgeThreshold = 100.0;
+    const scrollSpeed = 20.0;
+
+    if (dy < edgeThreshold && scrollPos.pixels > scrollPos.minScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels - scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    } else if (dy > scrollPos.viewportDimension - edgeThreshold && scrollPos.pixels < scrollPos.maxScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels + scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    }
+  });
+}
+
+void _stopAutoScroll() {
+  _autoScrollTimer?.cancel();
+  _autoScrollTimer = null;
+}
+
+  void _maybeAutoScroll(DragTargetDetails details) {
+    if (!widget.mainScrollController.hasClients) return;
+
+    final scrollPos = widget.mainScrollController.position;
+    final dy = details.offset.dy;
+    const edgeThreshold = 100.0;
+    const scrollSpeed = 40.0;
+
+    if (dy < edgeThreshold && scrollPos.pixels > scrollPos.minScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels - scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    } else if (dy > scrollPos.viewportDimension - edgeThreshold && scrollPos.pixels < scrollPos.maxScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels + scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    }
+  }
+
+  // DRAG TARGET MIĘDZY PLANAMI
+  Widget buildDragTargetBetweenItems(int index) {
+    return DragTarget<ExerciseTable>(
+      builder: (context, candidateData, rejectedData) {
+        return Container(
+          height: candidateData.isNotEmpty ? 30 : 12,
+          width: double.infinity,
+          margin: EdgeInsets.symmetric(vertical: candidateData.isNotEmpty ? 4 : 0),
+          decoration: BoxDecoration(
+            color: candidateData.isNotEmpty
+                ? Theme.of(context).colorScheme.primary.withAlpha(30)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+            border: candidateData.isNotEmpty
+                ? Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  )
+                : null,
+          ),
+          child: candidateData.isNotEmpty
+              ? Center(
+                  child: Text(
+                    "Insert here",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                )
+              : null,
+        );
+      },
+      onWillAcceptWithDetails: (details) {
+        _isDragging = true;
+        return true;
+      },
+      onMove: (details) {
+        _lastDragDetails = DragTargetDetails(
+          data: details.data,
+          offset: details.offset,
+        );
+      },
+      onLeave: (_) {
+        _isDragging = false;
+        _stopAutoScroll();
+      },
+      onAcceptWithDetails: (details) {
+         _isDragging = false;
+        _stopAutoScroll();
+        ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
+          details.data,
+          widget.group.id,
+          index + 1,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Plan inserted at position ${index + 2} in ${widget.group.name}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    Widget buildDragTargetBetweenItems(int index) {
-  return DragTarget<ExerciseTable>(
-    builder: (context, candidateData, rejectedData) {
-      return Container(
-        height: candidateData.isNotEmpty ? 30 : 12,
-        width: double.infinity,
-        margin: EdgeInsets.symmetric(vertical: candidateData.isNotEmpty ? 4 : 0),
-        decoration: BoxDecoration(
-          color: candidateData.isNotEmpty
-              ? Theme.of(context).colorScheme.primary.withAlpha(30)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(4),
-          border: candidateData.isNotEmpty
-              ? Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 2,
-                )
-              : null,
-        ),
-        child: candidateData.isNotEmpty
-            ? Center(
-                child: Text(
-                  "Insert here",
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            : null,
-      );
-    },
-    onWillAcceptWithDetails: (data) => data != null,
-    onAcceptWithDetails: (details) {
-    
-      ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
-        details.data, 
-        widget.group.id, 
-        index + 1 //
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Plan inserted at position ${index + 2} in ${widget.group.name}'),
-          duration: Duration(seconds: 2),
-        ),
-      );
-    },
-  );
-}
-
-
-
     return Container(
       margin: EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -140,10 +214,9 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
           ),
         ],
       ),
-      
       child: Column(
         children: [
-          //  HEADER GRUPY 
+          // HEADER GRUPY
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -161,7 +234,6 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
             ),
             child: Row(
               children: [
-                //  IKONA ROZWIJANIA
                 GestureDetector(
                   onTap: () {
                     ref.read(planGroupsProvider.notifier).toggleGroupExpanded(widget.group.id);
@@ -172,8 +244,6 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                   ),
                 ),
                 SizedBox(width: 16),
-                
-                //  NAZWA GRUPY (EDYTOWALNA)
                 Expanded(
                   child: _isEditing
                       ? TextField(
@@ -200,8 +270,6 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                           ),
                         ),
                 ),
-                
-                //  LICZBA PLANÓW
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -216,8 +284,6 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                     ),
                   ),
                 ),
-                
-                // ✅ PRZYCISKI AKCJI
                 if (_isEditing) ...[
                   SizedBox(width: 8),
                   IconButton(
@@ -271,15 +337,14 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
               ],
             ),
           ),
-          
-          // ✅ LISTA PLANÓW + PRZYCISK DODAWANIA (ROZWIJANA)
+          // LISTA PLANÓW + PRZYCISK DODAWANIA (ROZWIJANA)
           if (widget.group.isExpanded)
             Container(
               constraints: BoxConstraints(minHeight: 80),
               margin: EdgeInsets.all(12),
               child: Column(
                 children: [
-                  // ✅ DODAJ DRAG TARGET NA GÓRZE - DLA PRZECIĄGANIA W GÓRĘ
+                  // DRAG TARGET NA GÓRZE
                   DragTarget<ExerciseTable>(
                     builder: (context, candidateData, rejectedData) {
                       return Container(
@@ -311,13 +376,26 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                             : null,
                       );
                     },
-                    onWillAcceptWithDetails: (data) => data != null,
+                    onWillAcceptWithDetails: (details) {
+                      _isDragging = true;
+                      return true;
+                    },
+                    onMove: (details) {
+                      _lastDragDetails = DragTargetDetails(
+                        data: details.data,
+                        offset: details.offset,
+                      );
+                    },
+                    onLeave: (data) {
+                      _stopAutoScroll();
+                    },
                     onAcceptWithDetails: (details) {
-                      //  DODAJ PLAN NA POCZĄTEK LISTY
+                       _isDragging = false;
+                      _stopAutoScroll();
                       ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
-                        details.data, 
-                        widget.group.id, 
-                        0 //  POZYCJA 0 = POCZĄTEK
+                        details.data,
+                        widget.group.id,
+                        0,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -327,8 +405,7 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                       );
                     },
                   ),
-
-                  //  LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
+                  // LISTA PLANÓW LUB KOMUNIKAT O PUSTEJ GRUPIE
                   widget.group.plans.isEmpty
                       ? Container(
                           padding: EdgeInsets.all(25),
@@ -341,28 +418,42 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                             ),
                           ),
                         )
-                      : ListView.separated(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          padding: EdgeInsets.all(8),
-                          itemCount: widget.group.plans.length,
-                          separatorBuilder: (context, index) => 
-                            // ✅ DODAJ DRAG TARGET MIĘDZY PLANAMI
-                            buildDragTargetBetweenItems(index),
-                          itemBuilder: (context, index) {
-                            final plan = widget.group.plans[index];
-                            return PlanItemWidget(
-                              plan: plan,
-                              allExercises: widget.allExercises,
-                              onStartWorkout: widget.onStartWorkout,
-                              onDeletePlan: (planToDelete, context, planId) {
-                                widget.onDeletePlan(planToDelete, context, planId);
-                              }
-                            );
+                      : Listener(
+                          onPointerMove: (event) {
+                            // (opcjonalnie, jeśli chcesz auto-scroll także przy zwykłym scrollowaniu myszą)
+                              if (_isDragging) {
+                            _lastPointerDy = event.position.dy;
+                            _startAutoScroll(); // uruchamiamy auto-scroll, jeśli jesteśmy blisko krawędzi
+                          }
+                            // final details = DragTargetDetails(
+                            //   data: null,
+                            //   offset: event.position,
+                            // );
+                            // _maybeAutoScroll(details);
                           },
+                          onPointerUp: (_) => _stopAutoScroll(),
+                          child: ListView.separated(
+                          //  controller: widget.mainScrollController,
+                            shrinkWrap: true,
+                            physics: PageScrollPhysics(),
+                            padding: EdgeInsets.all(8),
+                            itemCount: widget.group.plans.length,
+                            separatorBuilder: (context, index) =>
+                                buildDragTargetBetweenItems(index),
+                            itemBuilder: (context, index) {
+                              final plan = widget.group.plans[index];
+                              return PlanItemWidget(
+                                plan: plan,
+                                allExercises: widget.allExercises,
+                                onStartWorkout: widget.onStartWorkout,
+                                onDeletePlan: (planToDelete, context, planId) {
+                                  widget.onDeletePlan(planToDelete, context, planId);
+                                },
+                              );
+                            },
+                          ),
                         ),
-
-                  // DRAG TARGET NA DOLE - DLA PRZECIĄGANIA NA KONIEC
+                  // DRAG TARGET NA DOLE
                   DragTarget<ExerciseTable>(
                     builder: (context, candidateData, rejectedData) {
                       return Container(
@@ -394,13 +485,26 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                             : null,
                       );
                     },
-                    onWillAcceptWithDetails: (data) => data != null,
+                    onWillAcceptWithDetails: (details) {
+                      _isDragging = true;
+                      return true;
+                    },
+                    onMove: (details) {
+                      _lastDragDetails = DragTargetDetails(
+                        data: details.data,
+                        offset: details.offset,
+                      );
+                    },
+                    onLeave: (data) {
+                      _stopAutoScroll();
+                    },
                     onAcceptWithDetails: (details) {
-                      // ✅ DODAJ PLAN NA KONIEC LISTY
+                       _isDragging = false;
+                      _stopAutoScroll();
                       ref.read(planGroupsProvider.notifier).addPlanToGroupAtPosition(
-                        details.data, 
-                        widget.group.id, 
-                        widget.group.plans.length // ✅ KONIEC LISTY
+                        details.data,
+                        widget.group.id,
+                        widget.group.plans.length,
                       );
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -410,24 +514,24 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
                       );
                     },
                   ),
-
-                  // ✅ PRZYCISK DODAWANIA NOWEGO PLANU - ZAWSZE NA DOLE
                   if (widget.onCreateNewPlan != null)
                     Padding(
-                      padding: EdgeInsets.fromLTRB(8, 
+                      padding: EdgeInsets.fromLTRB(
+                        8,
                         widget.group.plans.isEmpty ? 0 : 16,
-                        8, 8),
+                        8,
+                        8,
+                      ),
                       child: _buildCreateNewPlanButton(context),
                     ),
                 ],
               ),
-            )
-        ]
+            ),
+        ],
       ),
     );
   }
 
-  // ✅ DODAJ METODĘ TWORZĄCĄ PRZYCISK
   Widget _buildCreateNewPlanButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
@@ -474,55 +578,4 @@ class _PlanGroupWidgetState extends ConsumerState<PlanGroupWidget> {
       ),
     );
   }
-
-  // ✅ DODAJ METODĘ TWORZĄCĄ DRAG TARGET MIĘDZY PLANAMI
-  Widget _buildDragTargetBetweenItems(int index) {
-    return DragTarget<ExerciseTable>(
-      builder: (context, candidateData, rejectedData) {
-        return Container(
-          height: candidateData.isNotEmpty ? 30 : 8,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: candidateData.isNotEmpty
-                ? Theme.of(context).colorScheme.primary.withAlpha(20)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(4),
-            border: candidateData.isNotEmpty
-                ? Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 2,
-                    style: BorderStyle.solid,
-                  )
-                : null,
-          ),
-          child: candidateData.isNotEmpty
-              ? Center(
-                  child: Text(
-                    "Release to move",
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              : null,
-        );
-      },
-      onWillAcceptWithDetails: (data) => data != null,
-      onAcceptWithDetails: (details) {
-        // ✅ PRZENIEŚ PLAN NA NOWĄ POZYCJĘ
-        ref.read(planGroupsProvider.notifier).movePlanToGroup(
-          details.data,
-          widget.group.id,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Plan moved in ${widget.group.name}'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      },
-    );
-  }
-  
 }

@@ -22,12 +22,12 @@ class BuildSetsTable extends ConsumerWidget {
     required this.exerciseName,
     required this.rows,
     this.kgControllers,
-    this.repMinControllers, // ✅ ZMIENIONE
+    this.repMinControllers, //  ZMIENIONE
     this.repMaxControllers,
   }) : super(key: key);
 
   void _showWeightBottomSheet(BuildContext context, WidgetRef ref) {
-    // ✅ POBIERZ AKTUALNĄ JEDNOSTKĘ DLA TEGO ĆWICZENIA
+    //  POBIERZ AKTUALNĄ JEDNOSTKĘ DLA TEGO ĆWICZENIA
     final oldWeightType = ref.read(exerciseWeightTypeProvider(exerciseId));
     
     showModalBottomSheet<WeightType>(
@@ -42,7 +42,7 @@ class BuildSetsTable extends ConsumerWidget {
         minHeight: MediaQuery.of(context).size.height * 0.4,
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      // ✅ PRZEKAŻ EXERCISE ID I NAZWĘ
+      //  PRZEKAŻ EXERCISE ID I NAZWĘ
       builder: (context) => WeightSelected(
         exerciseId: exerciseId,
         exerciseName: exerciseName,
@@ -56,7 +56,7 @@ class BuildSetsTable extends ConsumerWidget {
   }
 
   void _showRepsBottomSheet(BuildContext context, WidgetRef ref ) {
-    // ✅ POBIERZ AKTUALNY RODZAJ POWTÓRZEŃ DLA TEGO ĆWICZENIA
+    //  POBIERZ AKTUALNY RODZAJ POWTÓRZEŃ DLA TEGO ĆWICZENIA
     final oldRepsType = ref.read(exerciseRepsTypeProvider(exerciseId));
 
     showModalBottomSheet<RepsType>(
@@ -166,7 +166,7 @@ class BuildSetsTable extends ConsumerWidget {
                     textAlign: TextAlign.center,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -199,7 +199,7 @@ class BuildSetsTable extends ConsumerWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 8),
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
@@ -261,7 +261,7 @@ class BuildSetsTable extends ConsumerWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
 
                   // ✅ POLE WAGI Z PLACEHOLDER JEDNOSTKI DLA TEGO ĆWICZENIA
                   Expanded(
@@ -288,9 +288,9 @@ class BuildSetsTable extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 8),
 
-                  // ✅ POLE POWTÓRZEŃ
+                  //  POLE POWTÓRZEŃ
                   RepsField(
                     setIndex: i,
                     exerciseId: exerciseId,

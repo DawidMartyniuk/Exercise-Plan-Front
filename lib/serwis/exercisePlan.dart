@@ -4,6 +4,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 import 'package:work_plan_front/utils/token_storage.dart';
+
 class ExerciseService {
   final String _baseUrl = () {
     if (kIsWeb) {

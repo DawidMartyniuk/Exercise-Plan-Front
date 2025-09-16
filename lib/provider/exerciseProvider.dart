@@ -14,7 +14,7 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   Future<void> resetAndFetch() async {
     try {
       state = const AsyncValue.loading();
-      await _exerciseService.clearCache();
+     // await _exerciseService.clearCache();
       await fetchExercises();
     } catch (e) {
       print("❌ Reset failed: $e");
@@ -45,15 +45,15 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   // }
 
   // ✅ ZMIEŃ NAZWĘ METODY
-  Future<void> clearExercises() async {
-    try {
-      await _exerciseService.clearCache(); // ✅ UŻYJ ISTNIEJĄCEJ METODY
-      state = const AsyncValue.data([]);
-      print("🗑️ Provider: Wyczyszczono ćwiczenia");
-    } catch (e) {
-      print("❌ Provider: Błąd czyszczenia: $e");
-    }
-  }
+  // Future<void> clearExercises() async {
+  //   try {
+  //     await _exerciseService.clearCache(); // ✅ UŻYJ ISTNIEJĄCEJ METODY
+  //     state = const AsyncValue.data([]);
+  //     print("🗑️ Provider: Wyczyszczono ćwiczenia");
+  //   } catch (e) {
+  //     print("❌ Provider: Błąd czyszczenia: $e");
+  //   }
+  // }
 
   // ✅ USUŃ - TA METODA NIE ISTNIEJE W SERVICE
   // Future<Map<String, int>> getStats() async {

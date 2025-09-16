@@ -25,6 +25,7 @@ class PlanScreen extends ConsumerStatefulWidget {
 }
 //TODO : mniejsze karty , przesówanie w dół ekran teń się przesuwa 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
+  final ScrollController _mainScrollController = ScrollController();
   Timer? _timer;
   bool isTimerRunning = false;
   int seconds = 0;
@@ -43,8 +44,13 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       }
     });
   }
+  @override
+  void dispose() {
+    _mainScrollController.dispose();
+    super.dispose();
+  }
 
-  void OpenShowPlanScreen(
+  void openShowPlanScreen(
     BuildContext context,
     ExerciseTable plan,
     List<Exercise> filteredExercises,
@@ -359,13 +365,22 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       List<Exercise> allExercises,
     ) {
       final filteredExercises = getFilteredExercise(plan, allExercises);
-      OpenShowPlanScreen(context, plan, filteredExercises);
+      openShowPlanScreen(context, plan, filteredExercises);
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Listener(
+      onPointerMove: (event) {
+        // Przekaż pozycję do auto-scroll w każdej grupie
+        PlanGroupWidget.globalPointerDy = event.position.dy;
+        PlanGroupWidget.globalAutoScrollCallback?.call();
+      },
+      onPointerUp: (_) {
+        PlanGroupWidget.globalPointerDy = null;
+        PlanGroupWidget.globalStopAutoScrollCallback?.call();
+      },
+      child: ListView(
+        controller: _mainScrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         children: [
           Text(
             "Start Now",
@@ -381,9 +396,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onPressed: () {},
               icon: Icon(Icons.add),
               style: TextButton.styleFrom(
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25.0),
                 ),
@@ -406,14 +419,12 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
           ),
           SizedBox(height: 20),
           SizedBox(width: double.infinity, child: _createNewPlan()),
-
           SizedBox(height: 20),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Your plans (${exercisePlans.length})", //
+                "Your plans (${exercisePlans.length})",
                 style: Theme.of(context).textTheme.titleLarge!.copyWith(
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
@@ -429,8 +440,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
             ],
           ),
           SizedBox(height: 20),
-
-          // WYŚWIETLANIE GRUP PLANÓW Z DEBUGOWANIEM
           if (exercisePlans.isEmpty)
             Center(
               child: Column(
@@ -447,7 +456,6 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               ),
             )
           else if (planGroups.isEmpty)
-            // FALLBACK - POKAŻ LOADING PODCZAS INICJALIZACJI GRUP
             Center(
               child: Column(
                 children: [
@@ -463,36 +471,24 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               ),
             )
           else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: planGroups.length,
-              itemBuilder: (context, index) {
-                final group = planGroups[index];
-                return PlanGroupWidget(
-                  key: ValueKey(
-                    "group_${group.name}_${exercisePlans.length}",
-                  ), // ✅ DODAJ KEY KTÓRY ZMIENIA SIĘ PO AKTUALIZACJI
-                  group: group,
-                  allExercises: allExercises,
-                  onStartWorkout: (plan, filteredExercises) {
-                    // ✅ SPRAWDŹ CZY TIMER NIE JEST JUŻ URUCHOMIONY
-                    if (timerController.currentTime == 0) {
-                      print("🕐 Uruchamianie głównego timera");
-                      timerController.startTimer();
-                    }
-                    
-                    ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
-                      plan: plan,
-                      exercises: filteredExercises,
-                    );
-                    showPlanBottomSheet(context, plan, allExercises);
-                  },
-                  onDeletePlan: deletePlan,
-                  onCreateNewPlan: () => openPlanCreation(context),
+            ...planGroups.map((group) => PlanGroupWidget(
+              key: ValueKey("group_${group.name}_${exercisePlans.length}"),
+              group: group,
+              allExercises: allExercises,
+              onStartWorkout: (plan, filteredExercises) {
+                if (timerController.currentTime == 0) {
+                  timerController.startTimer();
+                }
+                ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+                  plan: plan,
+                  exercises: filteredExercises,
                 );
+                showPlanBottomSheet(context, plan, allExercises);
               },
-            ),
+              onDeletePlan: deletePlan,
+              onCreateNewPlan: () => openPlanCreation(context),
+              mainScrollController: _mainScrollController,
+            )),
         ],
       ),
     );

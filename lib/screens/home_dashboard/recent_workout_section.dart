@@ -37,11 +37,11 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
   Widget build(BuildContext context) {
     print("🔍 RecentWorkoutsSection: Wywołuję ref.watch()...");
   
-    // ✅ UŻYJ ASYNCVALUE DO OBSŁUGI STANÓW ŁADOWANIA
+    //  UŻYJ ASYNCVALUE DO OBSŁUGI STANÓW ŁADOWANIA
     final trainingSessionsAsync = ref.watch(trainingSessionAsyncProvider);
     
     return trainingSessionsAsync.when(
-      // ✅ KÓŁKO ŁADOWANIA
+      //  KÓŁKO ŁADOWANIA
       loading: () => Container(
         padding: EdgeInsets.all(32.0),
         child: Center(
@@ -134,19 +134,23 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                'Recent Workouts',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.only(top:8),
+                child: Text(
+                  'Recent Workouts',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               SizedBox(height: 16),
               ListView.separated(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: trainingSessions.length > 20 ? 20 : trainingSessions.length, // ✅ MAKSYMALNIE 5 KART
+                itemCount: trainingSessions.length > 20 ? 20 : trainingSessions.length, //  MAKSYMALNIE 5 KART
                 separatorBuilder: (context, index) => SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final session = trainingSessions[index];
@@ -156,7 +160,7 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
                   );
                 },
               ),
-              // if (trainingSessions.length > 5) // ✅ PRZYCISK "SEE MORE" JEŚLI WIĘCEJ NIŻ 5
+              // if (trainingSessions.length > 5) //  PRZYCISK "SEE MORE" JEŚLI WIĘCEJ NIŻ 5
               //   Padding(
               //     padding: EdgeInsets.only(top: 16),
               //     child: Center(

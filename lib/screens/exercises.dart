@@ -10,6 +10,7 @@ import 'package:work_plan_front/widget/exercise/exercise_limit_upload.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
+  //TODO :Dodawanie własne ćwiczeń
   final bool isSelectionMode;
   final String? title;
   final Function(List<Exercise>)? onMultipleExercisesSelected;
@@ -193,7 +194,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               _showExrciseLimitUpload();
             },
             child: Text(
-              "current number of exercises : ${AppConstants().exerciseBatchSize}",
+              "exercises : ${AppConstants().exerciseBatchSize}",
               style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
