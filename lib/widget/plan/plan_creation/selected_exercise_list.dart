@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/screens/exercise_info/exercise_info.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/build_sets_table.dart';
+import 'package:work_plan_front/widget/plan/plan_creation/widgets/creation_plan_card_header.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/exercise_image.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/selected_exercise_data_manager.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/helpers/exercise_replacement_manager.dart';
@@ -13,10 +15,12 @@ class SelectedExerciseList extends StatefulWidget {
   final void Function(List<Exercise>)? onExercisesReordered;
   final void Function(Exercise oldExercise, Map<String, dynamic> savedData)? onReplaceExercise;
 
-  // OPCJONALNE DANE POCZĄTKOWE DLA EDYCJI
+  
   final Map<String, List<Map<String, String>>>? initialData; 
   final Map<String, String>? initialNotes; 
 
+
+  final ScrollController mainScrollController;
   const SelectedExerciseList({
     Key? key,
     required this.exercises,
@@ -26,6 +30,9 @@ class SelectedExerciseList extends StatefulWidget {
     this.onReplaceExercise,
     this.initialData,
     this.initialNotes,
+   
+    required this.mainScrollController,
+
   }) : super(key: key);
 
   @override
@@ -33,34 +40,80 @@ class SelectedExerciseList extends StatefulWidget {
 }
 
 class SelectedExerciseListState extends State<SelectedExerciseList> {
+    static double? globalPointerDy;
+  static VoidCallback? globalAutoScrollCallback;
+  static VoidCallback? globalStopAutoScrollCallback;
   late SelectedExerciseDataManager _dataManager;
   late ExerciseReplacementManager _replacementManager;
   List<Exercise> _reorderedExercises = [];
+  Timer? _autoScrollTimer;
+  bool _isDragging = false;
 
   @override
   void initState() {
     super.initState();
 
-    //  INICJALIZUJ MANAGERY
     _dataManager = SelectedExerciseDataManager();
     _replacementManager = ExerciseReplacementManager();
     _reorderedExercises = List.from(widget.exercises);
+     SelectedExerciseListState.globalAutoScrollCallback = _startAutoScroll;
+  SelectedExerciseListState.globalStopAutoScrollCallback = _stopAutoScroll;
 
-    //  ZAŁADUJ DANE POCZĄTKOWE JEŚLI ISTNIEJĄ (EDYCJA)
     if (widget.initialData != null && widget.initialData!.isNotEmpty) {
       _loadInitialDataForEdit();
     } else {
-      // ✅ INICJALIZUJ NORMALNE DANE DLA NOWEGO PLANU
       _initializeNewPlanData();
     }
 
-    // ✅ USTAW CALLBACK DLA POBRANIA DANYCH
     widget.onGetTableData(() => _dataManager.getTableData(widget.exercises));
   }
+@override
+void dispose() {
+  _autoScrollTimer?.cancel();
+  _autoScrollTimer = null;
+  SelectedExerciseListState.globalAutoScrollCallback = null;
+  SelectedExerciseListState.globalStopAutoScrollCallback = null;
+  super.dispose();
+}
+void _startAutoScroll() {
+   if (!_isDragging) return;
+  _stopAutoScroll();
+  _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+    if (!mounted) return; // <-- dodaj to!
+     if (!widget.mainScrollController.hasClients) return; 
+    final dy = SelectedExerciseListState.globalPointerDy;
+    if (dy == null) return;
 
-  // ✅ ŁADOWANIE DANYCH DO EDYCJI
+    final scrollPos = widget.mainScrollController.position;
+    const edgeThreshold = 100.0;
+    const scrollSpeed = 20.0;
+
+    if (dy < edgeThreshold && scrollPos.pixels > scrollPos.minScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels - scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    } else if (dy > scrollPos.viewportDimension - edgeThreshold && scrollPos.pixels < scrollPos.maxScrollExtent) {
+      widget.mainScrollController.jumpTo(
+        (scrollPos.pixels + scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+      );
+    }
+  });
+}
+void _stopAutoScroll() {
+  _autoScrollTimer?.cancel();
+  _autoScrollTimer = null;
+}
+void resetDragging() {
+  if (_isDragging) {
+    setState(() {
+      _isDragging = false;
+    });
+  }
+}
+
+  //  ŁADOWANIE DANYCH DO EDYCJI
   void _loadInitialDataForEdit() {
-  //print("🔄 Loading initial data for plan editing...");
+
   print("📊 Total exercises to load: ${widget.exercises.length}");
   print("📊 Initial data keys: ${widget.initialData?.keys.toList()}");
   print("📊 Initial notes keys: ${widget.initialNotes?.keys.toList()}");
@@ -370,20 +423,32 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
     );
   }
 
-  @override
-  void dispose() {
-    _dataManager.dispose();
-    super.dispose();
-  }
+  
 
   @override
   Widget build(BuildContext context) {
     return ReorderableListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      onReorder: _reorderExercises,
+     onReorderStart: (int index) {
+    setState(() {
+      _isDragging = true;
+    });
+  },
+  onReorder: (oldIndex, newIndex) {
+    setState(() {
+      _isDragging = false;
+    });
+    _reorderExercises(oldIndex, newIndex);
+  },
+  scrollController: widget.mainScrollController,
+  shrinkWrap: true,
+  physics: const NeverScrollableScrollPhysics(),
+    
       itemCount: widget.exercises.length,
       proxyDecorator: (child, index, animation) {
+        // setState(() {
+        //   _isDragging = true; // <-- drag się zaczyna
+        // });
+        final exercise = widget.exercises[index];
         return AnimatedBuilder(
           animation: animation,
           builder: (context, child) {
@@ -393,28 +458,40 @@ class SelectedExerciseListState extends State<SelectedExerciseList> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  color: Theme.of(context).colorScheme.primary.withAlpha(25),
+                  color: Theme.of(context).colorScheme.primary,
                   border: Border.all(
                     color: Theme.of(context).colorScheme.primary,
                     width: 1,
-                  ), 
+                  ),
                 ),
-                child: child,
+                padding: const EdgeInsets.all(16),
+                child: CreationPlanCardHeader(exercise: exercise),
               ),
             );
           },
-          child: child,
         );
       },
       itemBuilder: (context, index) {
         final exercise = widget.exercises[index];
         final exerciseId = exercise.id;
 
-        // Upewnij się, że dane są zainicjalizowane
-        if (!_dataManager.hasExerciseData(exerciseId)) {
-          _dataManager.initializeExerciseData(exercise, _updateRowValue);
+        // Jeśli trwa drag, pokazuj tylko header!
+        if (_isDragging) {
+          return Container(
+            key: ValueKey(exerciseId),
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Theme.of(context).colorScheme.surface,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CreationPlanCardHeader(exercise: exercise),
+            ),
+          );
         }
 
+        // Normalny widok karty
         return Card(
           key: ValueKey(exerciseId),
           margin: const EdgeInsets.symmetric(vertical: 8),

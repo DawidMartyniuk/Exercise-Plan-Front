@@ -110,24 +110,24 @@ void _stopAutoScroll() {
   _autoScrollTimer = null;
 }
 
-  void _maybeAutoScroll(DragTargetDetails details) {
-    if (!widget.mainScrollController.hasClients) return;
+  // void _maybeAutoScroll(DragTargetDetails details) {
+  //   if (!widget.mainScrollController.hasClients) return;
 
-    final scrollPos = widget.mainScrollController.position;
-    final dy = details.offset.dy;
-    const edgeThreshold = 100.0;
-    const scrollSpeed = 40.0;
+  //   final scrollPos = widget.mainScrollController.position;
+  //   final dy = details.offset.dy;
+  //   const edgeThreshold = 100.0;
+  //   const scrollSpeed = 40.0;
 
-    if (dy < edgeThreshold && scrollPos.pixels > scrollPos.minScrollExtent) {
-      widget.mainScrollController.jumpTo(
-        (scrollPos.pixels - scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
-      );
-    } else if (dy > scrollPos.viewportDimension - edgeThreshold && scrollPos.pixels < scrollPos.maxScrollExtent) {
-      widget.mainScrollController.jumpTo(
-        (scrollPos.pixels + scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
-      );
-    }
-  }
+  //   if (dy < edgeThreshold && scrollPos.pixels > scrollPos.minScrollExtent) {
+  //     widget.mainScrollController.jumpTo(
+  //       (scrollPos.pixels - scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+  //     );
+  //   } else if (dy > scrollPos.viewportDimension - edgeThreshold && scrollPos.pixels < scrollPos.maxScrollExtent) {
+  //     widget.mainScrollController.jumpTo(
+  //       (scrollPos.pixels + scrollSpeed).clamp(scrollPos.minScrollExtent, scrollPos.maxScrollExtent),
+  //     );
+  //   }
+  // }
 
   // DRAG TARGET MIĘDZY PLANAMI
   Widget buildDragTargetBetweenItems(int index) {
