@@ -6,6 +6,7 @@ import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
 import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
+import 'package:work_plan_front/widget/exercise/exercise_create.dart';
 import 'package:work_plan_front/widget/exercise/exercise_limit_upload.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
 
@@ -181,31 +182,54 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               ? (widget.title ?? 'Select Exercise')
               : (_showOnlyFavorites ? 'Favorite Exercises' : 'Exercises'),
         ),
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withAlpha(100),
-        foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        elevation: 2,
+        // backgroundColor: Theme.of(
+        //   context,
+        // ).colorScheme.surfaceContainerHighest.withAlpha(100),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
         actions: [
-          //if (favoritesIds.isNotEmpty)
-          // Padding(
-          //   padding: EdgeInsets.only(right: 8.0),
-          //   child: Chip(
-          //     label: Text('${favoritesIds.length}'),
-          //     backgroundColor: Colors.red.withAlpha(50),
-          //     side: BorderSide(color: Colors.red, width: 1),
-          //   ),
-          // ),
-          TextButton(
-            onPressed: () {
-              _showExrciseLimitUpload();
-            },
-            child: Text(
-              "exercises : ${AppConstants().exerciseBatchSize}",
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).colorScheme.secondary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                elevation: 0,
+              ),
+              onPressed: () {
+               Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ExerciseCreate(),
+                  ),
+                );
+              },
+              child: Text(
+                "Add Exercise",
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
           ),
+       
+          // TextButton(
+          //   onPressed: () {
+          //     _showExrciseLimitUpload();
+          //   },
+          //   child: Text(
+          //     "exercises : ${AppConstants().exerciseBatchSize}",
+          //     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          //       color: Theme.of(context).colorScheme.onSurface,
+          //     ),
+          //   ),
+          // ),
         ],
       ),
       body: exercises.when(

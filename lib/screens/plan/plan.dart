@@ -23,7 +23,6 @@ class PlanScreen extends ConsumerStatefulWidget {
     return _PlanScreenState();
   }
 }
-//TODO : mniejsze karty , przesówanie w dół ekran teń się przesuwa 
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   final ScrollController _mainScrollController = ScrollController();
   Timer? _timer;

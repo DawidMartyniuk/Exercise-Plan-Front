@@ -172,19 +172,6 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
                   );
                 },
               ),
-              // if (trainingSessions.length > 5) //  PRZYCISK "SEE MORE" JEŚLI WIĘCEJ NIŻ 5
-              //   Padding(
-              //     padding: EdgeInsets.only(top: 16),
-              //     child: Center(
-              //       child: TextButton(
-              //         onPressed: () {
-              //           // TODO: Przejdź do pełnej listy treningów
-              //           Navigator.pushNamed(context, '/all-workouts');
-              //         },
-              //         child: Text('See All Workouts'),
-              //       ),
-              //     ),
-              //   ),
             ],
           ),
         );

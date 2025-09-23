@@ -12,7 +12,7 @@
     "name": "tire"
   },
   {
-    "name": "stationary bike"
+    "name": "stationary bike"  
   },
   {
     "name": "wheel roller"
@@ -21,16 +21,16 @@
     "name": "smith machine"
   },
   {
-    "name": "hammer"
+    "name": "hammer" 
   },
   {
     "name": "skierg machine"
   },
   {
-    "name": "roller"
+    "name": "roller" 
   },
   {
-    "name": "resistance band"
+    "name": "resistance band" 
   },
   {
     "name": "bosu ball"
@@ -51,7 +51,7 @@
     "name": "sled machine"
   },
   {
-    "name": "ez barbell"
+    "name": "ez barbell" 
   },
   {
     "name": "dumbbell"
@@ -60,7 +60,7 @@
     "name": "rope"
   },
   {
-    "name": "barbell"
+    "name": "barbell" 
   },
   {
     "name": "band"
@@ -72,13 +72,13 @@
     "name": "medicine ball"
   },
   {
-    "name": "assisted"
+    "name": "assisted" 
   },
   {
     "name": "leverage machine"
   },
   {
-    "name": "cable"
+    "name": "cable" 
   },
   {
     "name": "body weight"
