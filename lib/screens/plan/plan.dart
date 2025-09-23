@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/CurrentWorkout.dart';
+import 'package:work_plan_front/model/current_workout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
-import 'package:work_plan_front/provider/planGroupsNotifier.dart';
-import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
+import 'package:work_plan_front/provider/plan_groups_notifier.dart';
+import 'package:work_plan_front/provider/wordout_time_notifer.dart';
 import 'package:work_plan_front/screens/plan/plan_group_widget.dart';
 import 'package:work_plan_front/screens/plan/widget/dialog_to_add_group.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
@@ -31,10 +31,10 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
   int seconds = 0;
 
   bool _hasInitializedGroups = false;
-
   @override
   void initState() {
     super.initState();
+    // Usunięto automatyczne odświeżanie/fetchowanie danych przy starcie
     scheduleMicrotask(() async {
       try {
         await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
@@ -44,6 +44,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       }
     });
   }
+
   @override
   void dispose() {
     _mainScrollController.dispose();
@@ -258,15 +259,17 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       body: exerciseState.when(
         // ✅ LOADING STATE
         loading:
-            () => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading exercises...'),
-                ],
-              ),
+            () =>
+             Center(
+              
+              // child: Column(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   children: [
+              //     CircularProgressIndicator(),
+              //     SizedBox(height: 16),
+              //     Text('Loading exercises...'),
+              //   ],
+              // ),
             ),
 
         // ✅ ERROR STATE

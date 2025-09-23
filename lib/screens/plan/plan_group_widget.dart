@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/planGroup.dart';
-import 'package:work_plan_front/provider/planGroupsNotifier.dart';
+import 'package:work_plan_front/provider/plan_groups_notifier.dart';
 import 'package:work_plan_front/screens/plan/widget/plan_item_widget.dart';
 
 class PlanGroupWidget extends ConsumerStatefulWidget {

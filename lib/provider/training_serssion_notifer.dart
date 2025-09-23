@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
-import 'package:work_plan_front/serwis/trainingSessions.dart';
+import 'package:work_plan_front/model/training_session.dart';
+import 'package:work_plan_front/services/trainingSessions.dart';
 
 // ✅ ZMIEŃ NA ASYNCVALUE
 class CompletedTrainingSessionNotifier extends StateNotifier<AsyncValue<List<TrainingSession>>> {

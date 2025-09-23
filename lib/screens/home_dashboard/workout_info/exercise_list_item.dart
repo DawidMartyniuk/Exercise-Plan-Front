@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/training_session.dart';
 import 'package:work_plan_front/screens/home_dashboard/workout_info/exercise_sets_table.dart';
 import 'package:work_plan_front/utils/image_untils.dart';
 class ExerciseListItem extends StatefulWidget {

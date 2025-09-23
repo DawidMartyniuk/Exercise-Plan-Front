@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/serwis/exerciseService.dart';
+import 'package:work_plan_front/services/exerciseService.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
 
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
@@ -23,6 +23,10 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   }
 
   Future<void> fetchExercises({bool forceRefresh = false}) async {
+      if (!forceRefresh && state.hasValue && state.value != null && state.value!.isNotEmpty) {
+    print("✅ Ćwiczenia już są w providerze, nie pobieram ponownie");
+    return;
+  }
     try {
       print("🔄 ExerciseNotifier: Fetching exercises...");
       

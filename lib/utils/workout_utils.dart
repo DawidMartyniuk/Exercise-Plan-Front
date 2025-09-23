@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/CurrentWorkout.dart';
+import 'package:work_plan_front/model/current_workout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
-import 'package:work_plan_front/provider/wordoutTimeNotifer.dart';
+import 'package:work_plan_front/provider/wordout_time_notifer.dart';
 
 // ✅ ROZPOCZNIJ TRENING GLOBALNIE
 Future<void> startWorkoutGlobal({

@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:work_plan_front/model/LoginResult.dart';
 import 'package:flutter/foundation.dart';
 import 'package:work_plan_front/model/auth_response.dart';
+import 'package:work_plan_front/model/login_result.dart';
 import 'dart:io' show Platform;
 
 import 'package:work_plan_front/utils/token_storage.dart';
 
 
-class Authservice {
+class AuthService {
   final String _baseUrl = () {
   if (kIsWeb) {
     return "http://127.0.0.1:8000/api"; // dla przeglądarki

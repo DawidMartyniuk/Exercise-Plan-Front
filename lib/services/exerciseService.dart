@@ -20,12 +20,19 @@ class ExerciseService {
       
       // ✅ JEŚLI PUSTY - ZAŁADUJ Z JSON I ZAPISZ
       print("📥 Local storage pusty - ładowanie z JSON...");
-      return await loadFromJsonAsset();
+      final exercises = await loadFromJsonAsset();
+      await box.clear();
+        for (final exercise in exercises) {
+      await box.put(exercise.id, exercise);
+      }
+     print("💾 Zapisano ${exercises.length} ćwiczeń do Hive");
+
       
+      return exercises;
     } catch (e) {
       print("❌ Błąd getExercises: $e");
       // ✅ FALLBACK - ZAWSZE SPRÓBUJ Z JSON
-      return await loadFromJsonAsset();
+      return [];
     }
   }
 

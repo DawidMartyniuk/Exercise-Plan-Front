@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
 
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/screens/profile/profile_appbar.dart';
-import 'package:work_plan_front/screens/profile/profile_calender_panel.dart';
+import 'package:work_plan_front/screens/profile/profile_calendar_panel.dart';
 import 'package:work_plan_front/screens/profile/profile_edit/profile_user_edit.dart';
 import 'package:work_plan_front/screens/profile/profile_user_panel.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/screens/auth/widget/password_field.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 // ✅ NOWE IMPORTY ANIMACJI

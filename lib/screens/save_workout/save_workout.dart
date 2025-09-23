@@ -3,12 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/training_session.dart';
 import 'package:work_plan_front/model/weight_type.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/screens/save_workout/save_wokrout_header.dart';
+import 'package:work_plan_front/screens/save_workout/save_workrout_header.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
@@ -21,11 +21,11 @@ import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/da
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/reps_info_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_interval_picker_bottom_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/time_picker_bottom_sheet.dart';
-import 'package:work_plan_front/widget/plan/widget/Info_bottom.dart';
+import 'package:work_plan_front/widget/plan/widget/info_bottom.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/workout_list_botton_sheet.dart';
-import 'package:work_plan_front/serwis/trainingSessions.dart';
+import 'package:work_plan_front/services/trainingSessions.dart';
 
 class SaveWorkout extends ConsumerStatefulWidget {
   final int allTime;

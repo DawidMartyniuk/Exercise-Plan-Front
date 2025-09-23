@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 
 class AppInitializer {

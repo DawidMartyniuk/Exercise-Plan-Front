@@ -4,7 +4,7 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_selected_list.dart';
 import 'package:work_plan_front/widget/plan/widget/plan_card_more_option.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
 
 class PlanItemWidget extends ConsumerWidget {
   final ExerciseTable plan;

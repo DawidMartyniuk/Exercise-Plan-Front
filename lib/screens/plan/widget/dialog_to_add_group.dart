@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/provider/planGroupsNotifier.dart';
+import 'package:work_plan_front/provider/plan_groups_notifier.dart';
 
 Widget buildAddGroupDialog(BuildContext context, TextEditingController controller, WidgetRef ref) {
   return AlertDialog(

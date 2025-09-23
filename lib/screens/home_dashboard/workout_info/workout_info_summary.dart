@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/training_session.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/helper/workout_card_helpers.dart';
 
 class WorkoutInfoSummary extends ConsumerWidget with WorkoutCardHelpers {

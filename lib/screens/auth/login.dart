@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/auth_response.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/screens/auth/animation/animated_form_container.dart';
 import 'package:work_plan_front/screens/auth/animation/animation_button.dart';
 import 'package:work_plan_front/screens/auth/animation/animation_filed.dart';

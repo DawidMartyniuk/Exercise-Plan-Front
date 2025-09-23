@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/model/reps_type.dart';
-import 'package:work_plan_front/provider/repsTypeProvider.dart';
+import 'package:work_plan_front/provider/reps_type_provider.dart';
 
 class WorkoutRepsField extends ConsumerStatefulWidget {
   final ExerciseRow row;

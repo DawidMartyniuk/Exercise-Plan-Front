@@ -1,16 +1,32 @@
 import 'package:work_plan_front/model/weight_type.dart';
+import 'package:hive/hive.dart';
+import 'exercise.dart';
 
+part 'training_session.g.dart';
+
+@HiveType(typeId: 5)
 class TrainingSession {
+  @HiveField(0)
   final int? id;
+  @HiveField(1)
   final int? exerciseTableId;
+  @HiveField(2)
   final String? exercise_table_name;
+  @HiveField(3)
   final DateTime startedAt;
+  @HiveField(4)
   final int duration;
+  @HiveField(5)
   final bool completed;
+  @HiveField(6)
   final double totalWeight;
+  @HiveField(7)
   final WeightType weightType;
+  @HiveField(8)
   final String? description;
+  @HiveField(9)
   final String? imageBase64;
+  @HiveField(10)
   final List<CompletedExercise> exercises;
 
   TrainingSession({
@@ -79,10 +95,13 @@ class TrainingSession {
     return weightType.convertTo(totalWeight, targetUnit);
   }
 }
-
+@HiveType(typeId: 6)
 class CompletedExercise {
+  @HiveField(0)
   final String exerciseId;
+  @HiveField(1)
   final String notes;
+  @HiveField(2)
   final List<CompletedSet> sets;
 
   CompletedExercise({
@@ -107,13 +126,19 @@ class CompletedExercise {
     'sets': sets.map((s) => s.toJson()).toList(),
   };
 }
-
+@HiveType(typeId: 7)
 class CompletedSet {
+  @HiveField(0)
   final int colStep;
+  @HiveField(1)
   final int actualKg;
+  @HiveField(2)
   final int actualReps;
+  @HiveField(3)
   final bool completed;
+  @HiveField(4)
   final bool toFailure;
+  @HiveField(5)                                                       
   final WeightType weightType;
 
   CompletedSet({

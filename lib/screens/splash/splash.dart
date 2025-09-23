@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/auth/login.dart';
 import 'package:work_plan_front/screens/splash/app_initializer.dart';
 import 'package:work_plan_front/screens/tabs.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {  // ✅ ZMIEŃ NA ConsumerStatefulWidget
   const SplashScreen({super.key});

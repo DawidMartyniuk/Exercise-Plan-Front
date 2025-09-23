@@ -4,6 +4,8 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io' show Platform;
 import 'package:work_plan_front/utils/token_storage.dart';
+import 'package:hive/hive.dart';
+import 'package:work_plan_front/services/exercise_plan_local_service.dart';
 
 class ExerciseService {
   final String _baseUrl = () {
@@ -128,4 +130,45 @@ class ExerciseService {
       throw Exception("Failed to delete exercise: ${response.body}");
     }
   }
+
+  /// Pobierz plany z serwera i zapisz do Hive
+  Future<List<ExerciseTable>> fetchPlansFromServerAndSave() async {
+    final url = Uri.parse("$_baseUrl$_exerciseUrl");
+    final response = await http.get(url, headers: await getHeaders());
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      final plans = data.map((json) => ExerciseTable.fromJson(json)).toList();
+
+      // ZAPISZ DO HIVE
+      await ExercisePlanLocalService().savePlans(plans.cast<ExerciseTable>());
+      print("💾 Plany zapisane do Hive po pobraniu z serwera: ${plans.length}");
+
+      return plans.cast<ExerciseTable>();
+    } else {
+      throw Exception("Failed to fetch plans: ${response.body}");
+    }
+  }
 }
+
+// class ExercisePlanLocalService {
+//   static const String _boxName = 'plansBox';
+
+//   Future<void> savePlans(List<ExerciseTable> plans) async {
+//     final box = await Hive.openBox<ExerciseTable>(_boxName);
+//     await box.clear();
+//     for (final plan in plans) {
+//       await box.put(plan.id, plan);
+//     }
+//   }
+
+//   Future<List<ExerciseTable>> getPlans() async {
+//     final box = await Hive.openBox<ExerciseTable>(_boxName);
+//     return box.values.toList();
+//   }
+
+//   Future<void> deletePlan(int planId) async {
+//     final box = await Hive.openBox<ExerciseTable>(_boxName);
+//     await box.delete(planId);
+//   }
+// }

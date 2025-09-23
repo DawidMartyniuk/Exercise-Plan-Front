@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/User.dart';
-import 'package:work_plan_front/serwis/profileService.dart';
+import 'package:work_plan_front/model/user.dart';
+import 'package:work_plan_front/services/profileService.dart';
 
 final profileServiceProvider = Provider<ProfileService>((ref) {
   return ProfileService();

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/model/training_session.dart';
 
 class ExerciseSetsTable extends StatelessWidget {
   final CompletedExercise exercise;

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
+import 'package:work_plan_front/model/training_session.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_compact.dart';
 import 'package:work_plan_front/screens/home_dashboard/workout_info/workoutCard_info.dart'; // ✅ IMPORT WorkoutCardInfo
 

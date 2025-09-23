@@ -1,4 +1,4 @@
-import 'package:work_plan_front/model/CurrentWorkout.dart';
+import 'package:work_plan_front/model/current_workout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:collection/collection.dart';
 

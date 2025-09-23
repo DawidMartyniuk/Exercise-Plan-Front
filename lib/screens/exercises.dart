@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
 import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
@@ -60,7 +60,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       final matchesSearch =
           _searchQuery.isEmpty ||
           exercise.name.toLowerCase().contains(_searchQuery.toLowerCase());
-      final matchesFavorites = !_showOnlyFavorites || favoritesIds.contains(exercise.exerciseId);
+      final matchesFavorites =
+          !_showOnlyFavorites || favoritesIds.contains(exercise.exerciseId);
       return matchesSearch && matchesBodyPart && matchesFavorites;
     }).toList();
   }
@@ -98,10 +99,11 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       useSafeArea: true,
       isScrollControlled: true,
       context: context,
-      builder: (ctx) => ExerciseLimitUpload(
-        exerciseStart: AppConstants().exerciseStart,
-        exerciseLimit: AppConstants().exerciseBatchSize,
-      ),
+      builder:
+          (ctx) => ExerciseLimitUpload(
+            exerciseStart: AppConstants().exerciseStart,
+            exerciseLimit: AppConstants().exerciseBatchSize,
+          ),
     );
     if (result != null && result['update'] == true) {
       print(
@@ -163,32 +165,36 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             duration: Duration(milliseconds: 200),
             child: Icon(
               _showOnlyFavorites ? Icons.favorite : Icons.favorite_border,
-              color: _showOnlyFavorites
-                  ? Colors.red
-                  : Theme.of(context).colorScheme.primary,
+              color:
+                  _showOnlyFavorites
+                      ? Colors.red
+                      : Theme.of(context).colorScheme.primary,
               size: 24,
             ),
           ),
           onPressed: _onFavoritePressed,
-          tooltip: _showOnlyFavorites ? 'Remove from favorites' : 'Add to favorites',
+          tooltip:
+              _showOnlyFavorites ? 'Remove from favorites' : 'Add to favorites',
         ),
         title: Text(
           widget.isSelectionMode
               ? (widget.title ?? 'Select Exercise')
               : (_showOnlyFavorites ? 'Favorite Exercises' : 'Exercises'),
         ),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(100),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withAlpha(100),
         foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
         actions: [
           //if (favoritesIds.isNotEmpty)
-            // Padding(
-            //   padding: EdgeInsets.only(right: 8.0),
-            //   child: Chip(
-            //     label: Text('${favoritesIds.length}'),
-            //     backgroundColor: Colors.red.withAlpha(50),
-            //     side: BorderSide(color: Colors.red, width: 1),
-            //   ),
-            // ),
+          // Padding(
+          //   padding: EdgeInsets.only(right: 8.0),
+          //   child: Chip(
+          //     label: Text('${favoritesIds.length}'),
+          //     backgroundColor: Colors.red.withAlpha(50),
+          //     side: BorderSide(color: Colors.red, width: 1),
+          //   ),
+          // ),
           TextButton(
             onPressed: () {
               _showExrciseLimitUpload();
@@ -203,116 +209,39 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         ],
       ),
       body: exercises.when(
-        loading: () => const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Loading exercises...'),
-            ],
-          ),
-        ),
-        error: (err, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error, size: 64, color: Colors.red),
-              SizedBox(height: 16),
-              Text('Error: $err'),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
-                },
-                child: Text('Retry'),
+        loading:
+            () => const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Loading exercises...'),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+        error:
+            (err, stack) => Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error, size: 64, color: Colors.red),
+                  SizedBox(height: 16),
+                  Text('Error: $err'),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      ref
+                          .read(exerciseProvider.notifier)
+                          .fetchExercises(forceRefresh: true);
+                    },
+                    child: Text('Retry'),
+                  ),
+                ],
+              ),
+            ),
         data: (exerciseList) {
           final filteredExercises = _filteredExercises(exerciseList);
-
-          if (_showOnlyFavorites && filteredExercises.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.favorite_border, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('No favorite exercises yet.'),
-                  SizedBox(height: 8),
-                  Text(
-                    'Tap the heart icon on exercises to add them to favorites.',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                  ),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _showOnlyFavorites = false;
-                      });
-                    },
-                    child: Text('Show All Exercises'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (exerciseList.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.fitness_center,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text('No exercises available.'),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
-                    },
-                    child: Text('Load Exercises'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (filteredExercises.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _showOnlyFavorites ? Icons.favorite_border : Icons.fitness_center,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text(_showOnlyFavorites
-                      ? 'No favorite exercises match your filters.'
-                      : 'No exercises match your filters.'),
-                  if (_showOnlyFavorites) ...[
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showOnlyFavorites = false;
-                        });
-                      },
-                      child: Text('Show All Exercises'),
-                    ),
-                  ],
-                ],
-              ),
-            );
-          }
 
           return Padding(
             padding: const EdgeInsets.all(8.0),
@@ -324,7 +253,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     padding: EdgeInsets.all(12),
                     margin: EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withAlpha(50),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
@@ -337,7 +268,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                         Expanded(
                           child: Text(
                             'Tap an exercise to add it to your plan',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
@@ -386,10 +319,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                         keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withAlpha((0.2 * 255).toInt()),
+                          fillColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(25.0),
                             borderSide: BorderSide.none,
@@ -421,16 +353,17 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                           selectedBodyPart == null
                               ? 'Body part'
                               : '${selectedBodyPart?.displayNameBodyPart()}',
-                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 16,
+                          ),
                         ),
                         style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withAlpha((0.2 * 255).toInt()),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                         ),
                       ),
                     ),
@@ -440,16 +373,17 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                         onPressed: () {},
                         child: Text(
                           'Target',
-                          style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontSize: 16,
-                              ),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                            fontSize: 16,
+                          ),
                         ),
                         style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withAlpha((0.2 * 255).toInt()),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                         ),
                       ),
                     ),
@@ -458,20 +392,24 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 const SizedBox(height: 10),
                 Expanded(
                   child: ExerciseList(
-                    exercise: _filteredExercises(exerciseList),
+                    exercise: filteredExercises,
                     isSelectionMode: widget.isSelectionMode,
-                    onExerciseSelected: widget.onSingleExerciseSelected != null
-                        ? (exercise) {
-                            print('Single exercise selected: ${exercise.name}');
-                            widget.onSingleExerciseSelected!(exercise);
-                          }
-                        : null,
-                    onMultipleExercisesSelected: widget.onMultipleExercisesSelected != null
-                        ? (exercises) {
-                            widget.onMultipleExercisesSelected!(exercises);
-                            print('Selected ${exercises.length} exercises');
-                          }
-                        : null,
+                    onExerciseSelected:
+                        widget.onSingleExerciseSelected != null
+                            ? (exercise) {
+                              print(
+                                'Single exercise selected: ${exercise.name}',
+                              );
+                              widget.onSingleExerciseSelected!(exercise);
+                            }
+                            : null,
+                    onMultipleExercisesSelected:
+                        widget.onMultipleExercisesSelected != null
+                            ? (exercises) {
+                              widget.onMultipleExercisesSelected!(exercises);
+                              print('Selected ${exercises.length} exercises');
+                            }
+                            : null,
                   ),
                 ),
               ],

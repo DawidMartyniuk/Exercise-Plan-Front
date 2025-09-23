@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/model/weight_type.dart';
+import 'package:hive/hive.dart';
+import 'exercise.dart';
+ // Wygenerowany adapter Hive
+part 'exercise_plan.g.dart';
 
+@HiveType(typeId: 2)
 class ExerciseTable {
+  @HiveField(0)
   final int id;
+  @HiveField(1)
   final String exercise_table;
+  @HiveField(2)
   final List<ExerciseRowsData> rows;
 
   ExerciseTable({
@@ -48,13 +56,19 @@ class ExerciseTable {
     return 'ExerciseTable(id: $id, exercise_table: $exercise_table, rows: $rows)';
   }
 }
-
+@HiveType(typeId: 3)
 class ExerciseRowsData {
+  @HiveField(0)
   final String exercise_name;
+  @HiveField(1)
   final String exercise_number;
+  @HiveField(2)
   final String notes;
+  @HiveField(3)
   final List<ExerciseRow> data;
+  @HiveField(4)
   final RepsType rep_type;
+
 
   ExerciseRowsData({
     required this.exercise_name,
@@ -123,16 +137,25 @@ class ExerciseRowsData {
     return 'ExerciseRowsData(exercise_name: $exercise_name, exercise_number: $exercise_number, notes: $notes, data: $data)';
   }
 }
-
+@HiveType(typeId: 4)
 class ExerciseRow {
+  @HiveField(0)
   int colStep;
+  @HiveField(1)
   int colKg;
+  @HiveField(2)
   int colRepMin;
+  @HiveField(3)
   int colRepMax;
+  @HiveField(4)
   final WeightType weightType;
+  @HiveField(5)
   bool isChecked;
+  @HiveField(6)
   Color? rowColor;
+  @HiveField(7)
   bool isFailure;
+    @HiveField(8)
   bool isUserModified; 
 
   ExerciseRow({

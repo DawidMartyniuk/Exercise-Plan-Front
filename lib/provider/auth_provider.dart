@@ -1,19 +1,19 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/LoginResult.dart';
+import 'package:work_plan_front/model/login_result.dart';
 import 'package:work_plan_front/model/auth_response.dart';
-import 'package:work_plan_front/serwis/AuthService.dart';
-import 'package:work_plan_front/serwis/profileService.dart';
+import 'package:work_plan_front/services/profileService.dart';
 import 'package:work_plan_front/utils/token_storage.dart';
+import '../services/authService.dart';
 
 class AuthNotifier extends StateNotifier<AuthResponse?> {
-  final Authservice _authService = Authservice();
+final AuthService _authService = AuthService();
 
   AuthNotifier() : super(null) {
     
     _checkPersistedLogin();
   }
 
- 
+
   Future<void> _checkPersistedLogin() async {
     print("🔍 Sprawdzanie zapisanego tokena...");
     

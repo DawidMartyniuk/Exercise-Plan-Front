@@ -1,4 +1,4 @@
-import 'package:work_plan_front/model/User.dart';
+import 'package:work_plan_front/model/user.dart';
 
 class AuthResponse {
   static String? currentToken; 

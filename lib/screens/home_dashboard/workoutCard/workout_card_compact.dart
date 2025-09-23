@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animations/animations.dart';
-import 'package:work_plan_front/model/TrainingSesions.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
+import 'package:work_plan_front/model/training_session.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/helper/workout_card_helpers.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_header.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/components/workout_stats.dart';

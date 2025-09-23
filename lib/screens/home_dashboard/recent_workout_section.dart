@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/screens/home_dashboard/workoutCard/workout_card_compact.dart';
 
 class RecentWorkoutsSection extends ConsumerStatefulWidget {
@@ -21,12 +21,24 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
     super.initState();
     scheduleMicrotask(() async {
       try {
-        await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
-        await ref.read(exerciseProvider.notifier).fetchExercises();
-        
-  
-        await ref.read(trainingSessionAsyncProvider.notifier).fetchSessions(forceRefresh: true);
-        
+        // Sprawdź czy dane już są załadowane zanim wywołasz fetch
+        final exercisePlans = ref.read(exercisePlanProvider);
+        if (exercisePlans == null || exercisePlans.isEmpty) {
+          await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+        }
+
+        final exercises = ref.read(exerciseProvider);
+        if (exercises == null ) {
+          await ref.read(exerciseProvider.notifier).fetchExercises();
+        }
+
+        final trainingSessions = ref.read(trainingSessionAsyncProvider).maybeWhen(
+          data: (sessions) => sessions,
+          orElse: () => null,
+        );
+        if (trainingSessions == null || trainingSessions.isEmpty) {
+          await ref.read(trainingSessionAsyncProvider.notifier).fetchSessions(forceRefresh: true);
+        }
       } catch (e) {
         print("❌ Błąd ładowania danych w recent_workout_section.dart: $e");
       }

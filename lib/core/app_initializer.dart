@@ -1,16 +1,17 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/favorite_exercise.dart';
-import 'package:work_plan_front/serwis/exerciseService.dart';
+import 'package:work_plan_front/services/exerciseService.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/provider/exerciseProvider.dart';
-import 'package:work_plan_front/provider/ExercisePlanNotifier.dart';
-import 'package:work_plan_front/provider/TrainingSerssionNotifer.dart';
+import 'package:work_plan_front/provider/exercise_provider.dart';
+import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
+import 'package:work_plan_front/provider/training_serssion_notifer.dart';
 
 class AppInitializer {
   static Future<void> initialize() async {
     await initializeHive();
     await _ensureDataAvailable(); //  NOWA METODA
+    
   }
 
   static Future<void> initializeHive() async{
@@ -58,7 +59,8 @@ class AppInitializer {
   //  ŁADOWANIE WSZYSTKICH DANYCH (dla splash screen)
   static Future<void> loadAllData(WidgetRef ref) async {
     print("📊 AppInitializer: Loading all data (persistent)...");
-    
+  await ref.read(exercisePlanProvider.notifier).fetchPlans();
+  await ref.read(trainingSessionAsyncProvider.notifier).fetchSessions();
     try {
       await Future.wait([
         _loadExercises(ref),
@@ -86,7 +88,8 @@ class AppInitializer {
   static Future<void> _loadExercisePlans(WidgetRef ref) async {
     try {
       print("📋 Ładowanie planów treningowych...");
-      await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+    //  await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
+      await ref.read(exercisePlanProvider.notifier).initializeFromHive();
       print("✅ Plany treningowe załadowane");
     } catch (e) {
       print("❌ Błąd ładowania planów: $e");

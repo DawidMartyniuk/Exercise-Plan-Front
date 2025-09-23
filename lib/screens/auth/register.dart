@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:work_plan_front/provider/authProvider.dart';
+import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/screens/auth/animation/animated_form_container.dart';
 import 'package:work_plan_front/screens/auth/animation/animation_button.dart';
@@ -9,7 +9,7 @@ import 'package:work_plan_front/screens/auth/login.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/screens/auth/widget/email_field.dart';
-import 'package:work_plan_front/screens/auth/widget/name_fileld.dart';
+import 'package:work_plan_front/screens/auth/widget/name_field.dart';
 import 'package:work_plan_front/screens/auth/widget/password_field.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
