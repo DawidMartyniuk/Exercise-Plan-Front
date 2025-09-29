@@ -5,7 +5,7 @@ import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
-import 'package:work_plan_front/widget/exercise/body_part_grid_item.dart';
+import 'package:work_plan_front/widget/exercise/widget/body_part_grid_item.dart';
 import 'package:work_plan_front/widget/exercise/exercise_create.dart';
 import 'package:work_plan_front/widget/exercise/exercise_limit_upload.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';

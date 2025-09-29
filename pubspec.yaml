@@ -109,6 +109,25 @@ flutter:
     - assets/animations/FlexPlanAnimation2.json
     - assets/data/exercises.json
 
+    #equipment icons
+    - assets/equipments/assisted.png
+    - assets/equipments/body_weight.png
+    - assets/equipments/barbell.png
+    - assets/equipments/bosu_ball.png
+    - assets/equipments/cable.png
+    - assets/equipments/dumbbell.png
+    - assets/equipments/ez_barbell.png
+    - assets/equipments/hammer.png
+    - assets/equipments/kettlebell.png
+    - assets/equipments/leverage_machine.png
+    - assets/equipments/machine.png
+    - assets/equipments/resistance_band.png
+    - assets/equipments/roller.png
+    - assets/equipments/smith_machine.png
+    - assets/equipments/stability_ball.png
+    - assets/equipments/stationary_bike.png
+    
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

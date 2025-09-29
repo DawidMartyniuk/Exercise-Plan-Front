@@ -139,33 +139,33 @@ enum TargetList {
 }
 enum EquipmentList {
     assisted,
-    band,
+   //band,
     barbell,
-    bodyWeight,
-    bosuBall,
+    body_weight,
+    bosu_ball,
     cable,
     dumbbell,
-    ellipticalMachine,
-    ezBarbell,
+   // ellipticalMachine,
+    ez_barbell,
     hammer,
     kettlebell,
-    leverageMachine,
-    medicineBall,
-    olympicBarbell,
-    resistanceBand,
+    leverage_machine,
+  //  medicineBall,
+   // olympicBarbell,
+    resistance_band,
     roller,
-    rope,
-    skiergMachine,
-    sledMachine,
-    smithMachine,
-    stabilityBall,
-    stationaryBike,
-    stepmillMachine,
-    tire,
-    trapBar,
-    upperBodyErgometer,
-    weighted,
-    wheelRoller
+  //  rope,
+   // skiergMachine,
+ //   sledMachine,
+    smith_machine,
+  stability_ball,
+    stationary_bike,
+// stepmillMachine,
+   // tire,
+ //   trapBar,
+  //  upperBodyErgometer,
+ //   weighted,
+   // wheelRoller
 }
 
 extension EquipmentListExtension on EquipmentList {
@@ -173,60 +173,60 @@ extension EquipmentListExtension on EquipmentList {
     switch (this) {
       case EquipmentList.assisted:
         return "assisted";
-      case EquipmentList.band:
-        return "band";
+      // case EquipmentList.band:
+      //   return "band";
       case EquipmentList.barbell:
         return "barbell";
-      case EquipmentList.bodyWeight:
-        return "body weight";
-      case EquipmentList.bosuBall:
-        return "bosu ball";
+      case EquipmentList.body_weight:
+        return "body_weight";
+      case EquipmentList.bosu_ball:
+        return "bosu_ball";
       case EquipmentList.cable:
         return "cable";
       case EquipmentList.dumbbell:
         return "dumbbell";
-      case EquipmentList.ellipticalMachine:
-        return "elliptical machine";
-      case EquipmentList.ezBarbell:
-        return "ez barbell";
+      // case EquipmentList.ellipticalMachine:
+      //   return "elliptical machine";
+      case EquipmentList.ez_barbell:
+        return "ez_barbell";
       case EquipmentList.hammer:
         return "hammer";
       case EquipmentList.kettlebell:
         return "kettlebell";
-      case EquipmentList.leverageMachine:
-        return "leverage machine";
-      case EquipmentList.medicineBall:
-        return "medicine ball";
-      case EquipmentList.olympicBarbell:
-        return "olympic barbell";
-      case EquipmentList.resistanceBand:
-        return "resistance band";
+      case EquipmentList.leverage_machine:
+        return "leverage_machine";
+      // case EquipmentList.medicineBall:
+      //   return "medicine ball";
+      // case EquipmentList.olympicBarbell:
+      //   return "olympic barbell";
+      case EquipmentList.resistance_band:
+        return "resistance_band";
       case EquipmentList.roller:
         return "roller";
-      case EquipmentList.rope:
-        return "rope";
-      case EquipmentList.skiergMachine:
-        return "skierg machine";
-      case EquipmentList.sledMachine:
-        return "sled machine";
-      case EquipmentList.smithMachine:
-        return "smith machine";
-      case EquipmentList.stabilityBall:
-        return "stability ball";
-      case EquipmentList.stationaryBike:
-        return "stationary bike";
-      case EquipmentList.stepmillMachine:
-        return "stepmill machine";
-      case EquipmentList.tire:
-        return "tire";
-      case EquipmentList.trapBar:
-        return "trap bar";
-      case EquipmentList.upperBodyErgometer:
-        return "upper body ergometer";
-      case EquipmentList.weighted:
-        return "weighted";
-      case EquipmentList.wheelRoller:
-        return "wheel roller";
+      // case EquipmentList.rope:
+      //   return "rope";
+      // case EquipmentList.skiergMachine:
+      //   return "skierg machine";
+      // case EquipmentList.sledMachine:
+      //   return "sled machine";
+      case EquipmentList.smith_machine:
+        return "smith_machine";
+      case EquipmentList.stability_ball:
+        return "stability_ball";
+      case EquipmentList.stationary_bike:
+        return "stationary_bike";
+      // case EquipmentList.stepmillMachine:
+      //   return "stepmill machine";
+      // case EquipmentList.tire:
+      //   return "tire";
+      // case EquipmentList.trapBar:
+      //   return "trap bar";
+      // case EquipmentList.upperBodyErgometer:
+      //   return "upper body ergometer";
+      // case EquipmentList.weighted:
+      //   return "weighted";
+      // case EquipmentList.wheelRoller:
+      //   return "wheel roller";
     }
   }
 }
