@@ -7,7 +7,7 @@ import 'package:work_plan_front/utils/token_storage.dart';
 import 'package:hive/hive.dart';
 import 'package:work_plan_front/services/exercise_plan_local_service.dart';
 
-class ExerciseService {
+class ExercisePlanService {
   final String _baseUrl = () {
     if (kIsWeb) {
       return "http://127.0.0.1:8000/api";
@@ -17,7 +17,7 @@ class ExerciseService {
       return "http://127.0.0.1:8000/api";
     }
   }();
-  final String _exerciseUrl = "/exercises";
+  final String _exerciseUrl = "/plan";
   //final _getHeaders = 
 
   Future<List<ExerciseTable>> fetchExercises() async {
@@ -82,9 +82,6 @@ class ExerciseService {
     if (userId == null) {
       throw Exception("User ID not found.");
     }
-
-    
-
     for (int i = 0; i < exercises.length; i++) {
       final exercise = exercises[i];
 
@@ -92,9 +89,7 @@ class ExerciseService {
 
       });
     }
-
     final payload = {"exercises": exercises.map((e) => e.toJson()).toList()};
-
 
     final url = Uri.parse("$_baseUrl$_exerciseUrl");
     final response = await http.post(
@@ -151,24 +146,3 @@ class ExerciseService {
   }
 }
 
-// class ExercisePlanLocalService {
-//   static const String _boxName = 'plansBox';
-
-//   Future<void> savePlans(List<ExerciseTable> plans) async {
-//     final box = await Hive.openBox<ExerciseTable>(_boxName);
-//     await box.clear();
-//     for (final plan in plans) {
-//       await box.put(plan.id, plan);
-//     }
-//   }
-
-//   Future<List<ExerciseTable>> getPlans() async {
-//     final box = await Hive.openBox<ExerciseTable>(_boxName);
-//     return box.values.toList();
-//   }
-
-//   Future<void> deletePlan(int planId) async {
-//     final box = await Hive.openBox<ExerciseTable>(_boxName);
-//     await box.delete(planId);
-//   }
-// }

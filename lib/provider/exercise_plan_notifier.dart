@@ -10,11 +10,11 @@ import 'package:work_plan_front/services/exercise_plan_local_service.dart';
 import 'package:work_plan_front/utils/token_storage.dart';
 
 class ExercisePlanNotifier extends StateNotifier<List<ExerciseTable>> {
-  ExercisePlanNotifier({required ExerciseService exerciseService})
+  ExercisePlanNotifier({required ExercisePlanService exerciseService})
       : _exerciseService = exerciseService,
         super([]);
 
-  final ExerciseService _exerciseService;
+  final ExercisePlanService _exerciseService;
 
   static const String _boxName = 'plansBox';
   
@@ -453,8 +453,8 @@ class ExercisePlanNotifier extends StateNotifier<List<ExerciseTable>> {
   }
 }
 
-final exerciseServiceProvider = Provider<ExerciseService>((ref) {
-  return ExerciseService();
+final exerciseServiceProvider = Provider<ExercisePlanService>((ref) {
+  return ExercisePlanService();
 });
 
 // Provider

@@ -91,23 +91,30 @@ flutter:
   assets:
     - assets/background/background-1.jpg
     - assets/data/exercises.json  
-    - assets/muscles/back.png
-    - assets/muscles/cardio.png
-    - assets/muscles/chest.png
-    - assets/muscles/lower_arms.png
-    - assets/muscles/lower_legs.png
-    - assets/muscles/neck.png
-    - assets/muscles/shoulders.png
-    - assets/muscles/upper_arms.png
-    - assets/muscles/upper_legs.png
-    - assets/muscles/waist.png
-    - assets/muscles/all.png
-    - assets/icon/FlexPlan.png
+     - assets/icon/FlexPlan.png
     - assets/icon/logo1.svg
     - assets/icon/logoFlex.png
     - assets/animations/FlexPlanAnimation.json
     - assets/animations/FlexPlanAnimation2.json
     - assets/data/exercises.json
+
+
+    # body parts
+    - assets/bodyParts/back.png
+    - assets/bodyParts/cardio.png
+    - assets/bodyParts/chest.png
+    - assets/bodyParts/lower_arms.png
+    - assets/bodyParts/lower_legs.png
+    - assets/bodyParts/neck.png
+    - assets/bodyParts/shoulders.png
+    - assets/bodyParts/upper_arms.png
+    - assets/bodyParts/upper_legs.png
+    - assets/bodyParts/waist.png
+    - assets/bodyParts/all.png
+    
+    #muscles
+
+   
 
     #equipment icons
     - assets/equipments/assisted.png

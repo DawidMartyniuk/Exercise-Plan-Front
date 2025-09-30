@@ -24,17 +24,19 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
   BodyPart? _selectedBodyPart;
   List<BodyPart> _selectedSecondaryMuscles = [];
   EquipmentList? _selectedEquipment;
-  List<TextEditingController> _instructionControllers = [TextEditingController()];
+  List<TextEditingController> _instructionControllers = [
+    TextEditingController(),
+  ];
 
-   @override
+  @override
   void initState() {
     super.initState();
     _instructionControllers = [TextEditingController()];
   }
 
-    @override
+  @override
   void dispose() {
-  //  // ...existing dispose logic...
+    //  // ...existing dispose logic...
     for (final c in _instructionControllers) {
       c.dispose();
     }
@@ -131,54 +133,58 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
 
   @override
   Widget build(BuildContext context) {
-    
-     List<Widget> _buildInstructionFields() {
-  return List.generate(_instructionControllers.length, (index) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // SizedBox(
-          //   width: 60,
-          //   child: Text(
-          //     "Step ${index + 1}:",
-          //     style: Theme.of(context).textTheme.bodyMedium,
-          //     overflow: TextOverflow.ellipsis,
-          //     maxLines: 1,
-          //   ),
-          // ),
-         // const SizedBox(width: 8),
-          Flexible(
-            fit: FlexFit.tight,
-            child: TextFormField(
-              controller: _instructionControllers[index],
-              maxLines: null,
-              decoration: InputDecoration(
-                hintText: "Step ${index + 1}: ",
-                hintStyle: TextStyle(
-                  color:  Theme.of(context).colorScheme.onSurface,
-                  fontSize: 12,
+    List<Widget> _buildInstructionFields() {
+      return List.generate(_instructionControllers.length, (index) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // SizedBox(
+              //   width: 60,
+              //   child: Text(
+              //     "Step ${index + 1}:",
+              //     style: Theme.of(context).textTheme.bodyMedium,
+              //     overflow: TextOverflow.ellipsis,
+              //     maxLines: 1,
+              //   ),
+              // ),
+              // const SizedBox(width: 8),
+              Flexible(
+                fit: FlexFit.tight,
+                child: TextFormField(
+                  controller: _instructionControllers[index],
+                  maxLines: null,
+                  decoration: InputDecoration(
+                    labelText: "Step ${index + 1}: ", // <-- label zamiast hint
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 18,
+                    ),
+                    border: UnderlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                  ),
                 ),
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               ),
-            ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: Icon(Icons.delete_outline),
+                tooltip: "Remove step",
+                color: const Color.fromARGB(255, 228, 115, 107),
+                onPressed:
+                    _instructionControllers.length > 1
+                        ? () => _removeInstructionField(index)
+                        : null,
+              ),
+            ],
           ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: Icon(Icons.delete_outline),
-            tooltip: "Remove step",
-            color: const Color.fromARGB(255, 228, 115, 107),
-            onPressed: _instructionControllers.length > 1
-                ? () => _removeInstructionField(index)
-                : null,
-          ),
-        ],
-      ),
-    );
-  });
-}
+        );
+      });
+    }
+
     return Scaffold(
       appBar: AppBar(
         elevation: 2,
@@ -223,9 +229,12 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
                 ),
                 child: CircleAvatar(
                   radius: 56,
-                  backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.surfaceContainer,
                   backgroundImage:
-                      _exerciseImage != null ? FileImage(_exerciseImage!) : null,
+                      _exerciseImage != null
+                          ? FileImage(_exerciseImage!)
+                          : null,
                   child:
                       _exerciseImage == null
                           ? Icon(
@@ -243,26 +252,19 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
               child: TextFormField(
                 controller: _nameExerciseController,
                 keyboardType: TextInputType.text,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Exercise Name',
-                  border: UnderlineInputBorder(
-                    borderSide: BorderSide(
-                      
-                    ),
-                  ),
-                  labelStyle: TextStyle(
-                 
-                  ),
-                  hintStyle: TextStyle(
-                    
-                    color: Colors.grey,
-                  ),
+                  border: UnderlineInputBorder(borderSide: BorderSide()),
+                  labelStyle: TextStyle(),
+                  hintStyle: TextStyle(color: Colors.grey),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-           CustomDivider(dashSpace: 0),
+            CustomDivider(dashSpace: 0),
             ListItemExerciseCreate(
               openModelaToSelectedParet: _openSelectBodyPart,
               selectedItem:
@@ -287,18 +289,21 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
               selectedItem: _selectedEquipment?.name ?? 'No selected equipment',
               rowTitle: "Equipment :",
             ),
-             CustomDivider(dashSpace: 0),
-               const SizedBox(height: 20),
-                Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-                child: Row(
-                  children: [
+            CustomDivider(dashSpace: 0),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8,
+              ),
+              child: Row(
+                children: [
                   Expanded(
                     child: Text(
-                    "Instructions :",
-                    textAlign: TextAlign.center,
+                      "Instructions :",
+                      textAlign: TextAlign.center,
 
-                    style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
                   IconButton(
@@ -307,47 +312,47 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
                     onPressed: _addInstructionField,
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  ],
-                ),
+                ],
               ),
-              ..._buildInstructionFields(),
-              //  ListView.builder(
-              //   shrinkWrap: true,
-              //   physics: NeverScrollableScrollPhysics(),
-              //   itemCount: _instructionControllers.length,
-              //   itemBuilder: (context, index) {
-              //     return Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              //       child: Row(
-              //         crossAxisAlignment: CrossAxisAlignment.start,
-              //         children: [
-              //           Text(
-              //             "Step ${index + 1}:",
-              //             style: Theme.of(context).textTheme.bodyMedium,
-              //           ),
-              //           SizedBox(width: 8),
-              //           Expanded(
-              //             child: TextFormField(
-              //               controller: _instructionControllers[index],
-              //               maxLines: null,
-              //               decoration: InputDecoration(
-              //                 hintText: "Describe this step...",
-              //                 border: OutlineInputBorder(),
-              //               ),
-              //             ),
-              //           ),
-              //           IconButton(
-              //             icon: Icon(Icons.delete_outline),
-              //             tooltip: "Remove step",
-              //             onPressed: _instructionControllers.length > 1
-              //                 ? () => _removeInstructionField(index)
-              //                 : null,
-              //           ),
-              //         ],
-              //       ),
-              //     );
-              //   },
-              // ),
+            ),
+            ..._buildInstructionFields(),
+            //  ListView.builder(
+            //   shrinkWrap: true,
+            //   physics: NeverScrollableScrollPhysics(),
+            //   itemCount: _instructionControllers.length,
+            //   itemBuilder: (context, index) {
+            //     return Padding(
+            //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            //       child: Row(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         children: [
+            //           Text(
+            //             "Step ${index + 1}:",
+            //             style: Theme.of(context).textTheme.bodyMedium,
+            //           ),
+            //           SizedBox(width: 8),
+            //           Expanded(
+            //             child: TextFormField(
+            //               controller: _instructionControllers[index],
+            //               maxLines: null,
+            //               decoration: InputDecoration(
+            //                 hintText: "Describe this step...",
+            //                 border: OutlineInputBorder(),
+            //               ),
+            //             ),
+            //           ),
+            //           IconButton(
+            //             icon: Icon(Icons.delete_outline),
+            //             tooltip: "Remove step",
+            //             onPressed: _instructionControllers.length > 1
+            //                 ? () => _removeInstructionField(index)
+            //                 : null,
+            //           ),
+            //         ],
+            //       ),
+            //     );
+            //   },
+            // ),
           ],
         ),
       ),
