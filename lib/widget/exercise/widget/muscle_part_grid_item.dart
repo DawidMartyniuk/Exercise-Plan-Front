@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 
-class BodyPartSelected extends StatefulWidget {
-  const BodyPartSelected({
+
+class MusclePartGridItem extends StatefulWidget {
+  const MusclePartGridItem({
     super.key,
-    required this.onBodyPartSelected,
+    required this.onMusclePartSelected,
   });
 
-  final void Function(BodyPart?) onBodyPartSelected;
+  final void Function(TargetMuscles?) onMusclePartSelected;
 
   @override
-  State<BodyPartSelected> createState() => _BodyPartSelectedState();
+  State<MusclePartGridItem> createState() => _MusclePartGridItemState();
 }
 
-class _BodyPartSelectedState extends State<BodyPartSelected> {
+class _MusclePartGridItemState extends State<MusclePartGridItem> {
+  //targetMuscles? _selectedMusclePart;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -23,13 +26,13 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
           const Padding(
             padding: EdgeInsets.all(8.0),
             child: Text(
-              'Select Body Part',
+              'Selcted Target Muscle',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: BodyPart.values.length,
+            child:  ListView.builder(
+              itemCount: TargetMuscles.values.length,
               itemBuilder: (context, index) {
                   if (index == 0) {
                   // Opcja "All"
@@ -37,7 +40,7 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
                       leading: Image.asset(
-                      'assets/bodyParts/all.png', 
+                      'muscles/all.png', 
                       width: 40,
                       height: 40,
                     ),
@@ -47,33 +50,33 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
                       ),
                       trailing: const Icon(Icons.arrow_forward),
                       onTap: () {
-                        widget.onBodyPartSelected(null); // Ustawienie na null
+                        widget.onMusclePartSelected(null); // Ustawienie na null
                       },
                     ),
                   );
                 }
-                final bodyPart = BodyPart.values[index];
+                final muscle = TargetMuscles.values[index];
                 return Card(
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     leading: Image.asset(
-                      'bodyParts/${bodyPart.name}.png', 
+                      'muscles/${muscle.name}.png',
                       width: 40,
                       height: 40,
                     ),
                     title: Text(
-                      bodyPart.displayNameBodyPart(), // Wyświetl nazwę BodyPart
+                      muscle.displayNameTargetMuscle, // Wyświetl nazwę BodyPart
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     trailing: const Icon(Icons.arrow_forward),
                     onTap: () {
-                      widget.onBodyPartSelected(bodyPart); // Wywołaj callback
+                      widget.onMusclePartSelected(muscle); // Wywołaj callback
                     },
                   ),
                 );
               },
             ),
-          ),
+            ),
         ],
       ),
     );

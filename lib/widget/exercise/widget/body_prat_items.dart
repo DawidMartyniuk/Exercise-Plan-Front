@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:work_plan_front/model/exercise.dart';
 
 class SecondaryMusclesSelector extends StatefulWidget {
-  final List<BodyPart> selectedMuscles;
-  final void Function(List<BodyPart>) onSelectionChanged;
+  final List<TargetMuscles> selectedMuscles;
+  final void Function(List<TargetMuscles>) onSelectionChanged;
 
   const SecondaryMusclesSelector({
     super.key,
@@ -17,20 +17,20 @@ class SecondaryMusclesSelector extends StatefulWidget {
 }
 
 class _SecondaryMusclesSelectorState extends State<SecondaryMusclesSelector> {
-  late List<BodyPart> _selected;
+  late List<TargetMuscles> _selected;
 
   @override
   void initState() {
     super.initState();
-    _selected = List<BodyPart>.from(widget.selectedMuscles);
+    _selected = List<TargetMuscles>.from(widget.selectedMuscles);
   }
 
-  void _onItemTapped(BodyPart part) {
+  void _onItemTapped(TargetMuscles muscle) {
     setState(() {
-      if (_selected.contains(part)) {
-        _selected.remove(part);
+      if (_selected.contains(muscle)) {
+        _selected.remove(muscle);
       } else {
-        _selected.add(part);
+        _selected.add(muscle);
       }
       widget.onSelectionChanged(_selected);
     });
@@ -51,10 +51,10 @@ class _SecondaryMusclesSelectorState extends State<SecondaryMusclesSelector> {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: BodyPart.values.length,
+              itemCount: TargetMuscles.values.length,
               itemBuilder: (context, index) {
-                final bodyPart = BodyPart.values[index];
-                final isSelected = _selected.contains(bodyPart);
+                final muscle = TargetMuscles.values[index];
+                final isSelected = _selected.contains(muscle);
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     vertical: 8,
@@ -62,31 +62,27 @@ class _SecondaryMusclesSelectorState extends State<SecondaryMusclesSelector> {
                   ),
                   child: ListTile(
                     leading: Image.asset(
-                      'assets/muscles/${bodyPart.name}.png',
+                      'muscles/${muscle.name}.png',
                       width: 40,
                       height: 40,
                     ),
                     title: Text(
-                      bodyPart.displayNameBodyPart(),
+                      muscle.displayNameTargetMuscle,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     trailing: Checkbox(
                       value: isSelected,
                       onChanged: (checked) {
-                        _onItemTapped(bodyPart);
+                        _onItemTapped(muscle);
                       },
                       checkColor: Theme.of(context).colorScheme.onPrimary,
                       activeColor: Theme.of(context).colorScheme.primary,
                       side: BorderSide(
-                        color:
-                            Theme.of(
-                              context,
-                            ).colorScheme.primary, // ramka checkboxa
+                        color: Theme.of(context).colorScheme.primary,
                         width: 2,
                       ),
                     ),
-
-                    onTap: () => _onItemTapped(bodyPart),
+                    onTap: () => _onItemTapped(muscle),
                   ),
                 );
               },

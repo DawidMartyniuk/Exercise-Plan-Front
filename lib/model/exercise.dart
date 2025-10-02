@@ -74,7 +74,7 @@ class Exercise extends HiveObject {
   }
 }
 
-
+//TODO: Poprawić jakośc obrazków i skujności
 enum BodyPart {
     back,
     cardio,
@@ -116,13 +116,13 @@ extension EquipmentBodyPart on BodyPart {
  
 
 
-enum TargetList {
+enum TargetMuscles {
     abductors,
     abs,
-    adductors,
+    //adductors,
     biceps,
     calves,
-    cardiovascularSystem,
+   // cardiovascularSystem,
     delts,
     forearms,
     glutes,
@@ -131,8 +131,8 @@ enum TargetList {
     levatorScapulae,
     pectorals,
     quads,
-    serratusAnterior,
-    spine,
+    //serratusAnterior,
+    //spine,
     traps,
     triceps,
     upperBack,
@@ -218,6 +218,50 @@ enum Muscle {
   lats,
   quads,
   abs,
+}
+extension TargetMuscleExtension on TargetMuscles {
+  String get displayNameTargetMuscle {
+    switch (this) {
+        case TargetMuscles.abductors:
+        return "abductors";
+      case TargetMuscles.abs:
+        return "abs";
+      // case TargetMuscles.adductors:
+      //   return "adductors";
+      case TargetMuscles.biceps:
+        return "biceps";
+      case TargetMuscles.calves:
+        return "calves";
+      // case TargetMuscles.cardiovascularSystem:
+      // //   return "cardiovascular system";
+      case TargetMuscles.delts:
+        return "delts";
+      case TargetMuscles.forearms:
+        return "forearms";
+      case TargetMuscles.glutes:
+        return "glutes";
+      case TargetMuscles.hamstrings:
+        return "hamstrings";
+      case TargetMuscles.lats:
+        return "lats";
+      case TargetMuscles.levatorScapulae:
+        return "levator scapulae";
+      case TargetMuscles.pectorals:
+        return "pectorals";
+      case TargetMuscles.quads:
+        return "quads";
+      // case TargetMuscles.serratusAnterior:
+      //   return "serratus anterior";
+      // case TargetMuscles.spine:
+      //   return "spine";
+      case TargetMuscles.traps:
+        return "traps";
+      case TargetMuscles.triceps:
+        return "triceps";
+      case TargetMuscles.upperBack:
+        return "upper back";
+    }
+  }
 }
 
 extension EquipmentListExtension on EquipmentList {

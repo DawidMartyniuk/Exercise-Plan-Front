@@ -6,6 +6,7 @@ import 'package:work_plan_front/widget/exercise/widget/body_part_grid_item.dart'
 import 'package:work_plan_front/widget/exercise/widget/body_prat_items.dart';
 import 'package:work_plan_front/widget/exercise/widget/equipment_selected.dart';
 import 'package:work_plan_front/widget/exercise/widget/list_item_exercise_create.dart';
+import 'package:work_plan_front/widget/exercise/widget/muscle_part_grid_item.dart';
 import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 
 class ExerciseCreate extends StatefulWidget {
@@ -22,7 +23,8 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _nameExerciseController = TextEditingController();
   BodyPart? _selectedBodyPart;
-  List<BodyPart> _selectedSecondaryMuscles = [];
+  TargetMuscles? _selectedTargetMuscle;
+  List<TargetMuscles> _selectedSecondaryMuscles = [];
   EquipmentList? _selectedEquipment;
   List<TextEditingController> _instructionControllers = [
     TextEditingController(),
@@ -97,6 +99,28 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
     );
   }
 
+  void _muscleTargetSelected(TargetMuscles? muscle) {
+    setState(() {
+      if (_selectedTargetMuscle == muscle) {
+        _selectedTargetMuscle = null;
+      } else {
+        _selectedTargetMuscle = muscle;
+      }
+    });
+    Navigator.of(context).pop();
+  }
+
+  void _openSelectedTargetMuscle() {
+    showModalBottomSheet(
+      useSafeArea: true,
+      isScrollControlled: true,
+      context: context,
+      builder:
+          (ctx) =>
+              MusclePartGridItem(onMusclePartSelected: _muscleTargetSelected),
+    );
+  }
+
   void _openSelectSecondaryMuscles() {
     showModalBottomSheet(
       useSafeArea: true,
@@ -140,16 +164,6 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // SizedBox(
-              //   width: 60,
-              //   child: Text(
-              //     "Step ${index + 1}:",
-              //     style: Theme.of(context).textTheme.bodyMedium,
-              //     overflow: TextOverflow.ellipsis,
-              //     maxLines: 1,
-              //   ),
-              // ),
-              // const SizedBox(width: 8),
               Flexible(
                 fit: FlexFit.tight,
                 child: TextFormField(
@@ -274,16 +288,25 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
             ),
             CustomDivider(dashSpace: 0),
             ListItemExerciseCreate(
+              openModelaToSelectedParet: _openSelectedTargetMuscle,
+              selectedItem:
+                  _selectedTargetMuscle?.displayNameTargetMuscle ??
+                  'No selected target muscle',
+              rowTitle: "Target Muscle :",
+            ),
+            CustomDivider(dashSpace: 0),
+            ListItemExerciseCreate(
               openModelaToSelectedParet: _openSelectSecondaryMuscles,
               selectedItem:
                   _selectedSecondaryMuscles.isEmpty
                       ? 'No secondary muscles'
                       : _selectedSecondaryMuscles
-                          .map((e) => e.displayNameBodyPart())
+                          .map((e) => e.displayNameTargetMuscle)
                           .join(', '),
               rowTitle: "Secondary Muscles :",
             ),
             CustomDivider(dashSpace: 0),
+
             ListItemExerciseCreate(
               openModelaToSelectedParet: _openSelectEquipment,
               selectedItem: _selectedEquipment?.name ?? 'No selected equipment',
@@ -316,43 +339,6 @@ class _ExerciseCreateState extends State<ExerciseCreate> {
               ),
             ),
             ..._buildInstructionFields(),
-            //  ListView.builder(
-            //   shrinkWrap: true,
-            //   physics: NeverScrollableScrollPhysics(),
-            //   itemCount: _instructionControllers.length,
-            //   itemBuilder: (context, index) {
-            //     return Padding(
-            //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            //       child: Row(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         children: [
-            //           Text(
-            //             "Step ${index + 1}:",
-            //             style: Theme.of(context).textTheme.bodyMedium,
-            //           ),
-            //           SizedBox(width: 8),
-            //           Expanded(
-            //             child: TextFormField(
-            //               controller: _instructionControllers[index],
-            //               maxLines: null,
-            //               decoration: InputDecoration(
-            //                 hintText: "Describe this step...",
-            //                 border: OutlineInputBorder(),
-            //               ),
-            //             ),
-            //           ),
-            //           IconButton(
-            //             icon: Icon(Icons.delete_outline),
-            //             tooltip: "Remove step",
-            //             onPressed: _instructionControllers.length > 1
-            //                 ? () => _removeInstructionField(index)
-            //                 : null,
-            //           ),
-            //         ],
-            //       ),
-            //     );
-            //   },
-            // ),
           ],
         ),
       ),
