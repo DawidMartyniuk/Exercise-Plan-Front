@@ -52,7 +52,7 @@ class EquipmentSelected extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     leading:Image.asset(
-                      'equipments/${equipment.name}.png',
+                      'assets/equipments/${equipment.name}.png',
                       width: 40,
                       height: 40,
                     ),

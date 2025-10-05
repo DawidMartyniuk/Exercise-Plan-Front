@@ -62,7 +62,7 @@ class _SecondaryMusclesSelectorState extends State<SecondaryMusclesSelector> {
                   ),
                   child: ListTile(
                     leading: Image.asset(
-                      'muscles/${muscle.name}.png',
+                      'assets/muscles/${muscle.name}.png',
                       width: 40,
                       height: 40,
                     ),

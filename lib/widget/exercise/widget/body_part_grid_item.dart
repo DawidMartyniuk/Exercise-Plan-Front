@@ -57,7 +57,7 @@ class _BodyPartSelectedState extends State<BodyPartSelected> {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     leading: Image.asset(
-                      'bodyParts/${bodyPart.name}.png', 
+                      'assets/bodyParts/${bodyPart.name}.png', 
                       width: 40,
                       height: 40,
                     ),

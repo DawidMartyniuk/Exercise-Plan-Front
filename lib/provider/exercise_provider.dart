@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/services/exerciseService.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
+import 'package:work_plan_front/utils/token_storage.dart' as TokenStorage;
 
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   final ExerciseService _exerciseService;
@@ -21,6 +23,7 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
+  
 
   Future<void> fetchExercises({bool forceRefresh = false}) async {
       if (!forceRefresh && state.hasValue && state.value != null && state.value!.isNotEmpty) {
@@ -33,8 +36,10 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
       if (forceRefresh) {
         state = const AsyncValue.loading();
       }
-      
+        final userId = await TokenStorage.getUserId();
+         final box = await Hive.openBox<Exercise>('user_exercises_$userId');
       final exercises = await _exerciseService.getExercises();
+      
       state = AsyncValue.data(exercises);
       print("✅ ExerciseNotifier: Loaded ${exercises.length} exercises");
     } catch (e) {

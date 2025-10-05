@@ -66,6 +66,19 @@ Future<Map<String, dynamic>?> getTokenData() async {
     return null;
   }
 }
+Future<int?> getUserId() async {
+  final tokenData = await getTokenData();
+  if (tokenData != null && tokenData.containsKey('sub')) {
+    final userId = tokenData['sub'];
+    print("👤 User ID from token: $userId");
+    if (userId is int) return userId;
+    if (userId is String) return int.tryParse(userId); 
+    return null;
+  } else {
+    print("❌ User ID not found in token.");
+    return null;
+  }
+}
 Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     if (token == null) {

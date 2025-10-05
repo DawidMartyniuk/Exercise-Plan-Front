@@ -38,9 +38,11 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final authResponse = ref.read(authProviderLogin);
+      if (authResponse != null) {
+        // Załaduj ćwiczenia tylko dla zalogowanego usera
+        await ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
       }
     });
   }
@@ -201,12 +203,13 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 elevation: 0,
               ),
-              onPressed: () {
-               Navigator.of(context).push(
+              onPressed: ()async {
+               await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => ExerciseCreate(),
                   ),
                 );
+                ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
               },
               child: Text(
                 "Add Exercise",

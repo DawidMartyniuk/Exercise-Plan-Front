@@ -40,7 +40,7 @@ class _MusclePartGridItemState extends State<MusclePartGridItem> {
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
                       leading: Image.asset(
-                      'muscles/all.png', 
+                      'assets/muscles/all.png', 
                       width: 40,
                       height: 40,
                     ),
@@ -60,7 +60,7 @@ class _MusclePartGridItemState extends State<MusclePartGridItem> {
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   child: ListTile(
                     leading: Image.asset(
-                      'muscles/${muscle.name}.png',
+                      'assets/muscles/${muscle.name}.png',
                       width: 40,
                       height: 40,
                     ),

@@ -117,6 +117,7 @@ extension EquipmentBodyPart on BodyPart {
 
 
 enum TargetMuscles {
+    all,
     abductors,
     abs,
     //adductors,
@@ -222,6 +223,8 @@ enum Muscle {
 extension TargetMuscleExtension on TargetMuscles {
   String get displayNameTargetMuscle {
     switch (this) {
+      case TargetMuscles.all:
+        return "all";
         case TargetMuscles.abductors:
         return "abductors";
       case TargetMuscles.abs:
