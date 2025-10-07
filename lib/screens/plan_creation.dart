@@ -698,20 +698,21 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
           icon: const Icon(Icons.arrow_back),
           onPressed: _handleBackPress,
         ),
-        title: Text(_isEditMode ? "Edytuj Plan" : "Stwórz Plan"),
+        title: Text(_isEditMode ? "Edit Plan" : "Create Plan"),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextButton(
               onPressed: _isPlanReadToSave ? () => _savePlanData(ref) : null,
               child: Text(
-                _isEditMode ? "Aktualizuj" : "Zapisz",
+                //TODO: jak lepiej wygląda z ramce i i kolorze czy sam przycisk
+                _isEditMode ? "Update" : "Save",
                 style: TextStyle(
                   color: _isPlanReadToSave
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                   fontWeight: FontWeight.bold,
-                  fontSize: 22,
+                  fontSize: 20,
                 ),
               ),
             ),

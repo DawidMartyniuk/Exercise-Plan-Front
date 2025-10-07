@@ -6,9 +6,7 @@ import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_select
 
 class PlanSelectedAppBar extends ConsumerWidget {
   final VoidCallback? onBack;
-  final String Function(BuildContext) getTime;
-  final int Function() getCurrentStep;
-  //final VoidCallback? endWorkout;
+
   final VoidCallback? onSavePlan;
   final VoidCallback? onEditPlan;
   final String planName;
@@ -19,11 +17,11 @@ class PlanSelectedAppBar extends ConsumerWidget {
     super.key,
     required this.onBack,
     required this.planName,
-    required this.getTime,
+    //required this.getTime,
     required this.onSavePlan,
     required this.onEditPlan,
 
-    required this.getCurrentStep,
+    //required this.getCurrentStep,
     required this.isReadOnly,
     this.isWorkoutMode = false,
   });
@@ -74,23 +72,23 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
 
         SizedBox(width: 16),
         // Czas
-        isReadOnly
-            ? Container()
-            : Row(
-              children: [
-                Icon(
-                  Icons.timelapse,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  getTime(context),
-                  style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
+        // isReadOnly
+        //     ? Container()
+        //     : Row(
+        //       children: [
+        //         Icon(
+        //           Icons.timelapse,
+        //           color: Theme.of(context).colorScheme.onSurface,
+        //         ),
+        //         const SizedBox(width: 4),
+        //         Text(
+        //           getTime(context),
+        //           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+        //             color: Theme.of(context).colorScheme.onSurface,
+        //           ),
+        //         ),
+        //       ],
+        //     ),
         const SizedBox(width: 16),
         // Nazwa planu na środku
         Expanded(
@@ -105,29 +103,20 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
             ),
           ),
         ),
-        // getCurrentStep na końcu
-        // isReadOnly
-        //     ? Container()
-        //     : Text(
-        //       getCurrentStep().toString(),
-        //       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-        //         color: Theme.of(context).colorScheme.onSurface,
-        //       ),
-        //     ),
-         const SizedBox(width: 16),
-        // Save Plan na końcu - ✅ STAŁY ROZMIAR PRZYCISKU
+      
+        
         SizedBox(
-          width: 70, // ✅ STAŁA SZEROKOŚĆ
-          height: 36, // ✅ STAŁA WYSOKOŚĆ
+          width: 70, //  STAŁA SZEROKOŚĆ
+          height: 36, //  STAŁA WYSOKOŚĆ
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 98, 204, 107),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), // ✅ KONTROLOWANY PADDING
+              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4), //  KONTROLOWANY PADDING
               minimumSize: Size.zero, // ✅ USUŃ MINIMALNY ROZMIAR
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // ✅ ZMNIEJSZ TARGET SIZE
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap, //  ZMNIEJSZ TARGET SIZE
             ),
             onPressed: () {
               if (isReadOnly) {
@@ -140,7 +129,7 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
               isReadOnly ? 'Edit' : 'Save',
               style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
-                fontSize: 16, // ✅ ZWIĘKSZONY ROZMIAR CZCIONKI (było 14)
+                fontSize: 16, 
                 fontWeight: FontWeight.bold,
               ),
               maxLines: 1,

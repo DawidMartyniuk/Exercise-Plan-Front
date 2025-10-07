@@ -13,8 +13,10 @@ import 'package:work_plan_front/provider/wordout_time_notifer.dart';
 import 'package:work_plan_front/screens/exercise_info/exercise_info.dart';
 import 'package:work_plan_front/provider/workout_plan_state_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
+import 'package:work_plan_front/screens/plan_creation.dart';
 import 'package:work_plan_front/screens/save_workout/save_workout.dart';
 import 'package:work_plan_front/widget/plan/plan_works/helpers/worokout_exercise_replacement_menager.dart';
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/components/plan_stats_bar.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/action_button.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/widget/progress_bar.dart';
 import '../helpers/plan_helpers.dart';
@@ -23,10 +25,11 @@ import '../helpers/exercise_table_helpers.dart';
 import 'plan_selected_card.dart';
 import 'plan_selected_appBar.dart';
 import 'plan_selected_details.dart';
- // TODO: Powrucić do konceptu początkowego czyli wartoiści na początku są w hint potem po zaznaczeniu stają się widoczne 
- // i zawsze możan je usuwac do " "  i zmineiac
+import 'package:work_plan_front/widget/plan/plan_works/plan_selected/delegat/plan_stats_bar_delegate.dart';
+// TODO: Powrucić do konceptu początkowego czyli wartoiści na początku są w hint potem po zaznaczeniu stają się widoczne
+// i zawsze możan je usuwac do " "  i zmineiac
 
- //TODO  ODSTĘP MIĘDZY PRZYciskami , kolor tekstu na opise ma być bardziej widoczny, 
+//TODO  ODSTĘP MIĘDZY PRZYciskami , kolor tekstu na opise ma być bardziej widoczny,
 class PlanSelectedList extends ConsumerStatefulWidget {
   final ExerciseTable plan;
   final List<Exercise> exercises;
@@ -47,20 +50,19 @@ class PlanSelectedList extends ConsumerStatefulWidget {
   ConsumerState<PlanSelectedList> createState() => _PlanSelectedListState();
 }
 
-class _PlanSelectedListState extends ConsumerState<PlanSelectedList> 
+class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
     with PlanHelpers, ExerciseCalculations {
-  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final WorkoutExerciseReplacementManager _replacementManager = WorkoutExerciseReplacementManager();
-  
+  final WorkoutExerciseReplacementManager _replacementManager =
+      WorkoutExerciseReplacementManager();
+
   ScrollController? _scrollController;
   Timer? _timer;
 
-  late ExerciseTable _originalPlan; // 
-  late ExerciseTable _workingPlan;  //  KOPIA ROBOCZA - na tej pracujemy
+  late ExerciseTable _originalPlan; //
+  late ExerciseTable _workingPlan; //  KOPIA ROBOCZA - na tej pracujemy
   bool _isWorkoutActive = false;
   WorkoutTimeNotifier _workoutTimeNotifier = WorkoutTimeNotifier();
-
 
   @override
   void initState() {
@@ -69,113 +71,136 @@ class _PlanSelectedListState extends ConsumerState<PlanSelectedList>
 
     //  ZACHOWAJ ORYGINAŁ
     _originalPlan = _createDeepCopyOfPlan(widget.plan);
-    
+
     //  STWÓRZ KOPIĘ ROBOCZĄ
     _workingPlan = _createDeepCopyOfPlan(widget.plan);
     startTimer();
-    
+
     _initializePlanData();
   }
 
-  void startTimer(){
-  if (widget.isWorkoutMode) {
-    print("🕐 Uruchamianie timera treningu...");
-    _isWorkoutActive = true;
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(workoutProvider.notifier).startTimer();
-    });
-  } else {
-    _isWorkoutActive = false;
-  }
-  }
+  void startTimer() {
+    if (widget.isWorkoutMode) {
+      print("🕐 Uruchamianie timera treningu...");
+      _isWorkoutActive = true;
 
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(workoutProvider.notifier).startTimer();
+      });
+    } else {
+      _isWorkoutActive = false;
+    }
+  }
 
   @override
-void dispose() {
-  print("🗑️ Disposing PlanSelectedList");
-  
+  void dispose() {
+    print("🗑️ Disposing PlanSelectedList");
+
     _replacementManager.clearAllPendingData();
-    
-  _timer?.cancel();
-  _scrollController?.dispose();
-  super.dispose();
-}
+
+    _timer?.cancel();
+    _scrollController?.dispose();
+    super.dispose();
+  }
 
   ExerciseTable _createDeepCopyOfPlan(ExerciseTable plan) {
     return ExerciseTable(
       id: plan.id,
       exercise_table: plan.exercise_table,
-      rows: plan.rows.map((row) => ExerciseRowsData(
-        exercise_number: row.exercise_number,
-        exercise_name: row.exercise_name,
-        notes: row.notes,
-        rep_type: row.rep_type,
-        data: row.data.map((exerciseRow) => ExerciseRow(
-          colStep: exerciseRow.colStep,
-          colKg: exerciseRow.colKg,
-          colRepMin: exerciseRow.colRepMin,
-          colRepMax: exerciseRow.colRepMax,
-          isChecked: exerciseRow.isChecked,
-          isFailure: exerciseRow.isFailure,
-          rowColor: exerciseRow.rowColor,
-          isUserModified: false,
-        )).toList(),
-      )).toList(),
+      rows:
+          plan.rows
+              .map(
+                (row) => ExerciseRowsData(
+                  exercise_number: row.exercise_number,
+                  exercise_name: row.exercise_name,
+                  notes: row.notes,
+                  rep_type: row.rep_type,
+                  data:
+                      row.data
+                          .map(
+                            (exerciseRow) => ExerciseRow(
+                              colStep: exerciseRow.colStep,
+                              colKg: exerciseRow.colKg,
+                              colRepMin: exerciseRow.colRepMin,
+                              colRepMax: exerciseRow.colRepMax,
+                              isChecked: exerciseRow.isChecked,
+                              isFailure: exerciseRow.isFailure,
+                              rowColor: exerciseRow.rowColor,
+                              isUserModified: false,
+                            ),
+                          )
+                          .toList(),
+                ),
+              )
+              .toList(),
     );
   }
-void _initializePlanData() {
-  final planId = _workingPlan.id;
-  final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
 
-  for (final exerciseData in _workingPlan.rows) {
-    print("🔍 Ćwiczenie: ${exerciseData.exercise_name}");
-    
-    for (final row in exerciseData.data) {
-      print("🔍 Seria ${row.colStep}: colKg=${row.colKg}, colRepMin=${row.colRepMin}");
-      
-      // ✅ JEŚLI WAGA JEST 0 - USTAW WARTOŚĆ DOMYŚLNĄ
-      if (row.colKg == 0) {
-        row.colKg = 20; // PRZYKŁADOWA WARTOŚĆ
-        print("🔍 Ustawiono domyślną wagę: ${row.colKg}");
+  void _initializePlanData() {
+    final planId = _workingPlan.id;
+    final savedRows = ref.read(workoutPlanStateProvider).getRows(planId);
+
+    for (final exerciseData in _workingPlan.rows) {
+      print("🔍 Ćwiczenie: ${exerciseData.exercise_name}");
+
+      for (final row in exerciseData.data) {
+        print(
+          "🔍 Seria ${row.colStep}: colKg=${row.colKg}, colRepMin=${row.colRepMin}",
+        );
+
+        // ✅ JEŚLI WAGA JEST 0 - USTAW WARTOŚĆ DOMYŚLNĄ
+        if (row.colKg == 0) {
+          row.colKg = 20; // PRZYKŁADOWA WARTOŚĆ
+          print("🔍 Ustawiono domyślną wagę: ${row.colKg}");
+        }
       }
     }
-  }
-  
-  print("🔍 _initializePlanData: planId=$planId, savedRows.length=${savedRows.length}");
-  
-  //  OPÓŹNIJ MODYFIKACJĘ PROVIDERA
-  Future(() {
-    //  USTAW POPRAWNY REPS TYPE PO ZBUDOWANIU WIDGETU
-    for (final rowData in _workingPlan.rows) {
-      //  SPRAWDŹ CZY TO ZAKRES I USTAW ODPOWIEDNI TYP
-      final hasRange = rowData.data.any((row) => 
-        row.colRepMin > 0 && row.colRepMax > 0 && row.colRepMin != row.colRepMax
-      );
-      
-      if (hasRange) {
-        //  USTAW RANGE TYPE W PROVIDERZE (OPÓŹNIONE)
-        ref.read(exerciseRepsTypeProvider(rowData.exercise_number).notifier).state = RepsType.range;
-        print("✅ Ustawiono RepsType.range dla ${rowData.exercise_number}");
-      } else {
-        ref.read(exerciseRepsTypeProvider(rowData.exercise_number).notifier).state = RepsType.single;
-        print(" Ustawiono RepsType.single dla ${rowData.exercise_number}");
-      }
-      
-      print("🔍 Exercise ${rowData.exercise_number}: ${rowData.data.first.colRepMin}-${rowData.data.first.colRepMax}");
-    }
-  });
-  
-  if (savedRows.isNotEmpty) {
-    _applyUserProgress(savedRows);
-  } else {
-    print("⚠️ Brak zapisanego progresu - dane pozostają bez zmian");
-  }
-}
 
- Future<void> _replaceExercise(String exerciseNumber) async {
+    print(
+      "🔍 _initializePlanData: planId=$planId, savedRows.length=${savedRows.length}",
+    );
+
+    //  OPÓŹNIJ MODYFIKACJĘ PROVIDERA
+    Future(() {
+      //  USTAW POPRAWNY REPS TYPE PO ZBUDOWANIU WIDGETU
+      for (final rowData in _workingPlan.rows) {
+        //  SPRAWDŹ CZY TO ZAKRES I USTAW ODPOWIEDNI TYP
+        final hasRange = rowData.data.any(
+          (row) =>
+              row.colRepMin > 0 &&
+              row.colRepMax > 0 &&
+              row.colRepMin != row.colRepMax,
+        );
+
+        if (hasRange) {
+          //  USTAW RANGE TYPE W PROVIDERZE (OPÓŹNIONE)
+          ref
+              .read(exerciseRepsTypeProvider(rowData.exercise_number).notifier)
+              .state = RepsType.range;
+          print("✅ Ustawiono RepsType.range dla ${rowData.exercise_number}");
+        } else {
+          ref
+              .read(exerciseRepsTypeProvider(rowData.exercise_number).notifier)
+              .state = RepsType.single;
+          print(" Ustawiono RepsType.single dla ${rowData.exercise_number}");
+        }
+
+        print(
+          "🔍 Exercise ${rowData.exercise_number}: ${rowData.data.first.colRepMin}-${rowData.data.first.colRepMax}",
+        );
+      }
+    });
+
+    if (savedRows.isNotEmpty) {
+      _applyUserProgress(savedRows);
+    } else {
+      print("⚠️ Brak zapisanego progresu - dane pozostają bez zmian");
+    }
+  }
+
+  Future<void> _replaceExercise(String exerciseNumber) async {
     print("🔄 Starting exercise replacement for: $exerciseNumber");
-    
+
     // Sprawdź czy można zastąpić ćwiczenie
     if (!_replacementManager.canReplaceExercise(
       exerciseNumber: exerciseNumber,
@@ -189,61 +214,67 @@ void _initializePlanData() {
       );
       return;
     }
-    
+
     try {
       // Zapisz dane obecnego ćwiczenia
       final savedData = _replacementManager.saveExerciseDataFromPlan(
         exerciseNumber: exerciseNumber,
         workingPlan: _workingPlan,
       );
-      
+
       // Loguj informacje o ćwiczeniu
       _replacementManager.logExerciseReplacementInfo(
         exerciseNumber: exerciseNumber,
         workingPlan: _workingPlan,
       );
-      
+
       // Przechowaj dane
       _replacementManager.storePendingData(exerciseNumber, savedData);
-      
+
       // Otwórz ekran wyboru nowego ćwiczenia
-       final result = await Navigator.of(context).push<Exercise>(
-      MaterialPageRoute(
-        builder: (ctx) => ExercisesScreen(
-          isSelectionMode: true,
-          title: 'Replace Exercise',
-          // ✅ TYLKO CALLBACK DLA POJEDYNCZEGO ĆWICZENIA
-          onSingleExerciseSelected: (exercise) {
-            print('🔄 Exercise selected for replacement: ${exercise.name}');
-            Navigator.of(context).pop(exercise); // ✅ ZWRÓĆ POJEDYNCZE ĆWICZENIE
-          },
-          // ✅ NIE PRZEKAZUJ onMultipleExercisesSelected!
+      final result = await Navigator.of(context).push<Exercise>(
+        MaterialPageRoute(
+          builder:
+              (ctx) => ExercisesScreen(
+                isSelectionMode: true,
+                title: 'Replace Exercise',
+                // ✅ TYLKO CALLBACK DLA POJEDYNCZEGO ĆWICZENIA
+                onSingleExerciseSelected: (exercise) {
+                  print(
+                    '🔄 Exercise selected for replacement: ${exercise.name}',
+                  );
+                  Navigator.of(
+                    context,
+                  ).pop(exercise); // ✅ ZWRÓĆ POJEDYNCZE ĆWICZENIE
+                },
+                // ✅ NIE PRZEKAZUJ onMultipleExercisesSelected!
+              ),
         ),
-      ),
-    );
-      
+      );
+
       if (result != null) {
         // Znajdź stare ćwiczenie dla analizy kompatybilności
         final oldExercise = widget.exercises.firstWhere(
           (ex) => ex.id == exerciseNumber,
-          orElse: () => Exercise(
-            exerciseId: exerciseNumber,
-            name: "Unknown Exercise",
-            bodyParts: [],
-            equipments: [],
-            gifUrl: '',
-            targetMuscles: [],
-            secondaryMuscles: [],
-            instructions: [],
-          ),
+          orElse:
+              () => Exercise(
+                exerciseId: exerciseNumber,
+                name: "Unknown Exercise",
+                bodyParts: [],
+                equipments: [],
+                gifUrl: '',
+                targetMuscles: [],
+                secondaryMuscles: [],
+                instructions: [],
+              ),
         );
-        
+
         // Analizuj kompatybilność
         // final compatibility = _replacementManager.analyzeExerciseCompatibility(
         //   oldExercise: oldExercise,
         //   newExercise: result,
         // );
-        
+
         // Wykonaj zastąpienie
         setState(() {
           _replacementManager.replaceExerciseInPlan(
@@ -258,88 +289,135 @@ void _initializePlanData() {
             },
           );
         });
-        
+
         // Wyczyść przechowane dane
         _replacementManager.clearPendingData(exerciseNumber);
-        
-        // Pokaż komunikat o powodzeniu
-        // final compatibilityScore = compatibility["compatibilityScore"] as double;
-        // final compatibilityText = compatibilityScore >= 70 
-        //     ? "High compatibility" 
-        //     : compatibilityScore >= 40 
-        //         ? "Medium compatibility" 
-        //         : "Low compatibility";
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:  Text('Exercise replaced successfully! )'),
-           //  Text('Exercise replaced successfully! $compatibilityText (${compatibilityScore.toInt()}%)'),
+            content: Text('Exercise replaced successfully! )'),
+            //  Text('Exercise replaced successfully! $compatibilityText (${compatibilityScore.toInt()}%)'),
             backgroundColor: Colors.green,
             duration: Duration(seconds: 3),
           ),
         );
-        
+
         print("✅ Exercise replacement completed successfully");
-        
       } else {
         // Użytkownik anulował - wyczyść przechowane dane
         _replacementManager.clearPendingData(exerciseNumber);
         print("❌ Exercise replacement cancelled by user");
       }
-      
     } catch (e) {
       print("❌ Error during exercise replacement: $e");
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error replacing exercise: $e'),
           backgroundColor: Colors.red,
         ),
       );
-      
+
       // Wyczyść przechowane dane w przypadku błędu
       _replacementManager.clearPendingData(exerciseNumber);
     }
   }
 
-String _getOriginalRange(String exerciseNumber, int colStep) {
-  final originalRow = _getOriginalRowData(exerciseNumber, colStep);
-  if (originalRow != null && originalRow.colRepMin != originalRow.colRepMax) {
-    return "${originalRow.colRepMin} - ${originalRow.colRepMax}";
+  String _getOriginalRange(String exerciseNumber, int colStep) {
+    final originalRow = _getOriginalRowData(exerciseNumber, colStep);
+    if (originalRow != null && originalRow.colRepMin != originalRow.colRepMax) {
+      return "${originalRow.colRepMin} - ${originalRow.colRepMax}";
+    }
+    return "0";
   }
-  return "0";
-}
-Future<void> _addMultipleExercisesToPlan() async {
-  final result = await Navigator.of(context).push<dynamic>(
-    MaterialPageRoute(
-      builder: (ctx) => ExercisesScreen(
-        isSelectionMode: true,
-        title: 'Select Exercises for Plan',
-        onMultipleExercisesSelected: (exercises) {
-          print('🔧 Callback wywołany z ${exercises.length} ćwiczeniami');
-        },
+
+  Future<void> _addMultipleExercisesToPlan() async {
+    final result = await Navigator.of(context).push<dynamic>(
+      MaterialPageRoute(
+        builder:
+            (ctx) => ExercisesScreen(
+              isSelectionMode: true,
+              title: 'Select Exercises for Plan',
+              onMultipleExercisesSelected: (exercises) {
+                print('🔧 Callback wywołany z ${exercises.length} ćwiczeniami');
+              },
+            ),
       ),
-    ),
-  );
+    );
 
-  print('🔧 Navigator.pop zwrócił: $result (typ: ${result.runtimeType})');
+    print('🔧 Navigator.pop zwrócił: $result (typ: ${result.runtimeType})');
 
-  //  OBSŁUGA REZULTATU BEZ ASYNC W setState
-  if (result != null) {
-    if (result is List<Exercise>) {
-      //  LISTA ĆWICZEŃ - DODAJ WSZYSTKIE SYNCHRONICZNIE
-      int addedCount = 0;
-      
-      setState(() {
-        for (final exercise in result) {
-          final exerciseExists = _workingPlan.rows.any(
-            (rowData) => rowData.exercise_number == exercise.id,
+    //  OBSŁUGA REZULTATU BEZ ASYNC W setState
+    if (result != null) {
+      if (result is List<Exercise>) {
+        //  LISTA ĆWICZEŃ - DODAJ WSZYSTKIE SYNCHRONICZNIE
+        int addedCount = 0;
+
+        setState(() {
+          for (final exercise in result) {
+            final exerciseExists = _workingPlan.rows.any(
+              (rowData) => rowData.exercise_number == exercise.id,
+            );
+
+            if (!exerciseExists) {
+              final newRow = ExerciseRowsData(
+                exercise_number: exercise.id,
+                exercise_name: exercise.name,
+                notes: '',
+                rep_type: RepsType.single,
+                data: [
+                  ExerciseRow(
+                    colStep: 1,
+                    colKg: 0,
+                    colRepMin: 0,
+                    colRepMax: 0,
+                    isChecked: false,
+                    isFailure: false,
+                    rowColor: Colors.transparent,
+                    isUserModified: false,
+                  ),
+                ],
+              );
+              _workingPlan.rows.add(newRow);
+              addedCount++;
+            }
+          }
+        });
+
+        print('✅ Dodano $addedCount nowych ćwiczeń do planu');
+
+        //  AKTUALIZUJ PROVIDER PO setState
+        _updateCurrentWorkoutPlan();
+
+        //  POKAŻ TOAST
+        if (addedCount > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Added $addedCount exercise${addedCount > 1 ? 's' : ''} to plan',
+              ),
+              backgroundColor: Colors.green,
+            ),
           );
-          
-          if (!exerciseExists) {
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('All selected exercises already exist in plan'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      } else if (result is Exercise) {
+        // POJEDYNCZE ĆWICZENIE - DODAJ SYNCHRONICZNIE
+        final exerciseExists = _workingPlan.rows.any(
+          (rowData) => rowData.exercise_number == result.id,
+        );
+
+        if (!exerciseExists) {
+          setState(() {
             final newRow = ExerciseRowsData(
-              exercise_number: exercise.id,
-              exercise_name: exercise.name,
+              exercise_number: result.id,
+              exercise_name: result.name,
               notes: '',
               rep_type: RepsType.single,
               data: [
@@ -356,136 +434,95 @@ Future<void> _addMultipleExercisesToPlan() async {
               ],
             );
             _workingPlan.rows.add(newRow);
-            addedCount++;
+          });
+
+          // AKTUALIZUJ PROVIDER PO setState
+          _updateCurrentWorkoutPlan();
+
+          print('✅ Dodano ćwiczenie: ${result.name}');
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Added ${result.name} to plan'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${result.name} already exists in plan'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    } else {
+      print('⚠️ Użytkownik anulował wybór ćwiczeń');
+    }
+  }
+
+  ExerciseRow? _getOriginalRowData(String exerciseNumber, int colStep) {
+    //  ZNAJDŹ ORYGINALNĄ WARTOŚĆ Z _originalPlan
+    for (final rowData in _originalPlan.rows) {
+      if (rowData.exercise_number == exerciseNumber) {
+        for (final row in rowData.data) {
+          if (row.colStep == colStep) {
+            return row; // ZWRÓĆ ORYGINALNY WIERSZ
           }
         }
-      });
-      
-      print('✅ Dodano $addedCount nowych ćwiczeń do planu');
-      
-      //  AKTUALIZUJ PROVIDER PO setState
-      _updateCurrentWorkoutPlan();
-      
-      //  POKAŻ TOAST
-      if (addedCount > 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Added $addedCount exercise${addedCount > 1 ? 's' : ''} to plan'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('All selected exercises already exist in plan'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    } else if (result is Exercise) {
-      // POJEDYNCZE ĆWICZENIE - DODAJ SYNCHRONICZNIE
-      final exerciseExists = _workingPlan.rows.any(
-        (rowData) => rowData.exercise_number == result.id,
-      );
-      
-      if (!exerciseExists) {
-        setState(() {
-          final newRow = ExerciseRowsData(
-            exercise_number: result.id,
-            exercise_name: result.name,
-            notes: '',
-            rep_type: RepsType.single,
-            data: [
-              ExerciseRow(
-                colStep: 1,
-                colKg: 0,
-                colRepMin: 0,
-                colRepMax: 0,
-                isChecked: false,
-                isFailure: false,
-                rowColor: Colors.transparent,
-                isUserModified: false,
-              ),
-            ],
-          );
-          _workingPlan.rows.add(newRow);
-        });
-        
-        // AKTUALIZUJ PROVIDER PO setState
-        _updateCurrentWorkoutPlan();
-        
-        print('✅ Dodano ćwiczenie: ${result.name}');
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Added ${result.name} to plan'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${result.name} already exists in plan'),
-            backgroundColor: Colors.orange,
-          ),
-        );
       }
     }
-  } else {
-    print('⚠️ Użytkownik anulował wybór ćwiczeń');
+    return null;
   }
-}
-ExerciseRow? _getOriginalRowData(String exerciseNumber, int colStep) {
-  //  ZNAJDŹ ORYGINALNĄ WARTOŚĆ Z _originalPlan
-  for (final rowData in _originalPlan.rows) {
-    if (rowData.exercise_number == exerciseNumber) {
-      for (final row in rowData.data) {
-        if (row.colStep == colStep) {
-          return row; // ZWRÓĆ ORYGINALNY WIERSZ
-        }
-      }
-    }
-  }
-  return null;
-}
-void _applyUserProgress(List<ExerciseRowState> savedRows) {
-  print("🔍 _applyUserProgress: savedRows.length = ${savedRows.length}");
-  
-  for (final rowData in _workingPlan.rows) {
-    print("🔍 Processing exercise: ${rowData.exercise_name} (${rowData.exercise_number})");
-    
-    for (final row in rowData.data) {
-      print("🔍 Looking for step ${row.colStep}, exercise ${rowData.exercise_number}");
-      print("🔍 Original row: colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}");
-      
-      final match = savedRows.firstWhereOrNull(
-        (e) => e.colStep == row.colStep && e.exerciseNumber == rowData.exercise_number,
-      );
-      
-      if (match != null) {
-        print("✅ Found saved progress for step ${row.colStep}");
-        row.colKg = match.colKg;
-        row.colRepMin = match.colRepMin; 
-        row.colRepMax = match.colRepMax; 
-        row.isChecked = match.isChecked;
-        row.isFailure = match.isFailure;
-      } else {
-        print("⚠️ No saved progress - keeping original values");
-      }
-      
-      print("🔍 Final row: colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}");
-      row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
-    }
-  }
-}
 
+  void _applyUserProgress(List<ExerciseRowState> savedRows) {
+    print("🔍 _applyUserProgress: savedRows.length = ${savedRows.length}");
+
+    for (final rowData in _workingPlan.rows) {
+      print(
+        "🔍 Processing exercise: ${rowData.exercise_name} (${rowData.exercise_number})",
+      );
+
+      for (final row in rowData.data) {
+        print(
+          "🔍 Looking for step ${row.colStep}, exercise ${rowData.exercise_number}",
+        );
+        print(
+          "🔍 Original row: colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}",
+        );
+
+        final match = savedRows.firstWhereOrNull(
+          (e) =>
+              e.colStep == row.colStep &&
+              e.exerciseNumber == rowData.exercise_number,
+        );
+
+        if (match != null) {
+          print("✅ Found saved progress for step ${row.colStep}");
+          row.colKg = match.colKg;
+          row.colRepMin = match.colRepMin;
+          row.colRepMax = match.colRepMax;
+          row.isChecked = match.isChecked;
+          row.isFailure = match.isFailure;
+        } else {
+          print("⚠️ No saved progress - keeping original values");
+        }
+
+        print(
+          "🔍 Final row: colRepMin=${row.colRepMin}, colRepMax=${row.colRepMax}",
+        );
+        row.rowColor = row.isChecked ? Colors.green : Colors.transparent;
+      }
+    }
+  }
 
   //  METODA USUWANIA - TYLKO Z KOPII ROBOCZEJ
   void _deleteExerciseFromPlan(String exerciseNumber) {
     setState(() {
       //  USUŃ Z KOPII ROBOCZEJ, NIE Z ORYGINAŁU
-      _workingPlan.rows.removeWhere((rowData) => 
-          rowData.exercise_number == exerciseNumber);
+      _workingPlan.rows.removeWhere(
+        (rowData) => rowData.exercise_number == exerciseNumber,
+      );
     });
     _updateCurrentWorkoutPlan();
     _removeExerciseFromWorkoutState(exerciseNumber);
@@ -493,19 +530,26 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
 
   //  AKTUALIZUJ WORKOUT PLAN - UŻYJ KOPII ROBOCZEJ
   void _updateCurrentWorkoutPlan() {
-    final newRows = _workingPlan.rows.map((rowData) => 
-      rowData.copyWithData(
-        rowData.data.map((row) => ExerciseRow(
-          colStep: row.colStep,
-          colKg: row.colKg,
-          colRepMin: row.colRepMin,
-          colRepMax: row.colRepMax,
-          isChecked: row.isChecked,
-          isFailure: row.isFailure,
-          rowColor: row.rowColor,
-        )).toList(),
-      )
-    ).toList();
+    final newRows =
+        _workingPlan.rows
+            .map(
+              (rowData) => rowData.copyWithData(
+                rowData.data
+                    .map(
+                      (row) => ExerciseRow(
+                        colStep: row.colStep,
+                        colKg: row.colKg,
+                        colRepMin: row.colRepMin,
+                        colRepMax: row.colRepMax,
+                        isChecked: row.isChecked,
+                        isFailure: row.isFailure,
+                        rowColor: row.rowColor,
+                      ),
+                    )
+                    .toList(),
+              ),
+            )
+            .toList();
 
     final newPlan = _workingPlan.copyWithRows(newRows);
     ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
@@ -518,174 +562,186 @@ void _applyUserProgress(List<ExerciseRowState> savedRows) {
   void _saveAllRowsToProvider() {
     final planId = _workingPlan.id;
     final rowStates = <ExerciseRowState>[];
-    
+
     for (final rowData in _workingPlan.rows) {
       for (final row in rowData.data) {
-        rowStates.add(ExerciseRowState(
-          colStep: row.colStep,
-          colKg: row.colKg,
-          colRepMin: row.colRepMin,
-          colRepMax: row.colRepMax,
-          isChecked: row.isChecked,
-          isFailure: row.isFailure,
-          exerciseNumber: rowData.exercise_number,
-        ));
+        rowStates.add(
+          ExerciseRowState(
+            colStep: row.colStep,
+            colKg: row.colKg,
+            colRepMin: row.colRepMin,
+            colRepMax: row.colRepMax,
+            isChecked: row.isChecked,
+            isFailure: row.isFailure,
+            exerciseNumber: rowData.exercise_number,
+          ),
+        );
       }
     }
-    
+
     ref.read(workoutPlanStateProvider.notifier).setPlanRows(planId, rowStates);
   }
 
-
   //  ROW INTERACTIONS - PRACUJ NA KOPII ROBOCZEJ
-void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
-  print("🔍 PRZED TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
-  
-  setState(() {
-    row.isChecked = !row.isChecked;
-    row.rowColor = row.isChecked 
-        ? const Color.fromARGB(255, 103, 189, 106) 
-        : Colors.transparent;
-    
-    final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
-    print("🔍 repsType: $repsType");
-    
-    // ✅ TYLKO DLA RANGE I TYLKO JEŚLI UŻYTKOWNIK NIE WPROWADZIŁ WŁASNEJ WARTOŚCI
-    if (repsType == RepsType.range && !row.isUserModified) {
-      if (row.isChecked) {
-        // ✅ ZAZNACZENIE - USTAW ŚREDNIĄ TYLKO JEŚLI BRAK MODYFIKACJI
-        final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
-        if (originalRow != null) {
-          print("🔍 ZAZNACZENIE: Oryginalny zakres ${originalRow.colRepMin}-${originalRow.colRepMax}");
-          final middleValue = ((originalRow.colRepMin + originalRow.colRepMax) ~/ 2).round();
-          row.colRepMin = middleValue;
-          row.isUserModified = true; // ✅ OZNACZ ŻE TERAZ MA WARTOŚĆ
-          print("🔍 ZAZNACZENIE: Ustawiono środkową wartość: $middleValue");
+  void _onToggleRowChecked(ExerciseRow row, String exerciseNumber) {
+    print(
+      "🔍 PRZED TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}",
+    );
+
+    setState(() {
+      row.isChecked = !row.isChecked;
+      row.rowColor =
+          row.isChecked
+              ? const Color.fromARGB(255, 103, 189, 106)
+              : Colors.transparent;
+
+      final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
+      print("🔍 repsType: $repsType");
+
+      // ✅ TYLKO DLA RANGE I TYLKO JEŚLI UŻYTKOWNIK NIE WPROWADZIŁ WŁASNEJ WARTOŚCI
+      if (repsType == RepsType.range && !row.isUserModified) {
+        if (row.isChecked) {
+          // ✅ ZAZNACZENIE - USTAW ŚREDNIĄ TYLKO JEŚLI BRAK MODYFIKACJI
+          final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
+          if (originalRow != null) {
+            print(
+              "🔍 ZAZNACZENIE: Oryginalny zakres ${originalRow.colRepMin}-${originalRow.colRepMax}",
+            );
+            final middleValue =
+                ((originalRow.colRepMin + originalRow.colRepMax) ~/ 2).round();
+            row.colRepMin = middleValue;
+            row.isUserModified = true; // ✅ OZNACZ ŻE TERAZ MA WARTOŚĆ
+            print("🔍 ZAZNACZENIE: Ustawiono środkową wartość: $middleValue");
+          }
+        }
+        // ✅ ODZNACZENIE - NIE RÓB NIC, ZOSTAW WARTOŚĆ UŻYTKOWNIKA
+      }
+
+      // ✅ JEŚLI UŻYTKOWNIK WPROWADZIŁ WŁASNĄ WARTOŚĆ - NIE ZMIENIAJ JEJ
+      if (row.isUserModified) {
+        print("🔍 TOGGLE: Zachowuję wartość użytkownika: ${row.colRepMin}");
+      }
+    });
+
+    print(
+      "🔍 PO TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}",
+    );
+    _updateRowInProvider(row, exerciseNumber);
+    _updateCurrentWorkoutPlan();
+  }
+
+  void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
+    print("🏋️ _onKgChanged: value='$value', exerciseNumber=$exerciseNumber");
+    print("🏋️ PRZED: colKg=${row.colKg}");
+
+    setState(() {
+      if (value.isEmpty) {
+        // ✅ PUSTE POLE - USTAW 0
+        row.colKg = 0;
+        print("🏋️ PUSTE POLE: Ustawiono 0");
+      } else {
+        // ✅ WPROWADZONA WARTOŚĆ
+        final newValue = double.tryParse(value) ?? 0;
+        if (newValue >= 0) {
+          // ✅ POZWÓL NA 0
+          row.colKg = newValue as int;
+          print("🏋️ NOWA WARTOŚĆ: Ustawiono ${newValue}");
+        } else {
+          print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ WAGI: '$value' - ignorowanie");
+          return;
         }
       }
-      // ✅ ODZNACZENIE - NIE RÓB NIC, ZOSTAW WARTOŚĆ UŻYTKOWNIKA
-    }
-    
-    // ✅ JEŚLI UŻYTKOWNIK WPROWADZIŁ WŁASNĄ WARTOŚĆ - NIE ZMIENIAJ JEJ
-    if (row.isUserModified) {
-      print("🔍 TOGGLE: Zachowuję wartość użytkownika: ${row.colRepMin}");
-    }
-  });
-  
-  print("🔍 PO TOGGLE: isChecked=${row.isChecked}, colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
-  _updateRowInProvider(row, exerciseNumber);
-  _updateCurrentWorkoutPlan();
-}
+    });
 
-void _onKgChanged(ExerciseRow row, String value, String exerciseNumber) {
-  print("🏋️ _onKgChanged: value='$value', exerciseNumber=$exerciseNumber");
-  print("🏋️ PRZED: colKg=${row.colKg}");
-  
-  setState(() {
-    if (value.isEmpty) {
-      // ✅ PUSTE POLE - USTAW 0
-      row.colKg = 0;
-      print("🏋️ PUSTE POLE: Ustawiono 0");
-    } else {
-      // ✅ WPROWADZONA WARTOŚĆ
-      final newValue = double.tryParse(value) ?? 0;
-      if (newValue >= 0) { // ✅ POZWÓL NA 0
-        row.colKg = newValue as int;
-        print("🏋️ NOWA WARTOŚĆ: Ustawiono ${newValue}");
-      } else {
-        print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ WAGI: '$value' - ignorowanie");
-        return;
-      }
-    }
-  });
-  
-  print("🏋️ PO: colKg=${row.colKg}");
-  _updateRowInProvider(row, exerciseNumber);
-}
-void _addNewSet(String exerciseNumber) {
-  print("➕ Dodawanie nowej serii dla ćwiczenia: $exerciseNumber");
-  
-  setState(() {
-    // Znajdź ćwiczenie
-    final exerciseIndex = _workingPlan.rows.indexWhere(
-      (rowData) => rowData.exercise_number == exerciseNumber
-    );
-    
-    if (exerciseIndex != -1) {
-      final exerciseData = _workingPlan.rows[exerciseIndex];
-      final newStepNumber = exerciseData.data.length + 1;
-      
-      //  SKOPIUJ PARAMETRY Z OSTATNIEJ SERII
-      final lastSet = exerciseData.data.isNotEmpty 
-          ? exerciseData.data.last 
-          : null;
-      
-      final newSet = ExerciseRow(
-        colStep: newStepNumber,
-        colKg: lastSet?.colKg ?? 0, // Skopiuj wagę z ostatniej serii
-        colRepMin: lastSet?.colRepMin ?? 0, // Skopiuj powtórzenia
-        colRepMax: lastSet?.colRepMax ?? 0,
-        isChecked: false,
-        isFailure: false,
-        rowColor: Colors.transparent,
-        isUserModified: false,
+    print("🏋️ PO: colKg=${row.colKg}");
+    _updateRowInProvider(row, exerciseNumber);
+  }
+
+  void _addNewSet(String exerciseNumber) {
+    print("➕ Dodawanie nowej serii dla ćwiczenia: $exerciseNumber");
+
+    setState(() {
+      // Znajdź ćwiczenie
+      final exerciseIndex = _workingPlan.rows.indexWhere(
+        (rowData) => rowData.exercise_number == exerciseNumber,
       );
-      
-      // Dodaj nową serię
-      _workingPlan.rows[exerciseIndex].data.add(newSet);
-      
-      print("✅ Dodano serię ${newStepNumber} do ćwiczenia $exerciseNumber");
-      print("   - Waga: ${newSet.colKg}");
-      print("   - Powtórzenia: ${newSet.colRepMin}-${newSet.colRepMax}");
-    }
-  });
-  
-  _updateCurrentWorkoutPlan();
 
-}
+      if (exerciseIndex != -1) {
+        final exerciseData = _workingPlan.rows[exerciseIndex];
+        final newStepNumber = exerciseData.data.length + 1;
 
-// ✅ USUŃ OSTATNIĄ SERIĘ Z ĆWICZENIA
-void _removeLastSet(String exerciseNumber) {
-  print("➖ Usuwanie ostatniej serii z ćwiczenia: $exerciseNumber");
-  
-  setState(() {
-    // Znajdź ćwiczenie
-    final exerciseIndex = _workingPlan.rows.indexWhere(
-      (rowData) => rowData.exercise_number == exerciseNumber
-    );
-    
-    if (exerciseIndex != -1) {
-      final exerciseData = _workingPlan.rows[exerciseIndex];
-      
-      //  SPRAWDŹ CZY MOŻNA USUNĄĆ (MINIMUM 1 SERIA)
-      if (exerciseData.data.length > 1) {
-        final removedSet = exerciseData.data.removeLast();
-        print("✅ Usunięto serię ${removedSet.colStep} z ćwiczenia $exerciseNumber");
-        
-        //  PRZENUMERUJ POZOSTAŁE SERIE
-        for (int i = 0; i < exerciseData.data.length; i++) {
-          exerciseData.data[i].colStep = i + 1;
-        }
-        
-        print("✅ Przenumerowano serie: ${exerciseData.data.map((s) => s.colStep).join(', ')}");
-      } else {
-        print("⚠️ Nie można usunąć - musi pozostać przynajmniej 1 seria");
-        return; // Nie kontynuuj
+        //  SKOPIUJ PARAMETRY Z OSTATNIEJ SERII
+        final lastSet =
+            exerciseData.data.isNotEmpty ? exerciseData.data.last : null;
+
+        final newSet = ExerciseRow(
+          colStep: newStepNumber,
+          colKg: lastSet?.colKg ?? 0, // Skopiuj wagę z ostatniej serii
+          colRepMin: lastSet?.colRepMin ?? 0, // Skopiuj powtórzenia
+          colRepMax: lastSet?.colRepMax ?? 0,
+          isChecked: false,
+          isFailure: false,
+          rowColor: Colors.transparent,
+          isUserModified: false,
+        );
+
+        // Dodaj nową serię
+        _workingPlan.rows[exerciseIndex].data.add(newSet);
+
+        print("✅ Dodano serię ${newStepNumber} do ćwiczenia $exerciseNumber");
+        print("   - Waga: ${newSet.colKg}");
+        print("   - Powtórzenia: ${newSet.colRepMin}-${newSet.colRepMax}");
       }
-    }
-  });
-  
-  _updateCurrentWorkoutPlan();
-  
+    });
 
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text('Removed last set'),
-      backgroundColor: Colors.red,
-      duration: Duration(seconds: 1),
-    ),
-  );
-}
+    _updateCurrentWorkoutPlan();
+  }
+
+  // ✅ USUŃ OSTATNIĄ SERIĘ Z ĆWICZENIA
+  void _removeLastSet(String exerciseNumber) {
+    print("➖ Usuwanie ostatniej serii z ćwiczenia: $exerciseNumber");
+
+    setState(() {
+      // Znajdź ćwiczenie
+      final exerciseIndex = _workingPlan.rows.indexWhere(
+        (rowData) => rowData.exercise_number == exerciseNumber,
+      );
+
+      if (exerciseIndex != -1) {
+        final exerciseData = _workingPlan.rows[exerciseIndex];
+
+        //  SPRAWDŹ CZY MOŻNA USUNĄĆ (MINIMUM 1 SERIA)
+        if (exerciseData.data.length > 1) {
+          final removedSet = exerciseData.data.removeLast();
+          print(
+            "✅ Usunięto serię ${removedSet.colStep} z ćwiczenia $exerciseNumber",
+          );
+
+          //  PRZENumeruj POZOSTAŁE SERIE
+          for (int i = 0; i < exerciseData.data.length; i++) {
+            exerciseData.data[i].colStep = i + 1;
+          }
+
+          print(
+            "✅ Przenumerowano serie: ${exerciseData.data.map((s) => s.colStep).join(', ')}",
+          );
+        } else {
+          print("⚠️ Nie można usunąć - musi pozostać przynajmniej 1 seria");
+          return; // Nie kontynuuj
+        }
+      }
+    });
+
+    _updateCurrentWorkoutPlan();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Removed last set'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 1),
+      ),
+    );
+  }
 
   void _onToggleRowFailure(ExerciseRow row, String exerciseNumber) {
     setState(() {
@@ -694,136 +750,158 @@ void _removeLastSet(String exerciseNumber) {
     _updateRowInProvider(row, exerciseNumber);
   }
 
-void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
-  print("🔍 _onRepChanged: value='$value', exerciseNumber=$exerciseNumber");
-  print("🔍 _onRepChanged PRZED: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
-  
-  setState(() {
-    final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
-    
-    if (value.isEmpty) {
-      // ✅ PUSTE POLE - OZNACZ ŻE UŻYTKOWNIK USUNĄŁ WARTOŚĆ
-      row.isUserModified = false;
-      
-      // ✅ PRZYWRÓĆ ORYGINALNĄ TYLKO JEŚLI JEST DOSTĘPNA
-      final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
-      if (originalRow != null) {
-        row.colRepMin = originalRow.colRepMin;
-        if (repsType == RepsType.single) {
-          row.colRepMax = originalRow.colRepMax;
-        }
-        print("🔍 PUSTE POLE: Przywrócono oryginalną wartość: ${originalRow.colRepMin}");
-      } else {
-        // ✅ BRAK ORYGINALNYCH DANYCH - ZOSTAW OBECNĄ WARTOŚĆ
-        print("🔍 PUSTE POLE: Brak oryginalnych danych - pozostawiam obecną");
-      }
-    } else {
-      // ✅ WPROWADZONA WARTOŚĆ - ZAWSZE USTAW I OZNACZ JAKO MODYFIKACJĘ
-      final newValue = int.tryParse(value) ?? 0;
-      if (newValue >= 0) { // ✅ POZWÓL NA 0
-        row.isUserModified = true;
-        row.colRepMin = newValue;
-        
-        if (repsType == RepsType.single) {
-          row.colRepMax = newValue;
-        }
-        
-        print("🔍 NOWA WARTOŚĆ: Ustawiono ${newValue}, isUserModified=true");
-      } else {
-        print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ: '$value' - ignorowanie");
-        return;
-      }
-    }
-  });
-  
-  print("🔍 _onRepChanged PO: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}");
-  _updateRowInProvider(row, exerciseNumber);
-}
-  void _updateRowInProvider(ExerciseRow row, String exerciseNumber) {
-    ref.read(workoutPlanStateProvider.notifier).updateRow(
-      _workingPlan.id, //  UŻYJ ID KOPII ROBOCZEJ
-      ExerciseRowState(
-        colStep: row.colStep,
-        colKg: row.colKg,
-        colRepMin: row.colRepMin,
-        colRepMax: row.colRepMax,
-        isChecked: row.isChecked,
-        isFailure: row.isFailure,
-        exerciseNumber: exerciseNumber,
-      ),
+  void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
+    print("🔍 _onRepChanged: value='$value', exerciseNumber=$exerciseNumber");
+    print(
+      "🔍 _onRepChanged PRZED: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}",
     );
+
+    setState(() {
+      final repsType = ref.read(exerciseRepsTypeProvider(exerciseNumber));
+
+      if (value.isEmpty) {
+        //  PUSTE POLE - OZNACZ ŻE UŻYTKOWNIK USUNĄŁ WARTOŚĆ
+        row.isUserModified = false;
+
+        // ✅ PRZYWRÓĆ ORYGINALNĄ TYLKO JEŚLI JEST DOSTĘPNA
+        final originalRow = _getOriginalRowData(exerciseNumber, row.colStep);
+        if (originalRow != null) {
+          row.colRepMin = originalRow.colRepMin;
+          if (repsType == RepsType.single) {
+            row.colRepMax = originalRow.colRepMax;
+          }
+          print(
+            "🔍 PUSTE POLE: Przywrócono oryginalną wartość: ${originalRow.colRepMin}",
+          );
+        } else {
+          // ✅ BRAK ORYGINALNYCH DANYCH - ZOSTAW OBECNĄ WARTOŚĆ
+          print("🔍 PUSTE POLE: Brak oryginalnych danych - pozostawiam obecną");
+        }
+      } else {
+        //  WPROWADZONA WARTOŚĆ - ZAWSZE USTAW I OZNACZ JAKO MODYFIKACJĘ
+        final newValue = int.tryParse(value) ?? 0;
+        if (newValue >= 0) {
+          // ✅ POZWÓL NA 0
+          row.isUserModified = true;
+          row.colRepMin = newValue;
+
+          if (repsType == RepsType.single) {
+            row.colRepMax = newValue;
+          }
+
+          print("🔍 NOWA WARTOŚĆ: Ustawiono ${newValue}, isUserModified=true");
+        } else {
+          print("⚠️ NIEPRAWIDŁOWA WARTOŚĆ: '$value' - ignorowanie");
+          return;
+        }
+      }
+    });
+
+    print(
+      "🔍 _onRepChanged PO: colRepMin=${row.colRepMin}, isUserModified=${row.isUserModified}",
+    );
+    _updateRowInProvider(row, exerciseNumber);
   }
 
-  void _goEditPlan(){
-    print('Edytuj plan');
-  }
-  void _addSingleExerciseToPlan(Exercise exercise) {
-  final exerciseExists = _workingPlan.rows.any(
-    (rowData) => rowData.exercise_number == exercise.id,
-  );
-  
-  if (!exerciseExists) {
-    setState(() {
-      final newRow = ExerciseRowsData(
-        exercise_number: exercise.id,
-        exercise_name: exercise.name,
-        notes: '',
-        rep_type: RepsType.single,
-        data: [
-          ExerciseRow(
-            colStep: 1,
-            colKg: 0,
-            colRepMin: 0,
-            colRepMax: 0,
-            isChecked: false,
-            isFailure: false,
-            rowColor: Colors.transparent,
-            isUserModified: false,
+  void _updateRowInProvider(ExerciseRow row, String exerciseNumber) {
+    ref
+        .read(workoutPlanStateProvider.notifier)
+        .updateRow(
+          _workingPlan.id, //  UŻYJ ID KOPII ROBOCZEJ
+          ExerciseRowState(
+            colStep: row.colStep,
+            colKg: row.colKg,
+            colRepMin: row.colRepMin,
+            colRepMax: row.colRepMax,
+            isChecked: row.isChecked,
+            isFailure: row.isFailure,
+            exerciseNumber: exerciseNumber,
           ),
-        ],
-      );
-      _workingPlan.rows.add(newRow);
-    });
-    
-    _updateCurrentWorkoutPlan();
-    
-    print('✅ Dodano ćwiczenie: ${exercise.name}');
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Added ${exercise.name} to plan'),
-        backgroundColor: Colors.green,
-      ),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${exercise.name} already exists in plan'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+        );
   }
+
+ void _goEditPlan() {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (ctx) => PlanCreation(
+        planToEdit: _workingPlan,
+      ),
+    ),
+  );
 }
+  void _addSingleExerciseToPlan(Exercise exercise) {
+    final exerciseExists = _workingPlan.rows.any(
+      (rowData) => rowData.exercise_number == exercise.id,
+    );
+
+    if (!exerciseExists) {
+      setState(() {
+        final newRow = ExerciseRowsData(
+          exercise_number: exercise.id,
+          exercise_name: exercise.name,
+          notes: '',
+          rep_type: RepsType.single,
+          data: [
+            ExerciseRow(
+              colStep: 1,
+              colKg: 0,
+              colRepMin: 0,
+              colRepMax: 0,
+              isChecked: false,
+              isFailure: false,
+              rowColor: Colors.transparent,
+              isUserModified: false,
+            ),
+          ],
+        );
+        _workingPlan.rows.add(newRow);
+      });
+
+      _updateCurrentWorkoutPlan();
+
+      print('✅ Dodano ćwiczenie: ${exercise.name}');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Added ${exercise.name} to plan'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${exercise.name} already exists in plan'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
 
   //  KOŃCZENIE TRENINGU - PRZYWRÓĆ ORYGINAŁ
   void _endWorkout(BuildContext context) {
     //  ZNAJDŹ I ZASTĄP PLAN W PROVIDERZE ORYGINALNYM
-    final planIndex = ref.read(exercisePlanProvider).indexWhere(
-      (plan) => plan.id == widget.plan.id
-    );
-    
+    final planIndex = ref
+        .read(exercisePlanProvider)
+        .indexWhere((plan) => plan.id == widget.plan.id);
+
     if (planIndex != -1) {
-      final currentPlans = List<ExerciseTable>.from(ref.read(exercisePlanProvider));
-      currentPlans[planIndex] = _createDeepCopyOfPlan(_originalPlan); // ✅ PRZYWRÓĆ ORYGINAŁ
+      final currentPlans = List<ExerciseTable>.from(
+        ref.read(exercisePlanProvider),
+      );
+      currentPlans[planIndex] = _createDeepCopyOfPlan(
+        _originalPlan,
+      ); // ✅ PRZYWRÓĆ ORYGINAŁ
       ref.read(exercisePlanProvider.notifier).state = currentPlans;
     }
-    
+
     _isWorkoutActive = false;
     Navigator.of(context).pop();
   }
 
   void _removeExerciseFromWorkoutState(String exerciseNumber) {
-    ref.read(workoutPlanStateProvider.notifier).removeExercise(_workingPlan.id, exerciseNumber);
+    ref
+        .read(workoutPlanStateProvider.notifier)
+        .removeExercise(_workingPlan.id, exerciseNumber);
   }
 
   @override
@@ -835,16 +913,16 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     );
 
     int totalSteps = 0;
-  int currentStep = 0;
+    int currentStep = 0;
 
     for (final rowData in _workingPlan.rows) {
-    for (final row in rowData.data) {
-      totalSteps++;
-      if (row.isChecked) {
-        currentStep++;
+      for (final row in rowData.data) {
+        totalSteps++;
+        if (row.isChecked) {
+          currentStep++;
+        }
       }
     }
-  }
 
     return Container(
       decoration: BoxDecoration(
@@ -858,84 +936,91 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
         body: Stack(
           children: [
             SafeArea(
-              
-              
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    //  APP BAR - UŻYJ KOPII ROBOCZEJ
-                    PlanSelectedAppBar(
-                      onBack: () {
-                         print("🔙 PlanSelectedAppBar onBack wywołany");
-    
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: PlanSelectedAppBar(
+                        onBack: () {
+                          print("🔙 PlanSelectedAppBar onBack wywołany");
+
                           if (widget.isWorkoutMode && _isWorkoutActive) {
-                            // ✅ W TRYBIE TRENINGU - ZAPISZ DANE I USTAW GLOBALNY STAN
-                            print("🔽 Tryb treningu - zapisuję dane i minimalizuję");
+                            //  W TRYBIE TRENINGU - ZAPISZ DANE I USTAW GLOBALNY STAN
+                            //  print("🔽 Tryb treningu - zapisuję dane i minimalizuję");
                             _saveAllRowsToProvider();
-                            
-                            ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
+
+                            ref
+                                .read(currentWorkoutPlanProvider.notifier)
+                                .state = Currentworkout(
                               plan: _workingPlan,
                               exercises: widget.exercises,
                             );
-                            
-                            print("✅ Globalny stan treningu ustawiony");
+
+                            //  print("✅ Globalny stan treningu ustawiony");
                           } else if (widget.isReadOnly) {
                             //  TRYB READONLY - TYLKO POWRÓT, BEZ ZAPISYWANIA
-                            print("🔙 Tryb ReadOnly - zwykły powrót bez zapisywania");
+                            // print("🔙 Tryb ReadOnly - zwykły powrót bez zapisywania");
                             // Navigator.pop jest obsługiwany w hidingScreen
                           } else {
-                            // ✅ TRYB EDYCJI - ZAPISZ ZMIANY
+                            //  TRYB EDYCJI - ZAPISZ ZMIANY
                             print("💾 Tryb edycji - zapisuję zmiany");
                             _saveAllRowsToProvider();
                           }
                         },
-                      planName: _workingPlan.exercise_table, 
-                      getTime: (ctx) {
-                        if (widget.isWorkoutMode && _isWorkoutActive) {
-                          
-                          final currentTime = ref.watch(workoutProvider);
-                          final minutes = currentTime ~/ 60;
-                          final seconds = currentTime % 60;
-                          return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
-                        }
-                        return "00:00";
-                      },
-                      getCurrentStep: () => currentStep,
-                      onSavePlan: _savePlan,
-                      isReadOnly: widget.isReadOnly,
-                      isWorkoutMode: widget.isWorkoutMode,
-                      onEditPlan: _goEditPlan,
-                    ),
-                    
-                    const SizedBox(height: 10),
-                   // _buildProgressBar(totalSteps, currentStep),
-                   ProgressBar(
-                     totalSteps: totalSteps,
-                     currentStep: currentStep,
-                     isReadOnly: widget.isReadOnly,
-                   ),
+                        planName: _workingPlan.exercise_table,
+                        //   getTime: (ctx) {
+                        //     if (widget.isWorkoutMode && _isWorkoutActive) {
 
-                    const SizedBox(height: 16),
-                    
-                    // ✅ EXERCISE CARDS - UŻYJ KOPII ROBOCZEJ
-                    Expanded(
-                      child: ListView(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          ..._buildExerciseCards(groupedData),
-                          const SizedBox(height: 24),
-                          ActionButton(
-                            isReadOnly: widget.isReadOnly,
-                            isWorkoutMode: widget.isWorkoutMode,
-                           // onAddExercises: _addMultipleExercisesToPlan,
-                            addMultipleExercisesToPlan: _addMultipleExercisesToPlan,
-                            onEndWorkout: () => _endWorkout(context),
-                            plan: _workingPlan,
-                            exercises: widget.exercises.isNotEmpty
-                                ? widget.exercises.first
-                                : Exercise(
+                        //     final currentTime = ref.watch(workoutProvider);
+                        //     final minutes = currentTime ~/ 60;
+                        //     final seconds = currentTime % 60;
+                        //     return "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+                        //   }
+                        //   return "00:00";
+                        // },
+                        // getCurrentStep: () => currentStep,
+                        onSavePlan: _savePlan,
+                        isReadOnly: widget.isReadOnly,
+                        isWorkoutMode: widget.isWorkoutMode,
+                        onEditPlan: _goEditPlan,
+                      ),
+                    ),
+
+                   SliverToBoxAdapter(
+                child: Consumer(
+                  builder: (context, ref, _) => PlanStatsBar(
+                    isWorkoutMode: widget.isWorkoutMode,
+                    isWorkoutActive: _isWorkoutActive,
+                    sets: currentStep,
+                  ),
+                ),
+              ),
+
+                    SliverToBoxAdapter(
+                      child: ProgressBar(
+                        totalSteps: totalSteps,
+                        currentStep: currentStep,
+                        isReadOnly: widget.isReadOnly,
+                      ),
+                    ),
+
+                    SliverList(
+                      delegate: SliverChildListDelegate([
+                        ..._buildExerciseCards(groupedData),
+                        const SizedBox(height: 24),
+                        ActionButton(
+                          isReadOnly: widget.isReadOnly,
+                          isWorkoutMode: widget.isWorkoutMode,
+                          addMultipleExercisesToPlan:
+                              _addMultipleExercisesToPlan,
+                          onEndWorkout: () => _endWorkout(context),
+                          plan: _workingPlan,
+                          exercises:
+                              widget.exercises.isNotEmpty
+                                  ? widget.exercises.first
+                                  : Exercise(
                                     exerciseId: '',
                                     name: '',
                                     bodyParts: [],
@@ -945,17 +1030,15 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
                                     secondaryMuscles: [],
                                     instructions: [],
                                   ),
-                          ),
-                          //_buildActionButtons(),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 24),
+                      ]),
                     ),
                   ],
                 ),
               ),
             ),
-           // _buildDrawerButton(),
+            // _buildDrawerButton(),
           ],
         ),
       ),
@@ -967,21 +1050,26 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
     final startHour = timerController.startHour ?? 0;
     final startMinute = timerController.startMinute ?? 0;
 
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (ctx) => SaveWorkout(
-        allTime: timerController.currentTime,
-        allReps: calculateTotalReps(_workingPlan), //  KOPIA ROBOCZA
-        allWeight: calculateTotalVolume(_workingPlan), //  KOPIA ROBOCZA
-        startHour: startHour,
-        startMinute: startMinute,
-        planName: _workingPlan.exercise_table, //  KOPIA ROBOCZA
-        onEndWorkout: () => _endWorkout(context),
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (ctx) => SaveWorkout(
+              allTime: timerController.currentTime,
+              allReps: calculateTotalReps(_workingPlan), //  KOPIA ROBOCZA
+              allWeight: calculateTotalVolume(_workingPlan), //  KOPIA ROBOCZA
+              startHour: startHour,
+              startMinute: startMinute,
+              planName: _workingPlan.exercise_table, //  KOPIA ROBOCZA
+              onEndWorkout: () => _endWorkout(context),
+            ),
       ),
-    ));
+    );
   }
 
-  List<Widget> _buildExerciseCards(Map<String, List<ExerciseRowsData>> groupedData) {
- // final originalRanges = _getOriginalRanges(); 
+  List<Widget> _buildExerciseCards(
+    Map<String, List<ExerciseRowsData>> groupedData,
+  ) {
+    // final originalRanges = _getOriginalRanges();
     return groupedData.entries.map((entry) {
       final exerciseName = entry.key;
       final exerciseRows = entry.value;
@@ -989,60 +1077,83 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
 
       final matchingExercise = widget.exercises.firstWhere(
         (ex) => ex.id == firstRow.exercise_number, // POPRAWIONA LOGIKA
-        orElse: () => Exercise(
-          exerciseId: firstRow.exercise_number,
-          name: exerciseName,
-          bodyParts: [],
-          equipments: [],
-          gifUrl: '',
-          targetMuscles: [],
-          secondaryMuscles: [],
-          instructions: [], 
-          //id: '',
-        ),
+        orElse:
+            () => Exercise(
+              exerciseId: firstRow.exercise_number,
+              name: exerciseName,
+              bodyParts: [],
+              equipments: [],
+              gifUrl: '',
+              targetMuscles: [],
+              secondaryMuscles: [],
+              instructions: [],
+              //id: '',
+            ),
       );
 
       return PlanSelectedCard(
         exerciseId: firstRow.exercise_number,
         exerciseName: exerciseName,
-        headerCellTextStep: ExerciseTableHelpers.buildHeaderCell(context, "Step"),
-        headerCellTextKg: ExerciseTableHelpers.buildHeaderCell(context, "Weight"),
-        headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(context, "Reps"),
+        headerCellTextStep: ExerciseTableHelpers.buildHeaderCell(
+          context,
+          "Step",
+        ),
+        headerCellTextKg: ExerciseTableHelpers.buildHeaderCell(
+          context,
+          "Weight",
+        ),
+        headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(
+          context,
+          "Reps",
+        ),
         notes: firstRow.notes,
         isReadOnly: widget.isReadOnly,
-        onAddSet: widget.isReadOnly ? null : (exerciseNumber) => _addNewSet(exerciseNumber),
+        onAddSet:
+            widget.isReadOnly
+                ? null
+                : (exerciseNumber) => _addNewSet(exerciseNumber),
         onRemoveSet: widget.isReadOnly ? null : _removeLastSet,
         setsCount: firstRow.data.length,
-        onReplaceExercise: widget.isReadOnly ? null : () => _replaceExercise(firstRow.exercise_number),
+        onReplaceExercise:
+            widget.isReadOnly
+                ? null
+                : () => _replaceExercise(firstRow.exercise_number),
         exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
-            exerciseRows,
-            context,
-            onKgChanged: (row, value, exerciseNumber) => _onKgChanged(row, value, exerciseNumber),
-            onRepChanged: (row, value, exerciseNumber) => _onRepChanged(row, value, exerciseNumber),
-            onToggleChecked: (row, exerciseNumber) => _onToggleRowChecked(row, exerciseNumber),
-            onToggleFailure: (row, exerciseNumber) => _onToggleRowFailure(row, exerciseNumber),
-            ref: ref, //  DODAJ REF
-           getOriginalRange: _getOriginalRange, // PRZEKAŻ ORYGINALNE ZAKRESY
+          exerciseRows,
+          context,
+          onKgChanged:
+              (row, value, exerciseNumber) =>
+                  _onKgChanged(row, value, exerciseNumber),
+          onRepChanged:
+              (row, value, exerciseNumber) =>
+                  _onRepChanged(row, value, exerciseNumber),
+          onToggleChecked:
+              (row, exerciseNumber) => _onToggleRowChecked(row, exerciseNumber),
+          onToggleFailure:
+              (row, exerciseNumber) => _onToggleRowFailure(row, exerciseNumber),
+          ref: ref, //  DODAJ REF
+          getOriginalRange: _getOriginalRange, // PRZEKAŻ ORYGINALNE ZAKRESY
           isReadOnly: widget.isReadOnly,
-          ),
+        ),
         onNotesChanged: (value) {
           setState(() {
             final updatedRow = ExerciseRowsData(
-              rep_type:  RepsType.single, // Placeholder, adjust as needed
+              rep_type: RepsType.single, // Placeholder, adjust as needed
               exercise_name: exerciseName,
               exercise_number: firstRow.exercise_number,
               data: firstRow.data,
               notes: value,
             );
-            
+
             final index = groupedData[exerciseName]!.indexOf(firstRow);
             if (index != -1) {
               groupedData[exerciseName]![index] = updatedRow;
             }
           });
         },
-        onTap: () => _openInfoExercise(matchingExercise), 
-        deleteExerciseCard: () => _deleteExerciseFromPlan(firstRow.exercise_number),
+        onTap: () => _openInfoExercise(matchingExercise),
+        deleteExerciseCard:
+            () => _deleteExerciseFromPlan(firstRow.exercise_number),
       );
     }).toList();
   }
@@ -1057,7 +1168,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
 
   // Widget _buildExerciseCard(String exerciseName, List<ExerciseRowsData> exercises) {
   // final exerciseData = exercises.first;
-  
+
   // return Card(
   //   margin: const EdgeInsets.only(bottom: 16),
   //   child: Column(
@@ -1079,7 +1190,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   //           ),
   //         ),
   //       ),
-        
+
   //       // TABLE
   //       Table(
   //         columnWidths: const {
@@ -1102,7 +1213,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   //                 ExerciseTableHelpers.buildHeaderCell(context, 'Done'),
   //             ],
   //           ),
-            
+
   //           // DATA ROWS
   //           ...ExerciseTableHelpers.buildExerciseTableRows(
   //             exercises,
@@ -1117,7 +1228,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   //           ),
   //         ],
   //       ),
-        
+
   //       // ✅ PRZYCISKI NA DOLE TABELI
   //       if (!widget.isReadOnly)
   //         Container(
@@ -1140,7 +1251,7 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   //                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
   //                 ),
   //               ),
-                
+
   //               // USUŃ SERIĘ
   //               if (exerciseData.data.length > 1)
   //                 ElevatedButton.icon(
@@ -1160,6 +1271,3 @@ void _onRepChanged(ExerciseRow row, String value, String exerciseNumber) {
   //   ),
   // );
 }
-
-
-

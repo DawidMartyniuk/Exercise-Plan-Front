@@ -103,7 +103,7 @@ class PlanCardMoreOption extends ConsumerWidget {
 
   void _handleMenuSelection(String value, BuildContext context, WidgetRef ref) {
     switch (value) {
-      case 'show_plan': // ✅ DODAJ OBSŁUGĘ SHOW PLAN
+      case 'show_plan': 
         if (onShowPlan != null) onShowPlan!();
         break;
       case 'edit':

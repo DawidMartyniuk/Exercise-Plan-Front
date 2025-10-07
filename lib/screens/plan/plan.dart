@@ -23,6 +23,7 @@ class PlanScreen extends ConsumerStatefulWidget {
     return _PlanScreenState();
   }
 }
+
 class _PlanScreenState extends ConsumerState<PlanScreen> {
   final ScrollController _mainScrollController = ScrollController();
   Timer? _timer;
@@ -152,19 +153,19 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     });
   }
 
-  void editPlan(ExerciseTable plan, BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder:
-            (ctx) => PlanCreation(
-              // exerciseTable: plan,
-            ),
-      ),
-    );
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("in develop.")));
-  }
+  // void editPlan(ExerciseTable plan, BuildContext context) {
+  //   Navigator.of(context).push(
+  //     MaterialPageRoute(
+  //       builder:
+  //           (ctx) => PlanCreation(
+  //             // exerciseTable: plan,
+  //           ),
+  //     ),
+  //   );
+  //   ScaffoldMessenger.of(
+  //     context,
+  //   ).showSnackBar(SnackBar(content: Text("in develop.")));
+  // }
 
   void _openPlanForEditing(ExerciseTable plan) {
     print(
@@ -257,19 +258,7 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       ),
       body: exerciseState.when(
         // ✅ LOADING STATE
-        loading:
-            () =>
-             Center(
-              
-              // child: Column(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     CircularProgressIndicator(),
-              //     SizedBox(height: 16),
-              //     Text('Loading exercises...'),
-              //   ],
-              // ),
-            ),
+        loading: () => Center(),
 
         // ✅ ERROR STATE
         error:
@@ -398,7 +387,9 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               onPressed: () {},
               icon: Icon(Icons.add),
               style: TextButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25.0),
                 ),
@@ -473,24 +464,24 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
               ),
             )
           else
-            ...planGroups.map((group) => PlanGroupWidget(
-              key: ValueKey("group_${group.name}_${exercisePlans.length}"),
-              group: group,
-              allExercises: allExercises,
-              onStartWorkout: (plan, filteredExercises) {
-                if (timerController.currentTime == 0) {
-                  timerController.startTimer();
-                }
-                ref.read(currentWorkoutPlanProvider.notifier).state = Currentworkout(
-                  plan: plan,
-                  exercises: filteredExercises,
-                );
-                showPlanBottomSheet(context, plan, allExercises);
-              },
-              onDeletePlan: deletePlan,
-              onCreateNewPlan: () => openPlanCreation(context),
-              mainScrollController: _mainScrollController,
-            )),
+            ...planGroups.map(
+              (group) => PlanGroupWidget(
+                key: ValueKey("group_${group.name}_${exercisePlans.length}"),
+                group: group,
+                allExercises: allExercises,
+                onStartWorkout: (plan, filteredExercises) {
+                  if (timerController.currentTime == 0) {
+                    timerController.startTimer();
+                  }
+                  ref.read(currentWorkoutPlanProvider.notifier).state =
+                      Currentworkout(plan: plan, exercises: filteredExercises);
+                  showPlanBottomSheet(context, plan, allExercises);
+                },
+                onDeletePlan: deletePlan,
+                onCreateNewPlan: () => openPlanCreation(context),
+                mainScrollController: _mainScrollController,
+              ),
+            ),
         ],
       ),
     );
