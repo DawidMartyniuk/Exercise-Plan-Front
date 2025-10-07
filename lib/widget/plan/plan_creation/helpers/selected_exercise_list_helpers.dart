@@ -129,7 +129,8 @@ class SelectedExerciseListHelpers {
   /// Loguje dane ćwiczenia do konsoli
   static void logExerciseData(String exerciseId, Exercise exercise, {
     Map<String, List<TextEditingController>>? kgControllers,
-    Map<String, List<TextEditingController>>? repControllers,
+    Map<String, List<TextEditingController>>? repMinControllers,
+    Map<String, List<TextEditingController>>? repMaxControllers,
     Map<String, TextEditingController>? notesControllers,
   }) {
     print("🔍 Exercise Data for: ${exercise.name} (ID: $exerciseId)");
@@ -140,14 +141,28 @@ class SelectedExerciseListHelpers {
         print("  Set ${i + 1}: ${kgControllers[exerciseId]![i].text}kg");
       }
     }
-    
-    if (repControllers?[exerciseId] != null) {
-      print("🔄 REP values:");
-      for (int i = 0; i < repControllers![exerciseId]!.length; i++) {
-        print("  Set ${i + 1}: ${repControllers[exerciseId]![i].text} reps");
+
+    // Logowanie repMin i repMax razem
+    final repMinList = repMinControllers?[exerciseId];
+    final repMaxList = repMaxControllers?[exerciseId];
+    if (repMinList != null && repMaxList != null) {
+      print("🔄 REP values (min-max):");
+      final setCount = repMinList.length < repMaxList.length ? repMinList.length : repMaxList.length;
+      for (int i = 0; i < setCount; i++) {
+        print("  Set ${i + 1}: ${repMinList[i].text} - ${repMaxList[i].text} reps");
+      }
+    } else if (repMinList != null) {
+      print("🔄 REP MIN values:");
+      for (int i = 0; i < repMinList.length; i++) {
+        print("  Set ${i + 1}: ${repMinList[i].text} reps");
+      }
+    } else if (repMaxList != null) {
+      print("🔄 REP MAX values:");
+      for (int i = 0; i < repMaxList.length; i++) {
+        print("  Set ${i + 1}: ${repMaxList[i].text} reps");
       }
     }
-    
+
     if (notesControllers?[exerciseId] != null) {
       print("💾 Notes: '${notesControllers![exerciseId]!.text}'");
     }

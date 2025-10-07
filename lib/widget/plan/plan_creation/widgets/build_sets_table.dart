@@ -15,12 +15,14 @@ class BuildSetsTable extends ConsumerWidget {
   final Map<String, List<TextEditingController>>? kgControllers;
   final Map<String, List<TextEditingController>>? repMinControllers; // ✅ ZMIENIONE z repControllers
   final Map<String, List<TextEditingController>>? repMaxControllers;
+  final String repsType;
 
   const BuildSetsTable({
     Key? key,
     required this.exerciseId,
     required this.exerciseName,
     required this.rows,
+    required this.repsType,
     this.kgControllers,
     this.repMinControllers, //  ZMIENIONE
     this.repMaxControllers,
@@ -296,6 +298,7 @@ class BuildSetsTable extends ConsumerWidget {
                     exerciseId: exerciseId,
                     repControllers: repMinControllers,
                     repMaxControllers: repMaxControllers,
+                    repsType: repsType, // <-- przekazujesz globalny typ!
                     ref: ref,
                   )
                 ],

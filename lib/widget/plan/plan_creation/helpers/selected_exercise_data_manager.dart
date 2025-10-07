@@ -10,30 +10,40 @@ class SelectedExerciseDataManager {
   Map<String, List<TextEditingController>> repMaxControllers = {};
 
   //  POPRAWIONA INICJALIZACJA
-  void initializeExerciseData(Exercise exercise, Function(String, int, String, String) updateRowCallback) {
+  void initializeExerciseData(
+    Exercise exercise,
+    Function(String, int, String, String) updateRowCallback, {
+    List<Map<String, String>>? initialRows,
+    String? initialNotes,
+    String? repType,
+  }) {
     final exerciseId = exercise.id;
-    
+
     if (exerciseRows.containsKey(exerciseId)) {
       print("🔄 Exercise data already exists for ${exercise.name}");
       return;
     }
 
     print("🆕 Initializing exercise data for: ${exercise.name}");
-    
+
+    // Jeśli przekazano initialRows (np. z planu), użyj ich, w przeciwnym razie domyślny set
+    final rows = initialRows ?? [
+      {
+        "colStep": "1",
+        "colKg": "0",
+        "colRepMin": "0",
+        "colRepMax": "0",
+        "repsType": repType ?? "single"
+      }
+    ];
+
     exerciseRows[exerciseId] = {
       "exerciseName": exercise.name,
-      "notes": "",
-      "rows": [
-        {
-          "colStep": "1", 
-          "colKg": "0", 
-          "colRepMin": "0", 
-          "colRepMax": "0",
-          "repsType": "single"
-        }
-      ]
+      "notes": initialNotes ?? "",
+      "rows": rows,
+      "rep_type": repType ?? (rows.isNotEmpty ? (rows[0]["repsType"] ?? "single") : "single"),
     };
-    
+
     if (!notesControllers.containsKey(exerciseId)) {
       notesControllers[exerciseId] = TextEditingController();
     }
@@ -63,6 +73,14 @@ class SelectedExerciseDataManager {
       repMaxControllers[exerciseId] = [repMaxController];
     }
   }
+  void setRepsTypeForExercise(String exerciseId, String repsType) {
+  if (!exerciseRows.containsKey(exerciseId)) return;
+  final rows = exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
+  for (final row in rows) {
+    row["repsType"] = repsType;
+  }
+  exerciseRows[exerciseId]!["rep_type"] = repsType; // <- zapisz globalnie!
+}
 
   //  METODA DO ZWRACANIA DANYCH Z POPRAWNYMI NAZWAMI
   Map<String, List<Map<String, String>>> getTableData(List<Exercise> exercises) {
@@ -202,17 +220,14 @@ class SelectedExerciseDataManager {
       rows[rowIndex][field] = value;
       
       // AUTOMATYCZNIE AKTUALIZUJ REPS TYPE Z ZABEZPIECZENIAMI
-      if (field == "colRepMin" || field == "colRepMax") {
-        final repMinStr = rows[rowIndex]["colRepMin"] ?? "0";
-        final repMaxStr = rows[rowIndex]["colRepMax"] ?? "0";
-        
-        final repMin = int.tryParse(repMinStr) ?? 0;
-        final repMax = int.tryParse(repMaxStr) ?? 0;
-        
-        rows[rowIndex]["repsType"] = (repMin != repMax) ? "range" : "single";
-        
-        print("🔄 Updated repsType for $exerciseId set ${rowIndex + 1}: ${rows[rowIndex]["repsType"]}");
-      }
+      // if (field == "colRepMin" || field == "colRepMax") {
+      //   final repMinStr = rows[rowIndex]["colRepMin"] ?? "0";
+      //   final repMaxStr = rows[rowIndex]["colRepMax"] ?? "0";
+      //   final repMin = int.tryParse(repMinStr) ?? 0;
+      //   final repMax = int.tryParse(repMaxStr) ?? 0;
+      //   rows[rowIndex]["repsType"] = (repMin != repMax) ? "range" : "single";
+      //   print("🔄 Updated repsType for $exerciseId set ${rowIndex + 1}: ${rows[rowIndex]["repsType"]}");
+      // }
       
       print("📝 Updated $exerciseId set ${rowIndex + 1}: $field = '$value'");
     } catch (e) {

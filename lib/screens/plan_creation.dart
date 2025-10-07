@@ -209,7 +209,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
       final row = rowData.data[setIndex];
       
       final isRange = row.colRepMin != row.colRepMax;
-      final repsType = isRange ? 'range' : 'single';
+      final repsType = rowData.rep_type.toDbString();
       
       final setData = {
         "colStep": row.colStep.toString(),
@@ -283,6 +283,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
                   "colKg": row.colKg.toString(),
                   "colRepMin": row.colRepMin.toString(),
                   "colRepMax": row.colRepMax.toString(),
+                  "repsType":  rowData.rep_type.toDbString(),
                 },
               )
               .toList();

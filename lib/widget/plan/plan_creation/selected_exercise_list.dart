@@ -135,12 +135,17 @@ void resetDragging() {
       final row = rows[i];
       print("  📋 Set ${i + 1}: colKg=${row['colKg']}, colRepMin=${row['colRepMin']}, colRepMax=${row['colRepMax']}, colStep=${row['colStep']}, repsType=${row['repsType']}");
     }
+      _dataManager.exerciseRows.remove(exerciseId);
+      _dataManager.kgControllers.remove(exerciseId);
+      _dataManager.repMinControllers.remove(exerciseId);
+      _dataManager.repMaxControllers.remove(exerciseId);
       
       // Załaduj dane do managera
       _dataManager.exerciseRows[exerciseId] = {
         "exerciseName": exercise.name,
         "notes": notes,
         "rows": List<Map<String, String>>.from(rows),
+         "rep_type": rows.isNotEmpty ? (rows[0]["repsType"] ?? "single") : "single", // <-- DODAJ TO!
       };
       
       print("  ✅ Data loaded to manager for $exerciseId");
@@ -194,24 +199,37 @@ void resetDragging() {
     Map<String, String> exerciseNotes,
   ) {
     print("🔄 Loading initial data externally...");
+
+      _dataManager.exerciseRows.clear();
+  _dataManager.kgControllers.clear();
+  _dataManager.repMinControllers.clear();
+  _dataManager.repMaxControllers.clear();
+  _dataManager.notesControllers.clear();
     
-    for (final entry in exerciseData.entries) {
-      final exerciseId = entry.key;
-      final rows = entry.value;
-      
-      // Załaduj dane setów
-      _dataManager.exerciseRows[exerciseId] = {
-        "exerciseName": widget.exercises.firstWhere(
-          (ex) => ex.id == exerciseId,
-          orElse: () => widget.exercises.first,
-        ).name,
-        "notes": exerciseNotes[exerciseId] ?? "",
-        "rows": List<Map<String, String>>.from(rows),
-      };
-      
-      // Stwórz kontrolery dla istniejących setów
-      _createControllersForExistingData(exerciseId, rows, exerciseNotes[exerciseId] ?? "");
-    }
+   for (final entry in exerciseData.entries) {
+  final exerciseId = entry.key;
+  final rows = entry.value;
+
+  // DODAJ TO:
+  _dataManager.exerciseRows.remove(exerciseId);
+  _dataManager.kgControllers.remove(exerciseId);
+  _dataManager.repMinControllers.remove(exerciseId);
+  _dataManager.repMaxControllers.remove(exerciseId);
+
+  // Załaduj dane setów
+  _dataManager.exerciseRows[exerciseId] = {
+    "exerciseName": widget.exercises.firstWhere(
+      (ex) => ex.id == exerciseId,
+      orElse: () => widget.exercises.first,
+    ).name,
+    "notes": exerciseNotes[exerciseId] ?? "",
+    "rows": List<Map<String, String>>.from(rows),
+    "rep_type": rows.isNotEmpty ? (rows[0]["repsType"] ?? "single") : "single",
+  };
+
+  // Stwórz kontrolery dla istniejących setów
+  _createControllersForExistingData(exerciseId, rows, exerciseNotes[exerciseId] ?? "");
+}
     
     setState(() {
       // Trigger rebuild
@@ -231,53 +249,51 @@ void resetDragging() {
 
   //  TWORZENIE KONTROLERÓW DLA ISTNIEJĄCYCH DANYCH
   void _createControllersForExistingData(String exerciseId, List<Map<String, String>> rows, String notes) {
-    //  DISPOSE POPRZEDNICH KONTROLERÓW
+    // DISPOSE POPRZEDNICH KONTROLERÓW
     _dataManager.kgControllers[exerciseId]?.forEach((c) => c.dispose());
-    _dataManager.repMinControllers[exerciseId]?.forEach((c) => c.dispose()); //  ZMIENIONE
+    _dataManager.repMinControllers[exerciseId]?.forEach((c) => c.dispose());
     _dataManager.repMaxControllers[exerciseId]?.forEach((c) => c.dispose());
 
     _dataManager.kgControllers[exerciseId] = [];
-    _dataManager.repMinControllers[exerciseId] = []; // ZMIENIONE
+    _dataManager.repMinControllers[exerciseId] = [];
     _dataManager.repMaxControllers[exerciseId] = [];
-    
+
+    // USTAW repsType DLA KAŻDEGO SETA NA PODSTAWIE GLOBALNEGO rep_type
+    final repsType = _dataManager.exerciseRows[exerciseId]?["rep_type"] ?? "single";
+    for (final row in rows) {
+      row["repsType"] = repsType;
+    }
+
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
-      
       final kgValue = row["colKg"] ?? "0";
-      final repMinValue = row["colRepMin"] ?? "0"; // ZMIENIONE z colRep
+      final repMinValue = row["colRepMin"] ?? "0";
       final repMaxValue = row["colRepMax"] ?? row["colRepMin"] ?? "0";
-      final repsType = row["repsType"] ?? "single";
-      
-      print("  🎛️ Set ${i + 1} controllers: kg='$kgValue', repMin='$repMinValue', repMax='$repMaxValue', type='$repsType'");
-      
+
+      print("  🎛️ Set ${i + 1} controllers: kg='$kgValue', repMin='$repMinValue', repMax='$repMaxValue', type='${row["repsType"]}'");
+
       final kgController = TextEditingController(text: kgValue);
       kgController.addListener(() {
         print("  📝 KG changed for $exerciseId set ${i + 1}: ${kgController.text}");
         _updateRowValue(exerciseId, i, "colKg", kgController.text);
       });
       _dataManager.kgControllers[exerciseId]!.add(kgController);
-      
-      //  KONTROLER REP MIN (poprzednio rep)
+
       final repMinController = TextEditingController(text: repMinValue);
       repMinController.addListener(() {
         print("  📝 REP MIN changed for $exerciseId set ${i + 1}: ${repMinController.text}");
-        _updateRowValue(exerciseId, i, "colRepMin", repMinController.text); //  ZMIENIONE
+        _updateRowValue(exerciseId, i, "colRepMin", repMinController.text);
       });
-      _dataManager.repMinControllers[exerciseId]!.add(repMinController); //  ZMIENIONE
-    
+      _dataManager.repMinControllers[exerciseId]!.add(repMinController);
+
       final repMaxController = TextEditingController(text: repMaxValue);
       repMaxController.addListener(() {
         print("  📝 REP MAX changed for $exerciseId set ${i + 1}: ${repMaxController.text}");
         _updateRowValue(exerciseId, i, "colRepMax", repMaxController.text);
       });
       _dataManager.repMaxControllers[exerciseId]!.add(repMaxController);
-      
-      final currentRows = _dataManager.exerciseRows[exerciseId]!["rows"] as List<Map<String, String>>;
-      if (i < currentRows.length) {
-        currentRows[i]["repsType"] = repsType;
-      }
     }
-    
+
     _dataManager.notesControllers[exerciseId]?.dispose();
     _dataManager.notesControllers[exerciseId] = TextEditingController(text: notes);
     _dataManager.notesControllers[exerciseId]!.addListener(() {
@@ -363,6 +379,7 @@ void resetDragging() {
       exercise,
       _dataManager.kgControllers,
       _dataManager.repMinControllers,
+      _dataManager.repMaxControllers,
       _dataManager.notesControllers,
     );
     
@@ -371,6 +388,7 @@ void resetDragging() {
       exerciseId,
       _dataManager.kgControllers,
       _dataManager.repMinControllers,
+      _dataManager.repMaxControllers,
       _dataManager.notesControllers,
     );
 
@@ -408,7 +426,8 @@ void resetDragging() {
       exerciseRows: _dataManager.exerciseRows,
       notesControllers: _dataManager.notesControllers,
       kgControllers: _dataManager.kgControllers,
-      repControllers: _dataManager.repMinControllers,
+      repMinControllers: _dataManager.repMinControllers,
+      repMaxControllers: _dataManager.repMaxControllers,
       updateRowCallback: _updateRowValue,
       onStateChanged: () => setState(() {}),
     );
@@ -419,6 +438,7 @@ void resetDragging() {
       exerciseId,
       _dataManager.kgControllers,
       _dataManager.repMinControllers,
+      _dataManager.repMaxControllers,
       _dataManager.notesControllers,
     );
   }
@@ -610,6 +630,7 @@ void resetDragging() {
                   kgControllers: _dataManager.kgControllers,
                   repMinControllers: _dataManager.repMinControllers, // ✅ ZMIENIONE z repControllers
                   repMaxControllers: _dataManager.repMaxControllers,
+                  repsType: _dataManager.exerciseRows[exerciseId]?["rep_type"] ?? "single",
                 ),
                 const SizedBox(height: 12),
                 // Przyciski akcji dla setów

@@ -8,6 +8,7 @@ import 'package:work_plan_front/provider/reps_type_provider.dart';
 
 class RepsField extends StatelessWidget {
   //final TextEditingController controller;
+  final String repsType;
   final int setIndex;
   final WidgetRef ref;
   final String exerciseId;
@@ -17,6 +18,7 @@ class RepsField extends StatelessWidget {
   const RepsField({
     super.key,
     //required this.controller,
+ required this.repsType,
     required this.setIndex,
     required this.exerciseId,
     required this.repControllers,
@@ -26,8 +28,8 @@ class RepsField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentRepsType = ref.watch(exerciseRepsTypeProvider(exerciseId));
-
+  final currentRepsType = repsType == "range" ? RepsType.range : RepsType.single;
+  
     if (currentRepsType == RepsType.single) {
       // ✅ POJEDYNCZE POLE DLA SECONDS
       return Expanded(
