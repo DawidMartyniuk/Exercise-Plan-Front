@@ -7,6 +7,8 @@ class Exercise extends HiveObject {
   @HiveField(0)
   final String exerciseId; // ✅ ZMIANA: z 'id' na 'exerciseId'
 
+  final int? userId;
+
   @HiveField(1)
   final String name;
 
@@ -37,7 +39,7 @@ class Exercise extends HiveObject {
     required this.targetMuscles,
     required this.secondaryMuscles,
     required this.instructions,
-   
+    this.userId,
   });
 
   // ✅ GETTER dla kompatybilności
@@ -46,19 +48,21 @@ class Exercise extends HiveObject {
   String get equipment => equipments.isNotEmpty ? equipments.first : '';
   String get target => targetMuscles.isNotEmpty ? targetMuscles.first : '';
 
-  factory Exercise.fromJson(Map<String, dynamic> json) {
-    return Exercise(
-      
-      exerciseId: json['exerciseId']?.toString() ?? '',
-      name: json['name']?.toString() ?? '',
-      bodyParts: List<String>.from(json['bodyParts'] ?? []),
-      equipments: List<String>.from(json['equipments'] ?? []),
-      gifUrl: json['gifUrl']?.toString(),
-      targetMuscles: List<String>.from(json['targetMuscles'] ?? []),
-      secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? []),
-      instructions: List<String>.from(json['instructions'] ?? []),
-    );
-  }
+ factory Exercise.fromJson(Map<String, dynamic> json) {
+  return Exercise(
+    exerciseId: json['exerciseId']?.toString() ?? json['external_id']?.toString() ?? '',
+    userId: json['user_id'] is int
+        ? json['user_id']
+        : int.tryParse(json['user_id']?.toString() ?? ''),
+    name: json['name']?.toString() ?? '',
+    bodyParts: List<String>.from(json['bodyParts'] ?? json['body_parts'] ?? []),
+    equipments: List<String>.from(json['equipments'] ?? []),
+    gifUrl: json['gifUrl']?.toString() ?? json['gif_url']?.toString(),
+    targetMuscles: List<String>.from(json['targetMuscles'] ?? json['target_muscles'] ?? []),
+    secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? json['secondary_muscles'] ?? []),
+    instructions: List<String>.from(json['instructions'] ?? []),
+  );
+}
 
   Map<String, dynamic> toJson() {
     return {

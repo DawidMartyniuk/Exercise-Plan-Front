@@ -16,58 +16,53 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {
   Future<void> resetAndFetch() async {
     try {
       state = const AsyncValue.loading();
-     // await _exerciseService.clearCache();
+      // await _exerciseService.clearCache();
       await fetchExercises();
     } catch (e) {
       print("❌ Reset failed: $e");
       state = AsyncValue.error(e, StackTrace.current);
     }
   }
-  
 
-  Future<void> fetchExercises({bool forceRefresh = false}) async {
-      if (!forceRefresh && state.hasValue && state.value != null && state.value!.isNotEmpty) {
+Future<void> fetchExercises({bool forceRefresh = false}) async {
+  if (!forceRefresh &&
+      state.hasValue &&
+      state.value != null &&
+      state.value!.isNotEmpty) {
     print("✅ Ćwiczenia już są w providerze, nie pobieram ponownie");
     return;
   }
-    try {
-      print("🔄 ExerciseNotifier: Fetching exercises...");
-      
-      if (forceRefresh) {
-        state = const AsyncValue.loading();
-      }
-        final userId = await TokenStorage.getUserId();
-         final box = await Hive.openBox<Exercise>('user_exercises_$userId');
-      final exercises = await _exerciseService.getExercises();
-      
-      state = AsyncValue.data(exercises);
-      print("✅ ExerciseNotifier: Loaded ${exercises.length} exercises");
-    } catch (e) {
-      print("❌ Provider: Błąd ładowania ćwiczeń: $e");
-      state = AsyncValue.error(e, StackTrace.current);
+  try {
+    print("🔄 ExerciseNotifier: Fetching exercises...");
+
+    if (forceRefresh) {
+      state = const AsyncValue.loading();
     }
+    final userId = await TokenStorage.getUserId();
+    print("🔄 [ExerciseProvider] Otwieram box user_exercises_$userId");
+    final userBox = await Hive.openBox<Exercise>('user_exercises_$userId');
+    final userExercises = userBox.values.toList();
+
+    // Domyślne ćwiczenia (np. z assets/data/exercises.json lub innego boxa)
+    final defaultExercises = await _exerciseService.getExercises();
+
+    // Połącz, unikając duplikatów po exerciseId
+    final allExercisesMap = {
+      for (var e in defaultExercises) e.exerciseId: e,
+      for (var e in userExercises) e.exerciseId: e,
+    };
+    final allExercises = allExercisesMap.values.toList();
+
+    print("✅ [ExerciseProvider] Wczytano ${allExercises.length} ćwiczeń (łącznie domyślne + usera)");
+
+    state = AsyncValue.data(allExercises);
+    print("✅ ExerciseNotifier: Loaded ${allExercises.length} exercises");
+  } catch (e) {
+    print("❌ Provider: Błąd ładowania ćwiczeń: $e");
+    state = AsyncValue.error(e, StackTrace.current);
   }
-  
-  // ✅ USUŃ - TA METODA NIE ISTNIEJE W SERVICE
-  // Future<void> loadMoreExercises() async {
-  //   // USUNIĘTO - BRAK IMPLEMENTACJI W SERVICE
-  // }
+}
 
-  // ✅ ZMIEŃ NAZWĘ METODY
-  // Future<void> clearExercises() async {
-  //   try {
-  //     await _exerciseService.clearCache(); // ✅ UŻYJ ISTNIEJĄCEJ METODY
-  //     state = const AsyncValue.data([]);
-  //     print("🗑️ Provider: Wyczyszczono ćwiczenia");
-  //   } catch (e) {
-  //     print("❌ Provider: Błąd czyszczenia: $e");
-  //   }
-  // }
-
-  // ✅ USUŃ - TA METODA NIE ISTNIEJE W SERVICE
-  // Future<Map<String, int>> getStats() async {
-  //   return await _exerciseService.getExerciseStats();
-  // }
 }
 
 // ✅ DODAJ PROVIDER DLA SERVICE
@@ -76,6 +71,7 @@ final exerciseServiceProvider = Provider<ExerciseService>((ref) {
 });
 
 // ✅ POPRAW PROVIDER
-final exerciseProvider = StateNotifierProvider<ExerciseNotifier, AsyncValue<List<Exercise>>>(
-  (ref) => ExerciseNotifier(ref.read(exerciseServiceProvider)),
-);
+final exerciseProvider =
+    StateNotifierProvider<ExerciseNotifier, AsyncValue<List<Exercise>>>(
+      (ref) => ExerciseNotifier(ref.read(exerciseServiceProvider)),
+    );

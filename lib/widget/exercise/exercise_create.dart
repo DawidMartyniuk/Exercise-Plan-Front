@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:riverpod/src/framework.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/services/userExerciseService.dart';
@@ -18,16 +18,16 @@ import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 import 'package:flutter/foundation.dart'; 
 //import 'package:uuid/uuid.dart';
 //TODO: dostoswanie obrazka pod ramke
-class ExerciseCreate extends StatefulWidget {
+class ExerciseCreate extends ConsumerStatefulWidget {
   const ExerciseCreate({super.key});
 
   @override
-  State<StatefulWidget> createState() {
+  ConsumerState<ExerciseCreate> createState() {
     return _ExerciseCreateState();
   }
 }
 
-class _ExerciseCreateState extends State<ExerciseCreate> {
+class _ExerciseCreateState extends ConsumerState<ExerciseCreate> {
   File? _exerciseImage;
   String? _exerciseImageBase64;
   final ImagePicker _picker = ImagePicker();
@@ -235,20 +235,22 @@ Future<void> _pickImage() async {
       imageBase64: _exerciseImageBase64, // <-- DODAJ TO!
     );
     if (context.mounted) {
-      context.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+      ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
     }
     ToastUtils.showSaveSuccess(
       context,
       itemName: _nameExerciseController.text.trim(),
     );
     Navigator.of(context).pop();
-  } catch (e) {
-    ToastUtils.showErrorToast(
-      context: context,
-      title: "Błąd zapisu ćwiczenia",
-      message: e.toString(),
-    );
-  }
+ } catch (e, st) {
+  print("❌ Błąd podczas zapisu ćwiczenia: $e");
+  print(st);
+  ToastUtils.showErrorToast(
+    context: context,
+    title: "Błąd zapisu ćwiczenia",
+    message: e.toString(),
+  );
+}
 }
 
   @override
@@ -478,6 +480,6 @@ Future<void> _pickImage() async {
   }
 }
 
-extension on BuildContext {
-  read(AlwaysAliveRefreshable<ExerciseNotifier> notifier) {}
-}
+// extension on BuildContext {
+//   read(AlwaysAliveRefreshable<ExerciseNotifier> notifier) {}
+// }

@@ -205,7 +205,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     
                     const SizedBox(height: 20),
                     
-                    // ✅ BUTTONS Z ANIMACJĄ
+                    //  BUTTONS Z ANIMACJĄ
                     AnimatedButton(
                       delayMs: 1400,
                       animationType: ButtonAnimationType.bounce,

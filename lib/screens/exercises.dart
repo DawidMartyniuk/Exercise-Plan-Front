@@ -4,11 +4,16 @@ import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
+import 'package:work_plan_front/services/userExerciseService.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
+import 'package:work_plan_front/utils/token_storage.dart' as TokenStorage;
 import 'package:work_plan_front/widget/exercise/widget/body_part_grid_item.dart';
 import 'package:work_plan_front/widget/exercise/exercise_create.dart';
 import 'package:work_plan_front/widget/exercise/exercise_limit_upload.dart';
 import 'package:work_plan_front/widget/exercise/exercises_list.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 class ExercisesScreen extends ConsumerStatefulWidget {
   //TODO :Dodawanie własne ćwiczeń
@@ -35,17 +40,21 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   bool _isFavorite = false;
   bool _showOnlyFavorites = false;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final authResponse = ref.read(authProviderLogin);
-      if (authResponse != null) {
-        // Załaduj ćwiczenia tylko dla zalogowanego usera
-        await ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
-      }
-    });
-  }
+@override
+void initState() {
+  super.initState();
+ loadData();
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final authResponse = ref.read(authProviderLogin);
+    if (authResponse != null) {
+      final userId = await TokenStorage.getUserId();
+      print("🔄 [ExercisesScreen] fetchAndSaveUserExercises dla userId=$userId");
+      await userExerciseService().fetchAndSaveUserExercises(userId!);
+      await ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+    }
+  });
+}
+
 
   @override
   void dispose() {
@@ -96,8 +105,13 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     });
     print("Show only favorites: $_showOnlyFavorites");
   }
+  Future<void> loadData() async {
+  final res = await http.get(Uri.parse('http://127.0.0.1:8000/api/test-image'));
+  print("RES: ${res.body}");
+}
 
   void _showExrciseLimitUpload() async {
+     
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       useSafeArea: true,
       isScrollControlled: true,
@@ -128,6 +142,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    
+
     final authResponse = ref.watch(authProviderLogin);
     if (authResponse == null) {
       return Container(

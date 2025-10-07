@@ -75,30 +75,38 @@ class userExerciseService {
     }
   }
 
-  Future<List<dynamic>> fetchUserExercises() async {
-    // final token = await TokenStorage.getToken();
-    final response = await http.get(
-      Uri.parse('$_baseUrl$_exerciseUrl'),
-      headers: await getHeaders(),
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as List<dynamic>;
-    } else {
-      throw Exception('Failed to fetch exercises: ${response.body}');
-    }
+Future<List<dynamic>> fetchUserExercises() async {
+  print("🔄 [userExerciseService] fetchUserExercises: Pobieram z serwera...");
+  final response = await http.get(
+    Uri.parse('$_baseUrl$_exerciseUrl'),
+    headers: await getHeaders(),
+  );
+  print("🔄 [userExerciseService] Status code: ${response.statusCode}");
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body) as List<dynamic>;
+    print("✅ [userExerciseService] Otrzymano ${data.length} ćwiczeń z serwera");
+    return data;
+  } else {
+    print("❌ [userExerciseService] Błąd pobierania: ${response.body}");
+    throw Exception('Failed to fetch exercises: ${response.body}');
   }
+}
 
-  Future<List<Exercise>> fetchUserExercisesTyped() async {
-    final data = await fetchUserExercises();
-    return data.map((e) => Exercise.fromJson(e as Map<String, dynamic>)).toList();
-  }
-
+Future<List<Exercise>> fetchUserExercisesTyped() async {
+  print("🔄 [userExerciseService] fetchUserExercisesTyped: Mapuję na Exercise...");
+  final data = await fetchUserExercises();
+  final exercises = data.map((e) => Exercise.fromJson(e as Map<String, dynamic>)).toList();
+  print("✅ [userExerciseService] Zamapowano ${exercises.length} ćwiczeń");
+  return exercises;
+}
 
 Future<void> fetchAndSaveUserExercises(int userId) async {
+  print("🔄 [userExerciseService] fetchAndSaveUserExercises: userId=$userId");
   final exercises = await fetchUserExercisesTyped();
-  // Jeśli backend zwraca tylko ćwiczenia usera, nie musisz filtrować
+  print("💾 [userExerciseService] Zapisuję do Hive box: user_exercises_$userId");
   final box = await Hive.openBox<Exercise>('user_exercises_$userId');
   await box.clear();
   await box.addAll(exercises);
+  print("✅ [userExerciseService] Zapisano ${exercises.length} ćwiczeń do Hive");
 }
 }
