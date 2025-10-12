@@ -141,6 +141,8 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
             ),
           );
         }
+        final sortedSessions = List.of(trainingSessions)
+          ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
 
         // ✅ POKAŻ KARTY TRENINGÓW
         return Container(
@@ -162,10 +164,10 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
               ListView.separated(
                 shrinkWrap: true,
                 physics: NeverScrollableScrollPhysics(),
-                itemCount: trainingSessions.length > 20 ? 20 : trainingSessions.length, //  MAKSYMALNIE 5 KART
+                itemCount: sortedSessions.length > 20 ? 20 : sortedSessions.length, //  MAKSYMALNIE 5 KART
                 separatorBuilder: (context, index) => SizedBox(height: 8),
                 itemBuilder: (context, index) {
-                  final session = trainingSessions[index];
+                  final session = sortedSessions[index];
                   return WorkoutCard(
                     trainingSession: session,
                     showAsFullScreen: false,

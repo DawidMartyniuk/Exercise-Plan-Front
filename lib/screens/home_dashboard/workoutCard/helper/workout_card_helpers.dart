@@ -5,23 +5,23 @@ import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/provider/exercise_provider.dart';
 
 mixin WorkoutCardHelpers {
-  // ✅ FORMATOWANIE
-  String formatDuration(int durationMinutes) {
-    final hours = durationMinutes ~/ 60;
-    final minutes = durationMinutes % 60;
-    if (hours > 0) return "${hours}h ${minutes}m";
-    return "${minutes}m";
+  
+  // ✅ FORMATOWANIE DURATION (ZOSTAJE TUTAJ)
+  String formatDuration(int durationInSeconds) {
+    final hours = durationInSeconds ~/ 3600;
+    final minutes = (durationInSeconds % 3600) ~/ 60;
+    final seconds = durationInSeconds % 60;
+    
+    if (hours > 0) {
+      return "${hours}h ${minutes}m";
+    } else if (minutes > 0) {
+      return "${minutes}m ${seconds}s";
+    } else {
+      return "${seconds}s";
+    }
   }
 
-  String getDaysAgo(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date).inDays;
-    if (difference == 0) return "Today";
-    if (difference == 1) return "Yesterday";
-    return "$difference days ago";
-  }
-
-
+  // ✅ OBLICZENIA STATYSTYK
   int getTotalSets(TrainingSession session) {
     return session.exercises
         .map((ex) => ex.sets.length)
@@ -35,11 +35,12 @@ mixin WorkoutCardHelpers {
             .fold(0, (sum, reps) => sum + reps))
         .fold(0, (sum, reps) => sum + reps);
   }
+  
   int getTotalExercises(TrainingSession session) {
     return session.exercises.length;
   }
 
-  // ✅ POBIERANIE DANYCH
+  // ✅ POBIERANIE DANYCH Z PROVIDERÓW
   String getUserName(WidgetRef ref) {
     try {
       final authResponse = ref.watch(authProviderLogin);
@@ -54,7 +55,6 @@ mixin WorkoutCardHelpers {
     try {
       final exercisePlans = ref.watch(exercisePlanProvider);
       
-      // ✅ SPRAWDŹ CZY session.exerciseTableId NIE JEST NULL
       if (session.exerciseTableId == null) {
         return session.exercise_table_name?.isNotEmpty == true 
             ? session.exercise_table_name 
@@ -119,21 +119,4 @@ mixin WorkoutCardHelpers {
     final authResponse = ref.watch(authProviderLogin);
     return authResponse?.user.avatar ?? '';
   }
-
-  // int getTotalSets(TrainingSession trainingSession) {
-  //   return trainingSession.exercises
-  //       .map((ex) => ex.sets.length)
-  //       .fold(0, (sum, sets) => sum + sets);
-  // }
-
-  // int getTotalReps(TrainingSession trainingSession) {
-  //   return trainingSession.exercises
-  //       .map(
-  //         (ex) => ex.sets
-  //             .map((set) => set.actualReps)
-  //             .fold(0, (sum, reps) => sum + reps),
-  //       )
-  //       .fold(0, (sum, reps) => sum + reps);
-  // }
-  
 }

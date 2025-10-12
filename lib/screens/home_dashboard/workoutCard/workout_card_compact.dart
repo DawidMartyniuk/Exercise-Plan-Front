@@ -160,6 +160,7 @@ void _deleteTrainingSession(int sessionId) {
               sets: "${getTotalSets(session)}",
               reps: "${getTotalReps(session)}",
               isCompact: true,
+              trainingSession: widget.trainingSession,
             ),
             
             SizedBox(height: 8),

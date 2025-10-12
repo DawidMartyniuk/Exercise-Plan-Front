@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 class CardMoreOption extends ConsumerWidget {
   final VoidCallback? onInfo;
   final VoidCallback? onDelete;
+  final VoidCallback? onEdit;
   final String? itemName; // Nazwa elementu do wyświetlenia w dialogu
 
   const CardMoreOption({
+    this.onEdit,
     super.key,
     this.onInfo,
     this.onDelete,
+
     this.itemName,
   });
 

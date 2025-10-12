@@ -72,6 +72,7 @@ class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
               sets: "${getTotalSets(session)}",
               reps: "${getTotalReps(session)}",
               isCompact: false,
+              trainingSession: trainingSession,
             ),
             
             SizedBox(height: 16),
@@ -81,8 +82,8 @@ class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
             ...session.exercises.map((exercise) => 
               ListTile(
                 leading: Container(
-                  width: 40, // ✅ WIĘKSZA IKONA
-                  height: 40, // ✅ WIĘKSZA IKONA
+                  width: 40, //  WIĘKSZA IKONA
+                  height: 40, //  WIĘKSZA IKONA
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(

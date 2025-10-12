@@ -73,7 +73,15 @@ class WorkoutCardInfo extends ConsumerWidget with WorkoutCardHelpers {
               
               // ✅ WORKOUT SUMMARY - WRAP W TRY-CATCH
               _buildSafeWidget(
-                () => WorkoutInfoSummary(trainingSession: trainingSession),
+                () => 
+               WorkoutStats(
+                duration: formatDuration(trainingSession.duration),
+                volume: "${trainingSession.totalWeight.toInt()}kg",
+                sets: "${getTotalSets(trainingSession)}",
+                reps: "${getTotalReps(trainingSession)}",
+                isCompact: false, // ✅ PEŁNY LAYOUT (2x2 grid)\
+                trainingSession: trainingSession,
+              ),
                 "Error loading workout summary",
                 context,
               ),
@@ -95,7 +103,7 @@ class WorkoutCardInfo extends ConsumerWidget with WorkoutCardHelpers {
     );
   }
 
-  // ✅ HELPER DO BEZPIECZNEGO RENDEROWANIA WIDGETÓW
+  // HELPER DO BEZPIECZNEGO RENDEROWANIA WIDGETÓW
   Widget _buildSafeWidget(Widget Function() builder, String errorMessage, BuildContext context) {
     try {
       return builder();
