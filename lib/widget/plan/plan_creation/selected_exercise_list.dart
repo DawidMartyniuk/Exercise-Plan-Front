@@ -309,7 +309,7 @@ void resetDragging() {
    if (widget.exercises.length != _reorderedExercises.length ||
       !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
     
-    // ✅ UŻYJ PostFrameCallback ZAMIAST setState
+    //  UŻYJ PostFrameCallback ZAMIAST setState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {
@@ -330,7 +330,7 @@ void resetDragging() {
   }
   }
 
-  // ✅ METODY AKCJI
+  //  METODY AKCJI
   void _reorderExercises(int oldIndex, int newIndex) {
     setState(() {
       if (newIndex > oldIndex) {

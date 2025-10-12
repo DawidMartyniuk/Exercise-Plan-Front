@@ -16,7 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 class ExercisesScreen extends ConsumerStatefulWidget {
-  //TODO :Dodawanie własne ćwiczeń
+  //TODO :usuwanie oraz edycja ćwiczeń
   final bool isSelectionMode;
   final String? title;
   final Function(List<Exercise>)? onMultipleExercisesSelected;
@@ -301,25 +301,25 @@ void initState() {
                       ).colorScheme.primary.withAlpha(50),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Tap an exercise to add it to your plan',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    // child: Row(
+                    //   children: [
+                    //     Icon(
+                    //       Icons.info_outline,
+                    //       color: Theme.of(context).colorScheme.primary,
+                    //     ),
+                    //     SizedBox(width: 8),
+                    //     Expanded(
+                    //       child: Text(
+                    //         'Tap an exercise to add it to your plan',
+                    //         style: Theme.of(
+                    //           context,
+                    //         ).textTheme.bodyMedium?.copyWith(
+                    //           color: Theme.of(context).colorScheme.onSurface,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // ),
                   ),
                 ],
                 if (_showOnlyFavorites) ...[

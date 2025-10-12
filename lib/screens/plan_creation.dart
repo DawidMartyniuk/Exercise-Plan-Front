@@ -498,133 +498,85 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
     Map<String, dynamic> savedData,
   ) async {
     print("🔄 Starting exercise replacement process for: ${oldExercise.name}");
-    print("🔄 Old exercise ID: ${oldExercise.id}");
-    print("🔄 Saved data: $savedData");
 
-    //  ZAPISZ DANE DO PRZYWRÓCENIA PÓŹNIEJ
     _pendingReplacementData = savedData;
     _oldExerciseIdForReplacement = oldExercise.id;
 
-    //  USUŃ STARE ĆWICZENIE Z LISTY
     setState(() {
       selectedExercise.removeWhere((exercise) => exercise.id == oldExercise.id);
     });
 
-    //  PRZEJDŹ DO EKRANU WYBORU ĆWICZENIA
-    final result = await Navigator.of(context).push<dynamic>(
-      MaterialPageRoute(
-        builder:
-            (ctx) => ExercisesScreen(
-              isSelectionMode: true,
-              title: 'Zamień ćwiczenie: ${oldExercise.name}',
-              onMultipleExercisesSelected: (exercises) {
-                print('Otrzymano ${exercises.length} ćwiczeń do zamiany');
-              },
-            ),
-      ),
-    );
+    try {
+      final result = await Navigator.of(context).push<dynamic>(
+        MaterialPageRoute(
+          builder: (ctx) => ExercisesScreen(
+            isSelectionMode: true,
+            title: 'Zamień ćwiczenie: ${oldExercise.name}',
+            onSingleExerciseSelected: (exercise) {
+              print('Otrzymano ćwiczenie do zamiany: ${exercise.name}');
+              // ✅ NIE WYWOŁUJ Navigator.pop TUTAJ - zostanie wywołany w exercises_list.dart
+              Navigator.of(ctx).pop(exercise);
+            },
+          ),
+        ),
+      );
 
-    if (result != null && _pendingReplacementData != null) {
-      if (result is Exercise) {
-        print("🔄 Selected new exercise: ${result.name} (ID: ${result.id})");
+      // ✅ SPRAWDŹ CZY CONTEXT JEST MOUNTED
+      if (!mounted) {
+        print("❌ Context is not mounted after navigation");
+        return;
+      }
 
-        //  DODAJ NOWE ĆWICZENIE
-        setState(() {
-          selectedExercise.add(result);
-        });
+      if (result != null && _pendingReplacementData != null) {
+        if (result is Exercise) {
+          print("🔄 Selected new exercise: ${result.name} (ID: ${result.id})");
 
-        //  PRZYWRÓĆ ZAPISANE DANE PO ZBUDOWANIU WIDGETU
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          print("🔄 Attempting to restore data:");
-          print("  - New exercise ID: ${result.id}");
-          print("  - Old exercise ID: $_oldExerciseIdForReplacement");
-          print("  - Saved data: $_pendingReplacementData");
+          setState(() {
+            selectedExercise.add(result);
+          });
 
-          // UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState
-              ?.restoreExerciseDataWithTransfer(
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) { // ✅ DODAJ SPRAWDZENIE
+              _selectedExerciseListKey.currentState?.restoreExerciseDataWithTransfer(
                 newExerciseId: result.id,
                 oldExerciseId: _oldExerciseIdForReplacement!,
                 savedData: _pendingReplacementData!,
               );
 
-          //  WYCZYŚĆ TYMCZASOWE DANE
-          _pendingReplacementData = null;
-          _oldExerciseIdForReplacement = null;
+              _pendingReplacementData = null;
+              _oldExerciseIdForReplacement = null;
 
-          print(
-            "✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}",
-          );
+              print("✅ Exercise replacement completed: ${oldExercise.name} → ${result.name}");
 
-          // POKAŻ TOAST O POWODZENIU
-          ToastUtils.showSuccessToast(
-            context: context,
-            message: "Zamieniono ${oldExercise.name} na ${result.name}",
-          );
-        });
-      } else if (result is List<Exercise> && result.isNotEmpty) {
-        //  JEŚLI WYBRANO LISTĘ - WEŹ PIERWSZE ĆWICZENIE
-        final newExercise = result.first;
-        print(
-          "🔄 Selected first exercise from list: ${newExercise.name} (ID: ${newExercise.id})",
-        );
-
+              ToastUtils.showSuccessToast(
+                context: context,
+                message: "Zamieniono ${oldExercise.name} na ${result.name}",
+              );
+            }
+          });
+        }
+      } else {
+        // Użytkownik anulował - przywróć stare ćwiczenie
+        print("❌ Exercise replacement cancelled - restoring old exercise");
+        if (mounted) { // ✅ DODAJ SPRAWDZENIE
+          setState(() {
+            selectedExercise.add(oldExercise);
+          });
+        }
+      }
+    } catch (e) {
+      print("❌ Error in exercise replacement: $e");
+      if (mounted) { // ✅ DODAJ SPRAWDZENIE
+        // Przywróć stare ćwiczenie w przypadku błędu
         setState(() {
-          selectedExercise.add(newExercise);
+          selectedExercise.add(oldExercise);
         });
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          print("🔄 Attempting to restore data for list selection:");
-          print("  - New exercise ID: ${newExercise.id}");
-          print("  - Old exercise ID: $_oldExerciseIdForReplacement");
-
-          //  UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState
-              ?.restoreExerciseDataWithTransfer(
-                newExerciseId: newExercise.id,
-                oldExerciseId: _oldExerciseIdForReplacement!,
-                savedData: _pendingReplacementData!,
-              );
-
-          _pendingReplacementData = null;
-          _oldExerciseIdForReplacement = null;
-
-          print(
-            "✅ Exercise replacement completed: ${oldExercise.name} → ${newExercise.name}",
-          );
-
-          ToastUtils.showSuccessToast(
-            context: context,
-            message: "Zamieniono ${oldExercise.name} na ${newExercise.name}",
-          );
-        });
+        
+        ToastUtils.showErrorToast(
+          context: context,
+          message: "Błąd podczas zamiany ćwiczenia",
+        );
       }
-    } else {
-      //  UŻYTKOWNIK ANULOWAŁ - PRZYWRÓĆ STARE ĆWICZENIE
-      print("❌ Exercise replacement cancelled - restoring old exercise");
-      setState(() {
-        selectedExercise.add(oldExercise);
-      });
-      //  PRZYWRÓĆ DANE STAREGO ĆWICZENIA
-      if (_pendingReplacementData != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          //  UŻYJ POPRAWNEJ METODY restoreExerciseDataWithTransfer
-          _selectedExerciseListKey.currentState
-              ?.restoreExerciseDataWithTransfer(
-                newExerciseId: oldExercise.id,
-                oldExerciseId: _oldExerciseIdForReplacement!,
-                savedData: _pendingReplacementData!,
-              );
-
-          _pendingReplacementData = null;
-          _oldExerciseIdForReplacement = null;
-        });
-      }
-
-      ToastUtils.showInfoToast(
-        context: context,
-        message: "Anulowano zamianę ćwiczenia",
-      );
     }
   }
 
