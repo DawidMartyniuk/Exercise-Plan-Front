@@ -4,9 +4,11 @@ import 'package:work_plan_front/model/exercise_plan.dart';
 class Currentworkout {
   final ExerciseTable? plan;
   final List<Exercise> exercises;
+ // final bool active;
 
   Currentworkout({
     required this.plan,
     required this.exercises,
+  //  required this.active
   });
 }

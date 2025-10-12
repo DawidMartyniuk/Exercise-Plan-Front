@@ -9,7 +9,7 @@ import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
 class PlanItemWidget extends ConsumerWidget {
   final ExerciseTable plan;
   final List<Exercise> allExercises;
-  final Function(ExerciseTable, List<Exercise>) onStartWorkout;
+  final Future<void> Function(ExerciseTable, List<Exercise>) onStartWorkout; // ✅ ZMIEŃ NA ASYNC
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
 
   const PlanItemWidget({
@@ -108,7 +108,6 @@ class PlanItemWidget extends ConsumerWidget {
             SizedBox(height: 4),
             SizedBox(
               width: double.infinity,
-             // height:36,
               child: TextButton(
                 style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
@@ -116,9 +115,10 @@ class PlanItemWidget extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(25.0),
                   ),
                 ),
-                onPressed: () {
+                // ✅ ZMIEŃ onPressed NA ASYNC
+                onPressed: () async {
                   final filteredExercises = _getFilteredExercise(currentPlan, allExercises);
-                  onStartWorkout(currentPlan, filteredExercises);
+                  await onStartWorkout(currentPlan, filteredExercises);
                 },
                 child: Text(
                   "Start workout",

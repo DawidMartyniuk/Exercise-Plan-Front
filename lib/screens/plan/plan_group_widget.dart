@@ -10,10 +10,10 @@ import 'package:work_plan_front/screens/plan/widget/plan_item_widget.dart';
 class PlanGroupWidget extends ConsumerStatefulWidget {
   final PlanGroup group;
   final List<Exercise> allExercises;
-  final Function(ExerciseTable, List<Exercise>) onStartWorkout;
+  final Future<void> Function(ExerciseTable, List<Exercise>) onStartWorkout; // ✅ ZMIEŃ NA ASYNC
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
+  final VoidCallback onCreateNewPlan;
   final ScrollController mainScrollController;
-  final VoidCallback? onCreateNewPlan;
 
 
   static double? globalPointerDy;
@@ -27,7 +27,7 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
     required this.onStartWorkout,
     required this.onDeletePlan,
     required this.mainScrollController,
-    this.onCreateNewPlan,
+    required this.onCreateNewPlan,
   }) : super(key: key);
 
   @override

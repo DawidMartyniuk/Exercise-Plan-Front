@@ -12,6 +12,7 @@ import 'package:work_plan_front/provider/wordout_time_notifer.dart';
 import 'package:work_plan_front/screens/plan/plan_group_widget.dart';
 import 'package:work_plan_front/screens/plan/widget/dialog_to_add_group.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_selected_list.dart';
 import 'dart:async' show scheduleMicrotask, Timer;
 
@@ -50,27 +51,26 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     _mainScrollController.dispose();
     super.dispose();
   }
-
-  void openShowPlanScreen(
-    BuildContext context,
-    ExerciseTable plan,
-    List<Exercise> filteredExercises,
-  ) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder:
-            (ctx) => PlanSelectedList(
-              plan: plan,
-              exercises: filteredExercises,
-              onStartWorkout: () {
-                // Możesz dodać obsługę rozpoczęcia treningu
-              },
-              isReadOnly: false,
-              isWorkoutMode: true,
-            ),
+void _openWorkoutScreen(
+  BuildContext context,
+  ExerciseTable plan,
+  List<Exercise> filteredExercises,
+) {
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (ctx) => PlanSelectedList(
+        plan: plan,
+        exercises: filteredExercises,
+        onStartWorkout: () {
+          // Już uruchomione przez startWorkoutGlobal
+          print("✅ Trening już aktywny - kontynuuj");
+        },
+        isReadOnly: false,
+        isWorkoutMode: true,
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Exercise> getFilteredExercise(
     ExerciseTable plan,
@@ -153,19 +153,51 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
     });
   }
 
-  // void editPlan(ExerciseTable plan, BuildContext context) {
-  //   Navigator.of(context).push(
-  //     MaterialPageRoute(
-  //       builder:
-  //           (ctx) => PlanCreation(
-  //             // exerciseTable: plan,
-  //           ),
-  //     ),
-  //   );
-  //   ScaffoldMessenger.of(
-  //     context,
-  //   ).showSnackBar(SnackBar(content: Text("in develop.")));
-  // }
+Future<void> _startWorkout(
+  BuildContext context,
+  ExerciseTable plan,
+  List<Exercise> filteredExercises,
+) async {
+  try {
+    print("🏃‍♂️ Rozpoczynanie treningu dla planu: ${plan.exercise_table}");
+    
+    // ✅ UŻYJ GLOBALNEJ METODY
+    await startWorkoutGlobal(
+      context: context,
+      ref: ref,
+      plan: plan,
+      exercises: filteredExercises,
+    );
+      final currentWorkout = ref.read(currentWorkoutPlanProvider);
+
+    if (currentWorkout?.plan?.id == plan.id && context.mounted) {
+      print("✅ Trening potwierdzony - przechodzę do widoku treningu");
+      _openWorkoutScreen(context, plan, filteredExercises);
+    } else {
+      print("❌ Trening nie został uruchomiony - użytkownik anulował");
+      return;
+    }
+    
+    // ✅ PO POMYŚLNYM URUCHOMIENIU - PRZEJDŹ DO WIDOKU TRENINGU
+    // if (context.mounted) {
+    //   _openWorkoutScreen(context, plan, filteredExercises);
+    // }
+    
+    print("✅ Trening uruchomiony pomyślnie");
+  } catch (e) {
+    print("❌ Błąd uruchamiania treningu: $e");
+    
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to start workout: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
 
   void _openPlanForEditing(ExerciseTable plan) {
     print(
@@ -350,14 +382,14 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
       });
     }
 
-    void showPlanBottomSheet(
-      BuildContext context,
-      ExerciseTable plan,
-      List<Exercise> allExercises,
-    ) {
-      final filteredExercises = getFilteredExercise(plan, allExercises);
-      openShowPlanScreen(context, plan, filteredExercises);
-    }
+    // void showPlanBottomSheet(
+    //   BuildContext context,
+    //   ExerciseTable plan,
+    //   List<Exercise> allExercises,
+    // ) {
+    //   final filteredExercises = getFilteredExercise(plan, allExercises);
+    //   _openWorkoutScreen(context, plan, filteredExercises);
+    // }
 
     return Listener(
       onPointerMove: (event) {
@@ -469,13 +501,14 @@ class _PlanScreenState extends ConsumerState<PlanScreen> {
                 key: ValueKey("group_${group.name}_${exercisePlans.length}"),
                 group: group,
                 allExercises: allExercises,
-                onStartWorkout: (plan, filteredExercises) {
-                  if (timerController.currentTime == 0) {
-                    timerController.startTimer();
-                  }
-                  ref.read(currentWorkoutPlanProvider.notifier).state =
-                      Currentworkout(plan: plan, exercises: filteredExercises);
-                  showPlanBottomSheet(context, plan, allExercises);
+                onStartWorkout: (plan, filteredExercises) async {
+                    await _startWorkout(context, plan, filteredExercises);
+                  // if (timerController.currentTime == 0) {
+                  //   timerController.startTimer();
+                  // }
+                  // ref.read(currentWorkoutPlanProvider.notifier).state =
+                  //     Currentworkout(plan: plan, exercises: filteredExercises);
+                  // showPlanBottomSheet(context, plan, allExercises);
                 },
                 onDeletePlan: deletePlan,
                 onCreateNewPlan: () => openPlanCreation(context),
