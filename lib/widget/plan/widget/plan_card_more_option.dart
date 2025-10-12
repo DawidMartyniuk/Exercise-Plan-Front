@@ -7,12 +7,12 @@ import '../plan_works/components/plan_validation.dart';
 class PlanCardMoreOption extends ConsumerWidget {
   final VoidCallback? onDeletePlan;
   final ExerciseTable? plan;
-  final VoidCallback? onShowPlan; // ✅ DODAJ NOWY CALLBACK
+  final VoidCallback? onShowPlan; // 
 
   const PlanCardMoreOption({
     this.onDeletePlan,
     this.plan,
-    this.onShowPlan, // ✅ NOWY PARAMETR
+    this.onShowPlan, //
     super.key,
   });
 
