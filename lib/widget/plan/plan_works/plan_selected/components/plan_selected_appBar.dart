@@ -17,40 +17,37 @@ class PlanSelectedAppBar extends ConsumerWidget {
     super.key,
     required this.onBack,
     required this.planName,
-    //required this.getTime,
+
     required this.onSavePlan,
     required this.onEditPlan,
 
-    //required this.getCurrentStep,
+ 
     required this.isReadOnly,
     this.isWorkoutMode = false,
   });
 void hidingScreen(BuildContext context, WidgetRef ref) async {
   if (isWorkoutMode) {
-    // ✅ TRYB TRENINGU - MINIMALIZUJ I ZOSTAW TIMER AKTYWNY
     print("🔽 Minimalizowanie treningu - timer pozostaje aktywny globalnie");
-
     final currentWorkout = ref.read(currentWorkoutPlanProvider);
     if (currentWorkout == null) {
       print("⚠️ Brak globalnego stanu treningu - ustaw go przed minimalizacją");
     }
 
     if (onBack != null) {
-      onBack!(); // To zapisze dane do provider
+      onBack!(); 
     }
     
     Navigator.pop(context);
     print("🔙 Powrót do poprzedniego ekranu - trening zminimalizowany");
   } else {
-    //  TRYB PODGLĄDU/EDYCJI - NORMALNY POWRÓT
+
     print("🔙 Tryb ReadOnly/Edycji - normalny powrót");
     
     if (onBack != null) {
       print("🔙 Wywołuję callback onBack");
       onBack!();
     }
-    
-    //  ZAWSZE WYKONAJ Navigator.pop DLA TRYBU READONLY
+
     Navigator.pop(context);
     print("🔙 Navigator.pop() wykonany");
   }
@@ -61,7 +58,7 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
   Widget build(BuildContext context, WidgetRef ref) {
     return Row(
       children: [
-        // Przycisk powrotu
+       
         IconButton(
           icon: Icon(
         Icons.arrow_downward,
@@ -71,26 +68,8 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
         ),
 
         SizedBox(width: 16),
-        // Czas
-        // isReadOnly
-        //     ? Container()
-        //     : Row(
-        //       children: [
-        //         Icon(
-        //           Icons.timelapse,
-        //           color: Theme.of(context).colorScheme.onSurface,
-        //         ),
-        //         const SizedBox(width: 4),
-        //         Text(
-        //           getTime(context),
-        //           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-        //             color: Theme.of(context).colorScheme.onSurface,
-        //           ),
-        //         ),
-        //       ],
-        //     ),
         const SizedBox(width: 16),
-        // Nazwa planu na środku
+      
         Expanded(
           child: Center(
             child: Text(
@@ -106,8 +85,8 @@ void hidingScreen(BuildContext context, WidgetRef ref) async {
       
         
         SizedBox(
-          width: 70, //  STAŁA SZEROKOŚĆ
-          height: 36, //  STAŁA WYSOKOŚĆ
+          width: 70, 
+          height: 36, 
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color.fromARGB(255, 98, 204, 107),

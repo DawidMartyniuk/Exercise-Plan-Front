@@ -21,7 +21,8 @@ class PlanStatsBar extends ConsumerWidget {
       final currentTime = ref.watch(workoutProvider);
       final minutes = currentTime ~/ 60;
       final seconds = currentTime % 60;
-      timeText = "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
+      timeText =
+          "${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}";
     }
 
     return Container(
@@ -31,8 +32,10 @@ class PlanStatsBar extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Icon(Icons.timelapse, color: Theme.of(context).colorScheme.onSurface),
-          //const SizedBox(width: 8),
+          
+            Icon(Icons.timelapse, color: Theme.of(context).colorScheme.onSurface),
+          
+
           Text(timeText, style: Theme.of(context).textTheme.bodyLarge),
           const Spacer(),
           Text("Sets: $sets", style: Theme.of(context).textTheme.bodyLarge),
