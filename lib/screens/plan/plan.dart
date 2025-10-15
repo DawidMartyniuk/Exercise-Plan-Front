@@ -61,10 +61,6 @@ void _openWorkoutScreen(
       builder: (ctx) => PlanSelectedList(
         plan: plan,
         exercises: filteredExercises,
-        onStartWorkout: () {
-          // Już uruchomione przez startWorkoutGlobal
-          print("✅ Trening już aktywny - kontynuuj");
-        },
         isReadOnly: false,
         isWorkoutMode: true,
       ),

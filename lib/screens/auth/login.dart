@@ -11,6 +11,7 @@ import 'package:work_plan_front/screens/auth/send_reset_password.dart';
 import 'package:work_plan_front/screens/auth/widget/email_field.dart';
 import 'package:work_plan_front/screens/auth/widget/password_field.dart';
 import 'package:work_plan_front/screens/tabs.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 
 
@@ -139,140 +140,142 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
-    return Scaffold(
-      body: Center(
-        child: Padding(
-         padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50), // ✅ DODAJ PADDING
-          child: SingleChildScrollView(
-            child: AnimatedFormContainer(
-              title: "Login",
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // ✅ EMAIL FIELD Z ANIMACJĄ
-                    AnimatedField(
-                      animationType: AnimationType.scaleIn,
-                      delayMs: 800,
-                      child: EmailField(
-                        emailController: _emailController,
-                        isEnabled: !_isLoading,
+    return KeyboardDismisser(
+      child: Scaffold(
+        body: Center(
+          child: Padding(
+           padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50), // ✅ DODAJ PADDING
+            child: SingleChildScrollView(
+              child: AnimatedFormContainer(
+                title: "Login",
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ✅ EMAIL FIELD Z ANIMACJĄ
+                      AnimatedField(
+                        animationType: AnimationType.scaleIn,
+                        delayMs: 800,
+                        child: EmailField(
+                          emailController: _emailController,
+                          isEnabled: !_isLoading,
+                        ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 30),
-                    
-                    // ✅ PASSWORD FIELD Z ANIMACJĄ
-                    AnimatedField(
-                      animationType: AnimationType.scaleIn,
-                      delayMs: 1000,
-                      child: PasswordField(
-                        passwordController: _passwordController,
-                        isPasswordVisible: _isPasswordVisible,
-                        isEnabled: !_isLoading,
-                        togglePasswordVisibility: showPasswordText,
+                      
+                      const SizedBox(height: 30),
+                      
+                      // ✅ PASSWORD FIELD Z ANIMACJĄ
+                      AnimatedField(
+                        animationType: AnimationType.scaleIn,
+                        delayMs: 1000,
+                        child: PasswordField(
+                          passwordController: _passwordController,
+                          isPasswordVisible: _isPasswordVisible,
+                          isEnabled: !_isLoading,
+                          togglePasswordVisibility: showPasswordText,
+                        ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 15),
-                    
-                    // ✅ FORGOT PASSWORD Z ANIMACJĄ
-                    AnimatedField(
-                      animationType: AnimationType.scaleIn,
-                      delayMs: 1200,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          TextButton(
+                      
+                      const SizedBox(height: 15),
+                      
+                      // ✅ FORGOT PASSWORD Z ANIMACJĄ
+                      AnimatedField(
+                        animationType: AnimationType.scaleIn,
+                        delayMs: 1200,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (ctx) => SendResetPasswordScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                "Forgot Password",
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 20),
+                      
+                      //  BUTTONS Z ANIMACJĄ
+                      AnimatedButton(
+                        delayMs: 1400,
+                        animationType: ButtonAnimationType.bounce,
+                        buttons: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 5,
+                            ),
+                            onPressed: _isLoading ? null : () => _login(context),
+                            child: _isLoading
+                                ? SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Theme.of(context).colorScheme.onPrimary,
+                                      ),
+                                    ),
+                                  )
+                                : Text(
+                                    "Login Account",
+                                    style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                      color: Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                  ),
+                          ),
+                          
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.secondary,
+                              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 5,
+                            ),
                             onPressed: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (ctx) => SendResetPasswordScreen(),
+                                  builder: (ctx) => const RegisterScreen(),
                                 ),
                               );
                             },
                             child: Text(
-                              "Forgot Password",
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                color: Theme.of(context).colorScheme.primary,
+                              "Create Account",
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Theme.of(context).colorScheme.onSecondary,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    //  BUTTONS Z ANIMACJĄ
-                    AnimatedButton(
-                      delayMs: 1400,
-                      animationType: ButtonAnimationType.bounce,
-                      buttons: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 5,
-                          ),
-                          onPressed: _isLoading ? null : () => _login(context),
-                          child: _isLoading
-                              ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Theme.of(context).colorScheme.onPrimary,
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  "Login Account",
-                                  style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                                    color: Theme.of(context).colorScheme.onPrimary,
-                                  ),
-                                ),
-                        ),
-                        
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.secondary,
-                            foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 6,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 5,
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (ctx) => const RegisterScreen(),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            "Create Account",
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Theme.of(context).colorScheme.onSecondary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

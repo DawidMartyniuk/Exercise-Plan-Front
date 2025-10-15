@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:work_plan_front/screens/auth/widget/email_field.dart';
 import 'package:work_plan_front/screens/auth/widget/name_field.dart';
 import 'package:work_plan_front/screens/auth/widget/password_field.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -173,149 +174,151 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface, // ✅ DODAJ TŁO
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
-          child: SingleChildScrollView(
-            child: AnimatedFormContainer( // ✅ TERAZ BEZ SCAFFOLD
-              title: "Create Account",
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // ✅ PROFILE IMAGE
-                    AnimatedField(
-                      animationType: AnimationType.scaleIn,
-                      delayMs: 600,
-                      child: GestureDetector(
-                        onTap: _showImageSourceDialog,
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
-                          backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
-                          child: _profileImage == null
-                              ? Icon(
-                                  Icons.camera_alt,
-                                  size: 40,
-                                  color: Theme.of(context).colorScheme.primary,
-                                )
-                              : null,
+    return KeyboardDismisser(
+      child: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface, // ✅ DODAJ TŁO
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 45, vertical: 50),
+            child: SingleChildScrollView(
+              child: AnimatedFormContainer( // ✅ TERAZ BEZ SCAFFOLD
+                title: "Create Account",
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ✅ PROFILE IMAGE
+                      AnimatedField(
+                        animationType: AnimationType.scaleIn,
+                        delayMs: 600,
+                        child: GestureDetector(
+                          onTap: _showImageSourceDialog,
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
+                            backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                            child: _profileImage == null
+                                ? Icon(
+                                    Icons.camera_alt,
+                                    size: 40,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 20),
-
-                    // ✅ NAME FIELD
-                    AnimatedField(
-                      animationType: AnimationType.slideLeft,
-                      delayMs: 800,
-                      child: NameField(nameController: _nameController),
-                    ),
-                    
-                    const SizedBox(height: 30),
-
-                    // ✅ EMAIL FIELD
-                    AnimatedField(
-                      animationType: AnimationType.slideRight,
-                      delayMs: 1000,
-                      child: EmailField(emailController: _emailController),
-                    ),
-                    
-                    const SizedBox(height: 30),
-
-                    // ✅ PASSWORD FIELD
-                    AnimatedField(
-                      animationType: AnimationType.slideLeft,
-                      delayMs: 1200,
-                      child: PasswordField(
-                        passwordController: _passwordController,
-                        isPasswordVisible: _isPasswordVisible,
-                        labelText: "Password",
-                        isNewPassword: true,
-                        togglePasswordVisibility: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
+                      
+                      const SizedBox(height: 20),
+      
+                      // ✅ NAME FIELD
+                      AnimatedField(
+                        animationType: AnimationType.slideLeft,
+                        delayMs: 800,
+                        child: NameField(nameController: _nameController),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 30),
-
-                    // ✅ CONFIRM PASSWORD FIELD
-                    AnimatedField(
-                      animationType: AnimationType.slideRight,
-                      delayMs: 1400,
-                      child: PasswordField(
-                        passwordController: _confirmPasswordController,
-                        isPasswordVisible: _isConfirmPasswordVisible,
-                        labelText: "Confirm Password",
-                        confirmPassword: _passwordController.text,
-                        togglePasswordVisibility: () {
-                          setState(() {
-                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-                          });
-                        },
+                      
+                      const SizedBox(height: 30),
+      
+                      // ✅ EMAIL FIELD
+                      AnimatedField(
+                        animationType: AnimationType.slideRight,
+                        delayMs: 1000,
+                        child: EmailField(emailController: _emailController),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 30),
-
-                    // ✅ BUTTONS
-                    AnimatedButton(
-                      delayMs: 1600,
-                      animationType: ButtonAnimationType.bounce,
-                      buttons: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.secondary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (ctx) => LoginScreen(),
+                      
+                      const SizedBox(height: 30),
+      
+                      // ✅ PASSWORD FIELD
+                      AnimatedField(
+                        animationType: AnimationType.slideLeft,
+                        delayMs: 1200,
+                        child: PasswordField(
+                          passwordController: _passwordController,
+                          isPasswordVisible: _isPasswordVisible,
+                          labelText: "Password",
+                          isNewPassword: true,
+                          togglePasswordVisibility: () {
+                            setState(() {
+                              _isPasswordVisible = !_isPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 30),
+      
+                      // ✅ CONFIRM PASSWORD FIELD
+                      AnimatedField(
+                        animationType: AnimationType.slideRight,
+                        delayMs: 1400,
+                        child: PasswordField(
+                          passwordController: _confirmPasswordController,
+                          isPasswordVisible: _isConfirmPasswordVisible,
+                          labelText: "Confirm Password",
+                          confirmPassword: _passwordController.text,
+                          togglePasswordVisibility: () {
+                            setState(() {
+                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                            });
+                          },
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 30),
+      
+                      // ✅ BUTTONS
+                      AnimatedButton(
+                        delayMs: 1600,
+                        animationType: ButtonAnimationType.bounce,
+                        buttons: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.secondary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            );
-                          },
-                          child: Text(
-                            "Cancel",
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (ctx) => LoginScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "Cancel",
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                        ),
-                        // ✅ USUŃ SizedBox(width: 20) - Wrap sam zadba o spacing
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          // ✅ USUŃ SizedBox(width: 20) - Wrap sam zadba o spacing
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              register(context);
+                            },
+                            child: Text(
+                              "Create Account",
+                              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                                color: Colors.white,
+                              ),
                             ),
                           ),
-                          onPressed: () {
-                            register(context);
-                          },
-                          child: Text(
-                            "Create Account",
-                            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

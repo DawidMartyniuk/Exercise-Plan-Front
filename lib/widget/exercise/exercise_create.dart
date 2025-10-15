@@ -16,8 +16,6 @@ import 'package:work_plan_front/widget/exercise/widget/list_item_exercise_create
 import 'package:work_plan_front/widget/exercise/widget/muscle_part_grid_item.dart';
 import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 import 'package:flutter/foundation.dart'; 
-//import 'package:uuid/uuid.dart';
-//TODO: dostoswanie obrazka pod ramke
 class ExerciseCreate extends ConsumerStatefulWidget {
   const ExerciseCreate({super.key});
 
@@ -318,7 +316,6 @@ Future<void> _pickImage() async {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(

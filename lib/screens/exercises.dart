@@ -6,6 +6,7 @@ import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 import 'package:work_plan_front/services/userExerciseService.dart';
 import 'package:work_plan_front/theme/app_constants.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/utils/token_storage.dart' as TokenStorage;
 import 'package:work_plan_front/widget/exercise/widget/body_part_grid_item.dart';
 import 'package:work_plan_front/widget/exercise/exercise_create.dart';
@@ -177,288 +178,242 @@ void initState() {
     final exercises = ref.watch(exerciseProvider);
     final favoritesIds = ref.watch(favoriteExerciseProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: AnimatedContainer(
-            duration: Duration(milliseconds: 200),
-            child: Icon(
-              _showOnlyFavorites ? Icons.favorite : Icons.favorite_border,
-              color:
-                  _showOnlyFavorites
-                      ? Colors.red
-                      : Theme.of(context).colorScheme.primary,
-              size: 24,
+    return KeyboardDismisser(
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              child: Icon(
+                _showOnlyFavorites ? Icons.favorite : Icons.favorite_border,
+                color:
+                    _showOnlyFavorites
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
+                size: 24,
+              ),
             ),
+            onPressed: _onFavoritePressed,
+            tooltip:
+                _showOnlyFavorites ? 'Remove from favorites' : 'Add to favorites',
           ),
-          onPressed: _onFavoritePressed,
-          tooltip:
-              _showOnlyFavorites ? 'Remove from favorites' : 'Add to favorites',
-        ),
-        title: Text(
-          widget.isSelectionMode
-              ? (widget.title ?? 'Select Exercise')
-              : (_showOnlyFavorites ? 'Favorite Exercises' : 'Exercises'),
-        ),
-        elevation: 2,
-        // backgroundColor: Theme.of(
-        //   context,
-        // ).colorScheme.surfaceContainerHighest.withAlpha(100),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Theme.of(context).colorScheme.secondary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                elevation: 0,
-              ),
-              onPressed: ()async {
-               await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => ExerciseCreate(),
-                  ),
-                );
-                ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
-              },
-              child: Text(
-                "Add Exercise",
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
+          title: Text(
+            widget.isSelectionMode
+                ? (widget.title ?? 'Select Exercise')
+                : (_showOnlyFavorites ? 'Favorite Exercises' : 'Exercises'),
           ),
-       
-          // TextButton(
-          //   onPressed: () {
-          //     _showExrciseLimitUpload();
-          //   },
-          //   child: Text(
-          //     "exercises : ${AppConstants().exerciseBatchSize}",
-          //     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-          //       color: Theme.of(context).colorScheme.onSurface,
-          //     ),
-          //   ),
-          // ),
-        ],
-      ),
-      body: exercises.when(
-        loading:
-            () => const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading exercises...'),
-                ],
-              ),
-            ),
-        error:
-            (err, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error, size: 64, color: Colors.red),
-                  SizedBox(height: 16),
-                  Text('Error: $err'),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      ref
-                          .read(exerciseProvider.notifier)
-                          .fetchExercises(forceRefresh: true);
-                    },
-                    child: Text('Retry'),
+          elevation: 2,
+          // backgroundColor: Theme.of(
+          //   context,
+          // ).colorScheme.surfaceContainerHighest.withAlpha(100),
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Theme.of(context).colorScheme.secondary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ],
-              ),
-            ),
-        data: (exerciseList) {
-          final filteredExercises = _filteredExercises(exerciseList);
-
-          return Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                if (widget.isSelectionMode) ...[
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12),
-                    margin: EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withAlpha(50),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    // child: Row(
-                    //   children: [
-                    //     Icon(
-                    //       Icons.info_outline,
-                    //       color: Theme.of(context).colorScheme.primary,
-                    //     ),
-                    //     SizedBox(width: 8),
-                    //     Expanded(
-                    //       child: Text(
-                    //         'Tap an exercise to add it to your plan',
-                    //         style: Theme.of(
-                    //           context,
-                    //         ).textTheme.bodyMedium?.copyWith(
-                    //           color: Theme.of(context).colorScheme.onSurface,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ],
-                    // ),
-                  ),
-                ],
-                if (_showOnlyFavorites) ...[
-                  // Container(
-                  //   width: double.infinity,
-                  //   padding: EdgeInsets.all(12),
-                  //   margin: EdgeInsets.only(bottom: 16),
-                  //   decoration: BoxDecoration(
-                  //     color: Colors.red.withAlpha(30),
-                  //     borderRadius: BorderRadius.circular(8),
-                  //   ),
-                  //   child: Row(
-                  //     children: [
-                  //       Icon(Icons.favorite, color: Colors.red),
-                  //       SizedBox(width: 8),
-                  //       Expanded(
-                  //         child: Text(
-                  //           'Showing only favorite exercises (${filteredExercises.length})',
-                  //           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  //             color: Theme.of(context).colorScheme.onSurface,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //       TextButton(
-                  //         onPressed: () {
-                  //           setState(() {
-                  //             _showOnlyFavorites = false;
-                  //           });
-                  //         },
-                  //         child: Text('Show All'),
-                  //       ),
-                  //     ],
-                  //   ),
-                  // ),
-                ],
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        keyboardType: TextInputType.text,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(25.0),
-                            borderSide: BorderSide.none,
-                          ),
-                          hintText: 'Search',
-                          prefixIcon: const Icon(Icons.search),
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ],
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  elevation: 0,
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                onPressed: ()async {
+                 await Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => ExerciseCreate(),
+                    ),
+                  );
+                  ref.read(exerciseProvider.notifier).fetchExercises(forceRefresh: true);
+                },
+                child: Text(
+                  "Add Exercise",
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium!.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+              ),
+            ),
+         
+            // TextButton(
+            //   onPressed: () {
+            //     _showExrciseLimitUpload();
+            //   },
+            //   child: Text(
+            //     "exercises : ${AppConstants().exerciseBatchSize}",
+            //     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+            //       color: Theme.of(context).colorScheme.onSurface,
+            //     ),
+            //   ),
+            // ),
+          ],
+        ),
+        body: exercises.when(
+          loading:
+              () => const Center(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: _openSelectBodyPart,
-                        child: Text(
-                          selectedBodyPart == null
-                              ? 'Body part'
-                              : '${selectedBodyPart?.displayNameBodyPart()}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          'Target',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleSmall!.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontSize: 16,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                        ),
-                      ),
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Loading exercises...'),
+                  ],
+                ),
+              ),
+          error:
+              (err, stack) => Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error, size: 64, color: Colors.red),
+                    SizedBox(height: 16),
+                    Text('Error: $err'),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        ref
+                            .read(exerciseProvider.notifier)
+                            .fetchExercises(forceRefresh: true);
+                      },
+                      child: Text('Retry'),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ExerciseList(
-                    exercise: filteredExercises,
-                    isSelectionMode: widget.isSelectionMode,
-                    onExerciseSelected:
-                        widget.onSingleExerciseSelected != null
-                            ? (exercise) {
-                              print(
-                                'Single exercise selected: ${exercise.name}',
-                              );
-                              widget.onSingleExerciseSelected!(exercise);
-                            }
-                            : null,
-                    onMultipleExercisesSelected:
-                        widget.onMultipleExercisesSelected != null
-                            ? (exercises) {
-                              widget.onMultipleExercisesSelected!(exercises);
-                              print('Selected ${exercises.length} exercises');
-                            }
-                            : null,
+              ),
+          data: (exerciseList) {
+            final filteredExercises = _filteredExercises(exerciseList);
+      
+            return Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  if (widget.isSelectionMode) ...[
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12),
+                      margin: EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.primary.withAlpha(50),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                     
+                    ),
+                  ],
+                  if (_showOnlyFavorites) ...[
+                   
+                  ],
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(25.0),
+                              borderSide: BorderSide.none,
+                            ),
+                            hintText: 'Search',
+                            prefixIcon: const Icon(Icons.search),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: TextButton(
+                          onPressed: _openSelectBodyPart,
+                          child: Text(
+                            selectedBodyPart == null
+                                ? 'Body part'
+                                : '${selectedBodyPart?.displayNameBodyPart()}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextButton(
+                          onPressed: () {},
+                          child: Text(
+                            'Target',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.titleSmall!.copyWith(
+                              color: Theme.of(context).colorScheme.onSurface,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: ExerciseList(
+                      exercise: filteredExercises,
+                      isSelectionMode: widget.isSelectionMode,
+                      onExerciseSelected:
+                          widget.onSingleExerciseSelected != null
+                              ? (exercise) {
+                                print(
+                                  'Single exercise selected: ${exercise.name}',
+                                );
+                                widget.onSingleExerciseSelected!(exercise);
+                              }
+                              : null,
+                      onMultipleExercisesSelected:
+                          widget.onMultipleExercisesSelected != null
+                              ? (exercises) {
+                                widget.onMultipleExercisesSelected!(exercises);
+                                print('Selected ${exercises.length} exercises');
+                              }
+                              : null,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

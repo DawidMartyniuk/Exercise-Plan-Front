@@ -10,6 +10,7 @@ import 'package:work_plan_front/provider/auth_provider.dart';
 import 'package:work_plan_front/provider/profile_servise_provider.dart';
 import 'package:work_plan_front/screens/profile/profile_edit/widget/image_source_dialog.dart';
 import 'package:work_plan_front/screens/profile/profile_edit/widget/text_edit_constructor.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/utils/toast_untils.dart';
 
 
@@ -58,79 +59,6 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
     return authResponse?.user.avatar ?? '';
   }
 
-  // void _showImageSourceDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         backgroundColor: Theme.of(context).colorScheme.surface,
-  //         title: Center(
-  //           child: Text(
-  //             'Select Image Source',
-  //             textAlign: TextAlign.center,
-  //             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-  //           ),
-  //         ),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: [
-  //             ListTile(
-  //               leading: Icon(
-  //                 Icons.camera_alt,
-  //                 color: Theme.of(context).colorScheme.primary,
-  //               ),
-  //               title: Text(
-  //                 'Camera',
-  //                 style: TextStyle(
-  //                   color: Theme.of(context).colorScheme.onSurface,
-  //                 ),
-  //               ),
-  //               onTap: () {
-  //                 Navigator.of(context).pop();
-  //                 _pickImage(ImageSource.camera);
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: Icon(
-  //                 Icons.photo_library,
-  //                 color: Theme.of(context).colorScheme.primary,
-  //               ),
-  //               title: Text(
-  //                 'Gallery',
-  //                 style: TextStyle(
-  //                   color: Theme.of(context).colorScheme.onSurface,
-  //                 ),
-  //               ),
-  //               onTap: () {
-  //                 Navigator.of(context).pop();
-  //                 _pickImage(ImageSource.gallery);
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //         actions: [
-  //           Container(
-  //             width: double.infinity,
-  //             alignment: Alignment.centerRight,
-  //             child: TextButton(
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //               child: Text(
-  //                 'Cancel',
-  //                 style: TextStyle(
-  //                   color: Theme.of(context).colorScheme.primary,
-  //                   fontWeight: FontWeight.bold,
-  //                   fontSize: 16,
-  //                 ),
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -354,119 +282,121 @@ class _ProfileUserEditState extends ConsumerState<ProfileUserEdit> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Edit Profile',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+    return KeyboardDismisser(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Edit Profile',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          ),
+      
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          elevation: 2,
         ),
-
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        foregroundColor: Theme.of(context).colorScheme.onSurface,
-        elevation: 2,
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // ✅ AVATAR SECTION
-            GestureDetector(
-              onTap: () {
-                ImageSourceDialog.show(
-                  context: context,
-                  onSourceSelected: (source) {
-                 
-                    _pickImage(source);
-                  },
-                );
-              },
-              child: Container(
-                height: 120,
-                width: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 3,
+        body: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // ✅ AVATAR SECTION
+              GestureDetector(
+                onTap: () {
+                  ImageSourceDialog.show(
+                    context: context,
+                    onSourceSelected: (source) {
+                   
+                      _pickImage(source);
+                    },
+                  );
+                },
+                child: Container(
+                  height: 120,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.primary,
+                      width: 3,
+                    ),
+                    color: Theme.of(context).colorScheme.primary.withAlpha(50),
                   ),
-                  color: Theme.of(context).colorScheme.primary.withAlpha(50),
+                  child: _buildAvatarImage(),
                 ),
-                child: _buildAvatarImage(),
               ),
-            ),
-
-            SizedBox(height: 20),
-
-            // ✅ FORM FIELDS - USUŃ EXPANDED
-            Expanded(
-              // ✅ EXPANDED TYLKO TUTAJ
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    TextEditConstructor(
-                      title: 'Name',
-                      controller: _nameController,
-                    ),
-                    TextEditConstructor(
-                      title: 'Email',
-                      controller: _emailController,
-                    ),
-                    TextEditConstructor(
-                      title: 'Bio',
-                      controller: _descriptionController,
-                    ),
-                    TextEditConstructor(
-                      title: 'Weight',
-                      controller: _weightController,
-                    ),
-
-                    SizedBox(height: 30),
-
-                    // ✅ SAVE BUTTON
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.primary,
-                          foregroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+      
+              SizedBox(height: 20),
+      
+              // ✅ FORM FIELDS - USUŃ EXPANDED
+              Expanded(
+                // ✅ EXPANDED TYLKO TUTAJ
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      TextEditConstructor(
+                        title: 'Name',
+                        controller: _nameController,
+                      ),
+                      TextEditConstructor(
+                        title: 'Email',
+                        controller: _emailController,
+                      ),
+                      TextEditConstructor(
+                        title: 'Bio',
+                        controller: _descriptionController,
+                      ),
+                      TextEditConstructor(
+                        title: 'Weight',
+                        controller: _weightController,
+                      ),
+      
+                      SizedBox(height: 30),
+      
+                      // ✅ SAVE BUTTON
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            foregroundColor:
+                                Theme.of(context).colorScheme.onPrimary,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        onPressed: () {
-                          updateProfile(
-                            _nameController.text,
-                            _emailController.text,
-                            _descriptionController.text,
-                          int.tryParse(_weightController.text) ?? 0, 
-                          );
-                          
-                          print('Name: ${_nameController.text}');
-                          print('Email: ${_emailController.text}');
-                          print('Bio: ${_descriptionController.text}');
-                          print('Weight: ${_weightController.text}');
-
-                          // ❌ USUŃ TO - Navigator.pop() będzie tylko przy sukcesie
-                          // Navigator.pop(context);
-                        },
-                        child: Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          onPressed: () {
+                            updateProfile(
+                              _nameController.text,
+                              _emailController.text,
+                              _descriptionController.text,
+                            int.tryParse(_weightController.text) ?? 0, 
+                            );
+                            
+                            print('Name: ${_nameController.text}');
+                            print('Email: ${_emailController.text}');
+                            print('Bio: ${_descriptionController.text}');
+                            print('Weight: ${_weightController.text}');
+      
+                            // ❌ USUŃ TO - Navigator.pop() będzie tylko przy sukcesie
+                            // Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

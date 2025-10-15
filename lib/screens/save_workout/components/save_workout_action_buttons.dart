@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:work_plan_front/utils/workout_utils.dart';
 
-class SaveWorkoutActionButtons extends StatelessWidget {
+class SaveWorkoutActionButtons extends ConsumerWidget {
   final VoidCallback onWorkoutList;
-  final VoidCallback onEndWorkout;
 
   const SaveWorkoutActionButtons({
     super.key,
-    required this.onEndWorkout,
     required this.onWorkoutList,
     });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Column(
       children: [
         Row(
@@ -55,10 +55,18 @@ class SaveWorkoutActionButtons extends StatelessWidget {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: () {
-                  // TODO: Dodaj akcję po kliknięciu całego kontenera (Discard Workout)
-                  onEndWorkout();
-                  Navigator.of(context).pop();
+                onTap: () async{
+                 
+                  await endWorkoutGlobal(
+                    context: context,
+                    ref: ref,
+                    showConfirmationDialog: true,
+                  );
+                  
+                  // Po zakończeniu treningu wróć do głównego ekranu
+                  if (context.mounted) {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -72,9 +80,9 @@ class SaveWorkoutActionButtons extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        "Discard Workout",
+                        "End Workout",
                         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Colors.white, // ✅ BIAŁY TEKST NA CZERWONYM TLE
+                          color: Colors.white, 
                         ),
                       ),
                       Icon(

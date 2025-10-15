@@ -8,12 +8,13 @@ import 'package:work_plan_front/model/weight_type.dart';
 import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
 import 'package:work_plan_front/provider/training_serssion_notifer.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/screens/save_workout/save_workrout_header.dart';
-import 'package:work_plan_front/screens/save_workout/save_workout_action_buttons.dart';
-import 'package:work_plan_front/screens/save_workout/save_workout_image_and_description.dart';
-import 'package:work_plan_front/screens/save_workout/save_workout_stats_row.dart';
+import 'package:work_plan_front/screens/save_workout/components/save_workrout_header.dart';
+import 'package:work_plan_front/screens/save_workout/components/save_workout_action_buttons.dart';
+import 'package:work_plan_front/screens/save_workout/components/save_workout_image_and_description.dart';
+import 'package:work_plan_front/screens/save_workout/components/save_workout_stats_row.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
 import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
@@ -434,107 +435,116 @@ Future<void> _endWorkoutAfterSave() async {
         ),
       ),
     );
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Settings are not implemented yet!')),
-              );
-            },
-          ),
-          SizedBox(width: 3),
-
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 98, 204, 107),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+    return KeyboardDismisser(
+      child: Scaffold(
+        appBar: AppBar(
+          actions: [
+            // IconButton(
+            //   icon: Icon(Icons.settings),
+            //   onPressed: () {
+            //     ScaffoldMessenger.of(context).showSnackBar(
+            //       SnackBar(content: Text('Settings are not implemented yet!')),
+            //     );
+            //   },
+            // ),
+            SizedBox(width: 3),
+      
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 98, 204, 107),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () => saveWorkoutPlan(),
+      
+              child: Text(
+                'Save',
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
             ),
-            onPressed: () => saveWorkoutPlan(),
-
-            child: Text(
-              'Save',
-              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
+            SizedBox(width: 4),
+          ],
+          centerTitle: true,
+          title: Text(
+            'Zapisz trening',
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
-          SizedBox(width: 4),
-        ],
-        centerTitle: true,
-        title: Text(
-          'Zapisz trening',
-          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+          backgroundColor: Theme.of(context).colorScheme.surface,
         ),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SaveWorkoutHeader(
-                    controller: TitleController,
-                    hourFrom: hourFrom,
-                    minuteFrom: minuteFrom,
-                    onDateTap: _showDataPickerSheet,
-                    onTimeTap: _showTimeIntervalPickerSheet,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: SizedBox(
+               height: MediaQuery.of(context).size.height - 
+                 MediaQuery.of(context).padding.top - 
+                 kToolbarHeight - 
+                 32, // 16 padding top + 16 padding bottom
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                   // mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SaveWorkoutHeader(
+                        controller: TitleController,
+                        hourFrom: hourFrom,
+                        minuteFrom: minuteFrom,
+                        onDateTap: _showDataPickerSheet,
+                        onTimeTap: _showTimeIntervalPickerSheet,
+                      ),
+                      CustomDivider(
+                        dashWidth: 12,
+                        dashSpace: 4,
+                        indent: 5,
+                        endIndent: 5,
+                        color: Colors.black,
+                      ),
+                      SaveWorkoutStatsRow(
+                        hoursSelected: hoursSelected,
+                        minutesSelected: minutesSelected,
+                        weightSelected: weightSelected,
+                        allReps: allReps,
+                        showTimePickerSheet: _showTimePickerSheet,
+                        showWeightInfoSheet: _showWeightInfoSheet,
+                        showBodyPartExercisePickerSheet:
+                            _showBodyPartExercisePickerSheet,
+                        showBodyPartRepsPickerSheet: _showBodyPartRepsPickerSheet,
+                        showRepsInfoSheet: _showRepsInfoSheet,
+                      ),
+                      CustomDivider(
+                        dashWidth: 12,
+                        dashSpace: 4,
+                        indent: 5,
+                        endIndent: 5,
+                        color: Colors.black,
+                      ),
+                      SaveWorkoutImageAndDescription(
+                        selectedImage: _selectedImage,
+                        onImagePick: _tahePicture,
+                        descriptionController: descriptionController,
+                      ),
+                      CustomDivider(
+                        dashWidth: 12,
+                        dashSpace: 4,
+                        indent: 5,
+                        endIndent: 5,
+                        color: Colors.black,
+                      ),
+                      SaveWorkoutActionButtons(
+                        onWorkoutList: _showWrokoutListPickerSheet,
+                        
+                      ),
+                    ],
                   ),
-                  CustomDivider(
-                    dashWidth: 12,
-                    dashSpace: 4,
-                    indent: 5,
-                    endIndent: 5,
-                    color: Colors.black,
-                  ),
-                  SaveWorkoutStatsRow(
-                    hoursSelected: hoursSelected,
-                    minutesSelected: minutesSelected,
-                    weightSelected: weightSelected,
-                    allReps: allReps,
-                    showTimePickerSheet: _showTimePickerSheet,
-                    showWeightInfoSheet: _showWeightInfoSheet,
-                    showBodyPartExercisePickerSheet:
-                        _showBodyPartExercisePickerSheet,
-                    showBodyPartRepsPickerSheet: _showBodyPartRepsPickerSheet,
-                    showRepsInfoSheet: _showRepsInfoSheet,
-                  ),
-                  CustomDivider(
-                    dashWidth: 12,
-                    dashSpace: 4,
-                    indent: 5,
-                    endIndent: 5,
-                    color: Colors.black,
-                  ),
-                  SaveWorkoutImageAndDescription(
-                    selectedImage: _selectedImage,
-                    onImagePick: _tahePicture,
-                    descriptionController: descriptionController,
-                  ),
-                  CustomDivider(
-                    dashWidth: 12,
-                    dashSpace: 4,
-                    indent: 5,
-                    endIndent: 5,
-                    color: Colors.black,
-                  ),
-                  SaveWorkoutActionButtons(
-                    onWorkoutList: _showWrokoutListPickerSheet,
-                    onEndWorkout: widget.onEndWorkout ?? () {},
-                  ),
-                ],
+                ),
               ),
             ),
           ),

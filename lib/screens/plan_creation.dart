@@ -10,6 +10,7 @@ import 'package:work_plan_front/provider/reps_type_provider.dart';
 import 'package:work_plan_front/provider/weight_type_provider.dart';
 import 'package:work_plan_front/screens/exercises.dart';
 import 'package:work_plan_front/screens/tabs.dart';
+import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/selected_exercise_list.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/plan_title_field.dart';
 import 'package:work_plan_front/widget/plan/plan_creation/widgets/exercise_selection_button.dart';
@@ -644,104 +645,106 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: ValueKey("plan_creation_$_widgetKey"),
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _handleBackPress,
-        ),
-        title: Text(_isEditMode ? "Edit Plan" : "Create Plan"),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextButton(
-              onPressed: _isPlanReadToSave ? () => _savePlanData(ref) : null,
-              child: Text(
-                //TODO: jak lepiej wygląda z ramce i i kolorze czy sam przycisk
-                _isEditMode ? "Update" : "Save",
-                style: TextStyle(
-                  color: _isPlanReadToSave
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ),
+    return KeyboardDismisser(
+      child: Scaffold(
+        key: ValueKey("plan_creation_$_widgetKey"),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: _handleBackPress,
           ),
-        ],
-      ),
-      body: Listener(
-                onPointerMove: (event) {
-          SelectedExerciseListState.globalPointerDy = event.position.dy;
-          SelectedExerciseListState.globalAutoScrollCallback?.call();
-          
-        },
-        onPointerUp: (_) {
-          SelectedExerciseListState.globalPointerDy = null;
-          SelectedExerciseListState.globalStopAutoScrollCallback?.call();
-           _selectedExerciseListKey.currentState?.resetDragging();
-        },
-        child: CustomScrollView(
-          key: ValueKey("plan_creation_$_widgetKey"),
-          slivers: [
-            if(selectedExercise.isNotEmpty)
-            SliverToBoxAdapter(
-              child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
-                child: PlanTitleField(
-                  key: _planTitleFieldKey,
-                  initialValue: exerciseTableTitle, 
-                  onChanged: _onPlanTitleChanged,
-                  isEditMode: _isEditMode,
-                  
-                  // editPlanName: widget.planToEdit?.exercise_table,
+          title: Text(_isEditMode ? "Edit Plan" : "Create Plan"),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextButton(
+                onPressed: _isPlanReadToSave ? () => _savePlanData(ref) : null,
+                child: Text(
+                  //TODO: jak lepiej wygląda z ramce i i kolorze czy sam przycisk
+                  _isEditMode ? "Update" : "Save",
+                  style: TextStyle(
+                    color: _isPlanReadToSave
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                  ),
                 ),
               ),
             ),
-        
-            //  RESZTA WIDOKU POZOSTAJE BEZ ZMIAN
-            selectedExercise.isEmpty
-                ? SliverFillRemaining(child: _buildEmptyState())
-                : SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Listener(
-                        onPointerMove: (event) {
-                          SelectedExerciseListState.globalPointerDy = event.position.dy;
-                          SelectedExerciseListState.globalAutoScrollCallback?.call();
-                        },
-                        onPointerUp: (_) {
-                          SelectedExerciseListState.globalPointerDy = null;
-                          SelectedExerciseListState.globalStopAutoScrollCallback?.call();
-                        },
-                        child: SelectedExerciseList(
-                          key: _selectedExerciseListKey,
-                          onGetTableData: (getterFunction) {
-                            _getTableData = getterFunction;
+          ],
+        ),
+        body: Listener(
+                  onPointerMove: (event) {
+            SelectedExerciseListState.globalPointerDy = event.position.dy;
+            SelectedExerciseListState.globalAutoScrollCallback?.call();
+            
+          },
+          onPointerUp: (_) {
+            SelectedExerciseListState.globalPointerDy = null;
+            SelectedExerciseListState.globalStopAutoScrollCallback?.call();
+             _selectedExerciseListKey.currentState?.resetDragging();
+          },
+          child: CustomScrollView(
+            key: ValueKey("plan_creation_$_widgetKey"),
+            slivers: [
+              if(selectedExercise.isNotEmpty)
+              SliverToBoxAdapter(
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+                  child: PlanTitleField(
+                    key: _planTitleFieldKey,
+                    initialValue: exerciseTableTitle, 
+                    onChanged: _onPlanTitleChanged,
+                    isEditMode: _isEditMode,
+                    
+                    // editPlanName: widget.planToEdit?.exercise_table,
+                  ),
+                ),
+              ),
+          
+              //  RESZTA WIDOKU POZOSTAJE BEZ ZMIAN
+              selectedExercise.isEmpty
+                  ? SliverFillRemaining(child: _buildEmptyState())
+                  : SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Listener(
+                          onPointerMove: (event) {
+                            SelectedExerciseListState.globalPointerDy = event.position.dy;
+                            SelectedExerciseListState.globalAutoScrollCallback?.call();
                           },
-                          exercises: selectedExercise,
-                          onDelete: _removeExerciseFromPlan,
-                          initialData: widget.planToEdit != null ? _extractInitialData() : null,
-                          initialNotes: widget.planToEdit != null ? _extractInitialNotes() : null,
-                          onExercisesReordered: _onExercisesReordered,
-                          onReplaceExercise: _handleExerciseReplacement,
-                          mainScrollController: _mainScrollController,
+                          onPointerUp: (_) {
+                            SelectedExerciseListState.globalPointerDy = null;
+                            SelectedExerciseListState.globalStopAutoScrollCallback?.call();
+                          },
+                          child: SelectedExerciseList(
+                            key: _selectedExerciseListKey,
+                            onGetTableData: (getterFunction) {
+                              _getTableData = getterFunction;
+                            },
+                            exercises: selectedExercise,
+                            onDelete: _removeExerciseFromPlan,
+                            initialData: widget.planToEdit != null ? _extractInitialData() : null,
+                            initialNotes: widget.planToEdit != null ? _extractInitialNotes() : null,
+                            onExercisesReordered: _onExercisesReordered,
+                            onReplaceExercise: _handleExerciseReplacement,
+                            mainScrollController: _mainScrollController,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-        
-          if (selectedExercise.isNotEmpty)
-  SliverToBoxAdapter(
-    child: Container(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-      child: ExerciseSelectionButton(onPressed: _addExerciseToPlan),
-    ),
-  ),
-             
-          ],
+          
+            if (selectedExercise.isNotEmpty)
+        SliverToBoxAdapter(
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
+        child: ExerciseSelectionButton(onPressed: _addExerciseToPlan),
+      ),
+        ),
+               
+            ],
+          ),
         ),
       ),
     );
