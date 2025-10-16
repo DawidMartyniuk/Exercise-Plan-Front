@@ -9,7 +9,7 @@ import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
 import 'package:work_plan_front/provider/exercise_provider.dart';
 import 'package:work_plan_front/provider/plan_groups_notifier.dart';
 import 'package:work_plan_front/provider/wordout_time_notifer.dart';
-import 'package:work_plan_front/screens/plan/plan_group_widget.dart';
+import 'package:work_plan_front/screens/plan/widget/plan_group_widget.dart';
 import 'package:work_plan_front/screens/plan/widget/dialog_to_add_group.dart';
 import 'package:work_plan_front/screens/plan_creation.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';

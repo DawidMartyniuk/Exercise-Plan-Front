@@ -16,6 +16,7 @@ import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/utils/exercise_untils.dart';
 import 'package:work_plan_front/utils/keyboard_dismisser.dart';
 import 'package:work_plan_front/utils/workout_utils.dart';
+import 'package:work_plan_front/utils/toast_untils.dart'; // ✅ DODAJ IMPORT TOAST
 import 'package:work_plan_front/widget/plan/widget/custom_divider.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/body_part_botton_sheet.dart';
 import 'package:work_plan_front/widget/save_workout/save_workout_bottom_sheet/data_picker_bottom_sheet.dart';
@@ -366,25 +367,40 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
     if (status == 200 || status == 201) {
       ref.read(trainingSessionAsyncProvider.notifier).addSession(trainingSession);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Trening zapisany!')),
-      );
+      //  ZAMIEŃ SNACKBAR NA TOAST
+      if (mounted) {
+        ToastUtils.showSaveSuccess(
+          context,
+          itemName: 'Workout'
+        );
+      }
       
-      // ✅ ZAKOŃCZ TRENING I PRZEJDŹ DO PLANÓW
+      //  ZAKOŃCZ TRENING I PRZEJDŹ DO PLANÓW
      // await _endWorkoutAndNavigateToPlans();
        await _endWorkoutAfterSave();
       
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Błąd zapisu treningu!')),
-      );
+      // ZAMIEŃ SNACKBAR NA TOAST ERROR
+      if (mounted) {
+        ToastUtils.showErrorToast(
+          context: context,
+          title: "Save Failed",
+          message: "Failed to save workout. Please try again.",
+        );
+      }
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Błąd zapisu treningu: $e')),
-    );
+    // ZAMIEŃ SNACKBAR NA TOAST ERROR
+    if (mounted) {
+      ToastUtils.showErrorToast(
+        context: context,
+        title: "Save Failed",
+        message: "Error saving workout: $e",
+      );
+    }
   }
 }
+
 Future<void> _endWorkoutAfterSave() async {
   try {
     print("🔚 Kończenie treningu po zapisie...");
@@ -408,7 +424,7 @@ Future<void> _endWorkoutAfterSave() async {
         (route) => false, //  USUŃ WSZYSTKIE POPRZEDNIE ROUTE
       );
     }
-    
+   
   } catch (e) {
     print("❌ Błąd podczas kończenia treningu: $e");
     
@@ -418,6 +434,7 @@ Future<void> _endWorkoutAfterSave() async {
     }
   }
 }
+
   @override
   Widget build(BuildContext context) {
     Widget imageContent = TextButton.icon(
@@ -439,14 +456,7 @@ Future<void> _endWorkoutAfterSave() async {
       child: Scaffold(
         appBar: AppBar(
           actions: [
-            // IconButton(
-            //   icon: Icon(Icons.settings),
-            //   onPressed: () {
-            //     ScaffoldMessenger.of(context).showSnackBar(
-            //       SnackBar(content: Text('Settings are not implemented yet!')),
-            //     );
-            //   },
-            // ),
+  
             SizedBox(width: 3),
       
             ElevatedButton(
@@ -526,10 +536,13 @@ Future<void> _endWorkoutAfterSave() async {
                         endIndent: 5,
                         color: Colors.black,
                       ),
-                      SaveWorkoutImageAndDescription(
-                        selectedImage: _selectedImage,
-                        onImagePick: _tahePicture,
-                        descriptionController: descriptionController,
+                     
+                      Expanded(
+                        child: SaveWorkoutImageAndDescription(
+                          selectedImage: _selectedImage,
+                          onImagePick: _tahePicture,
+                          descriptionController: descriptionController,
+                        ),
                       ),
                       CustomDivider(
                         dashWidth: 12,
