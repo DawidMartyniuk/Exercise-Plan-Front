@@ -7,7 +7,7 @@ import 'package:work_plan_front/model/reps_type.dart';
 import 'package:work_plan_front/model/weight_type.dart';
 import 'package:work_plan_front/services/exercisePlan.dart';
 import 'package:work_plan_front/services/exercise_plan_local_service.dart';
-import 'package:work_plan_front/utils/token_storage.dart';
+import 'package:work_plan_front/core/auth/token_storage.dart';
 
 class ExercisePlanNotifier extends StateNotifier<List<ExerciseTable>> {
   ExercisePlanNotifier({required ExercisePlanService exerciseService})

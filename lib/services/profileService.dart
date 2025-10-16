@@ -2,17 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:work_plan_front/model/user.dart';
-import 'package:work_plan_front/utils/token_storage.dart';
+import 'package:work_plan_front/core/auth/token_storage.dart';
 import 'package:flutter/foundation.dart';
 
 class ProfileService {
   final String _baseUrl = () {
     if (kIsWeb) {
       return "http://127.0.0.1:8000/api";
-    } else if (Platform.isAndroid) {
-      return "http://10.0.2.2:8000/api";
     } else {
-      return "http://127.0.0.1:8000/api";
+      return "http://10.0.2.2:8000/api"; // ✅ USUŃ Platform.isAndroid
     }
   }();
 

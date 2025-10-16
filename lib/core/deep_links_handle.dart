@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_links/app_links.dart';
-import 'package:work_plan_front/screens/auth/reset_password_page.dart';
+import 'package:work_plan_front/features/auth/screens/reset_password_page.dart';
 import 'dart:async';
 
 class DeepLinksHandle {

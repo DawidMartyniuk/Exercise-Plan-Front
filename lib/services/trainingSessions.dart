@@ -1,18 +1,15 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:work_plan_front/model/training_session.dart';
-import 'package:work_plan_front/utils/token_storage.dart';
+import 'package:work_plan_front/core/auth/token_storage.dart';
 import 'package:flutter/foundation.dart';
-import 'dart:io' show Platform;
 
 class TrainingSessionService {
   final String _baseUrl = () {
     if (kIsWeb) {
       return "http://127.0.0.1:8000/api";
-    } else if (Platform.isAndroid) {
-      return "http://10.0.2.2:8000/api";
     } else {
-      return "http://127.0.0.1:8000/api";
+      return "http://10.0.2.2:8000/api"; // ✅ USUŃ Platform.isAndroid
     }
   }();
 

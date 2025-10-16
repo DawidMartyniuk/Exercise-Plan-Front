@@ -1,23 +1,22 @@
 import 'dart:convert';
+// import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'package:work_plan_front/model/auth_response.dart';
 import 'package:work_plan_front/model/login_result.dart';
-import 'dart:io' show Platform;
+// import 'dart:io' show Platform;
 
-import 'package:work_plan_front/utils/token_storage.dart';
-
+import 'package:work_plan_front/core/auth/token_storage.dart';
 
 class AuthService {
   final String _baseUrl = () {
-  if (kIsWeb) {
-    return "http://127.0.0.1:8000/api"; // dla przeglądarki
-  } else if (Platform.isAndroid) {
-    return "http://10.0.2.2:8000/api"; // dla emulatora Androida
-  } else {
-    return "http://127.0.0.1:8000/api"; // dla iOS lub innych
-  }
-}();
+    if (kIsWeb) {
+      return "http://127.0.0.1:8000/api"; // dla web
+    } else {
+      return "http://10.0.2.2:8000/api"; // dla mobile (Android/iOS)
+    }
+  }();
+  
   final String _loginUrl = "/login";
   final String _registerUrl = "/register";
   final String _logoutUrl = "/logout";
@@ -36,12 +35,11 @@ class AuthService {
     print("  - URL: $_baseUrl$_resetPasswordConfirmUrl");
 
     try {
-      
       final requestBody = {
         'email': email,
         'token': token,
         'password': newPassword,
-        'password_confirmation': repeatPassword, 
+        'password_confirmation': repeatPassword,
       };
 
       print("📤 Request body: ${jsonEncode(requestBody)}");
@@ -67,7 +65,7 @@ class AuthService {
         try {
           final errorBody = json.decode(response.body);
           print("❌ Validation errors: $errorBody");
-          
+
           // ✅ WYCIĄGNIJ SZCZEGÓŁOWE BŁĘDY
           if (errorBody['errors'] != null) {
             final errors = errorBody['errors'] as Map<String, dynamic>;
@@ -92,31 +90,30 @@ class AuthService {
 
   Future<bool> resetRequest(String email) async {
     try {
-  final response = await http.post(
-    Uri.parse("$_baseUrl$_resetPasswordUrl"),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email}),
-  );
-  
-  if (response.statusCode == 200) {
-    print("Reset request sent successfully");
-    return true;
-  } else {
-    print("Failed to send reset request: ${response.statusCode}");
-     if (response.body.isNotEmpty) {
+      final response = await http.post(
+        Uri.parse("$_baseUrl$_resetPasswordUrl"),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email}),
+      );
+
+      if (response.statusCode == 200) {
+        print("Reset request sent successfully");
+        return true;
+      } else {
+        print("Failed to send reset request: ${response.statusCode}");
+        if (response.body.isNotEmpty) {
           final errorBody = json.decode(response.body);
           print("❌ Error details: $errorBody");
         }
-    return false;
-  }
-} catch (e) {
-  print("Error occurred while sending reset request: $e");
-  return false;
-}
+        return false;
+      }
+    } catch (e) {
+      print("Error occurred while sending reset request: $e");
+      return false;
+    }
   }
 
-
-   Future<void> logout() async {
+  Future<void> logout() async {
     try {
       final token = await getToken();
       if (token != null) {
@@ -124,7 +121,7 @@ class AuthService {
           Uri.parse("$_baseUrl$_logoutUrl"),
           headers: await getHeaders(),
         );
-        
+
         print("🚪 Logout response: ${response.statusCode}");
       }
     } catch (e) {
@@ -135,44 +132,84 @@ class AuthService {
     }
   }
 
-Future<LoginResult?> login(String email, String password) async {
-  final response = await http.post(
-    Uri.parse("$_baseUrl$_loginUrl"),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email, 'password': password}),
-  );
+  Future<LoginResult?> login(String email, String password) async {
+    print("🔐 Próba logowania dla: $email");
+    print("🌐 Używam URL: $_baseUrl$_loginUrl");
+    //print("🔍 Platform.isAndroid: ${Platform.isAndroid}");
+    print("🔍 kIsWeb: $kIsWeb");
 
-  print("🔍 Login Response Status: ${response.statusCode}");
-  print("🔍 Login Response Body: ${response.body}");
+    // ✅ DODAJ TEST POŁĄCZENIA PRZED LOGOWANIEM
+    // try {
+    //   print("🧪 Testuję podstawowe połączenie...");
+    //   final testUrl = _baseUrl.replaceAll('/api', '');
+    //   print("🧪 Test URL: $testUrl");
 
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    try {
-      final responseBody = json.decode(response.body);
-      print("🔍 Parsed Response: $responseBody");
-      
-      if (responseBody.containsKey('token') && responseBody.containsKey('user')) {
-       
-        if (!responseBody.containsKey('message')) {
-          responseBody['message'] = 'Login successful';
+    //   final testResponse = await http
+    //       .get(Uri.parse(testUrl), headers: {'Accept': 'application/json'})
+    //       .timeout(Duration(seconds: 10));
+
+    //   print("🧪 Test connection status: ${testResponse.statusCode}");
+
+    //   if (testResponse.statusCode != 200) {
+    //     print(
+    //       "⚠️ Server responding but with status: ${testResponse.statusCode}",
+    //     );
+    //   }
+    // } catch (testError) {
+    //   print("❌ Test connection failed: $testError");
+    //   print("💡 Sprawdź czy:");
+    //   print("   1. Serwer działa na: $_baseUrl");
+    //   print("   2. Firewall nie blokuje portu 8000");
+    //   print("   3. Emulator ma połączenie z internetem");
+    //   throw Exception("Cannot connect to server: $testError");
+    // }
+
+    // Dopiero teraz próbuj logowania
+    final response = await http.post(
+      Uri.parse("$_baseUrl$_loginUrl"),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+
+    print("🔍 Login Response Status: ${response.statusCode}");
+    print("🔍 Login Response Body: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      try {
+        final responseBody = json.decode(response.body);
+        print("🔍 Parsed Response: $responseBody");
+
+        if (responseBody.containsKey('token') &&
+            responseBody.containsKey('user')) {
+          if (!responseBody.containsKey('message')) {
+            responseBody['message'] = 'Login successful';
+          }
+
+          final authResponse = AuthResponse.fromJson(responseBody);
+          await saveToken(authResponse.token);
+          return LoginResult(
+            authResponse: authResponse,
+            statusCode: response.statusCode,
+          );
+        } else {
+          print("❌ Brak tokenu lub użytkownika w odpowiedzi");
+          return LoginResult(
+            authResponse: null,
+            statusCode: response.statusCode,
+          );
         }
-        
-        final authResponse = AuthResponse.fromJson(responseBody);
-        await saveToken(authResponse.token); 
-        return LoginResult(authResponse: authResponse, statusCode: response.statusCode);
-      } else {
-        print("❌ Brak tokenu lub użytkownika w odpowiedzi");
-        return LoginResult(authResponse: null, statusCode: response.statusCode);
+      } catch (e, stackTrace) {
+        print("❌ Error parsing login response: $e");
+        print("❌ StackTrace: $stackTrace");
+        return LoginResult(authResponse: null, statusCode: 500);
       }
-    } catch (e, stackTrace) {
-      print("❌ Error parsing login response: $e");
-      print("❌ StackTrace: $stackTrace");
-      return LoginResult(authResponse: null, statusCode: 500);
-    }
-  } else {
-    print('❌ Błąd logowania: ${response.statusCode}');
-    return LoginResult(authResponse: null, statusCode: response.statusCode);
+    // } else {
+    //   print('❌ Błąd logowania: ${response.statusCode}');
+    //   return LoginResult(authResponse: null, statusCode: response.statusCode);
+    // }
   }
 }
+
   Future<AuthResponse?> register(
     String name,
     String email,

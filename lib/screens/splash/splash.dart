@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/screens/auth/login.dart';
-import 'package:work_plan_front/screens/splash/app_initializer.dart';
+import 'package:work_plan_front/core/app_initializer.dart';
+import 'package:work_plan_front/features/auth/screens/login.dart';
 import 'package:work_plan_front/screens/tabs.dart';
 import 'package:work_plan_front/provider/auth_provider.dart';
 
-class SplashScreen extends ConsumerStatefulWidget {  // ✅ ZMIEŃ NA ConsumerStatefulWidget
+class SplashScreen extends ConsumerStatefulWidget {  //ZMIEŃ NA ConsumerStatefulWidget
   const SplashScreen({super.key});
 
   @override
-  ConsumerState<SplashScreen> createState() => _SplashScreenState();  // ✅ ConsumerState
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();  //ConsumerState
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen> 

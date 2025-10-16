@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/screens/exercises.dart';
-import 'package:work_plan_front/screens/start.dart';
-import 'package:work_plan_front/screens/profil.dart';
-import 'package:work_plan_front/screens/plan/plan.dart';
-import 'package:work_plan_front/utils/workout_utils.dart';
-import 'package:work_plan_front/widget/bottom_button_app_bar.dart';
+import 'package:work_plan_front/features/exercise/screens/exercises.dart';
+import 'package:work_plan_front/features/plan/screens/start.dart';
+import 'package:work_plan_front/features/profile/screens/profil.dart';
+import 'package:work_plan_front/features/plan/screens/plan.dart';
+import 'package:work_plan_front/shared/utils/workout_utils.dart';
+import 'package:work_plan_front/shared/widget/common/bottom_button_app_bar.dart';
 import 'package:work_plan_front/provider/wordout_time_notifer.dart';
-import 'package:work_plan_front/widget/plan/plan_works/plan_selected/plan_selected_list.dart';
+import 'package:work_plan_front/features/workout/screens/plan_works.dart';
 
 class TabsScreen extends ConsumerStatefulWidget {
   final int selectedPageIndex;
@@ -75,7 +75,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
       if (currentWorkout != null) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (ctx) => PlanSelectedList(
+            builder: (ctx) => PlanWorks(
               exercises: currentWorkout.exercises,
               plan: currentWorkout.plan!,
               isReadOnly: false,

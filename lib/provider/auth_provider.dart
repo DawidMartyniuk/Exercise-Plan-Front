@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/login_result.dart';
 import 'package:work_plan_front/model/auth_response.dart';
 import 'package:work_plan_front/services/profileService.dart';
-import 'package:work_plan_front/utils/token_storage.dart';
+import 'package:work_plan_front/core/auth/token_storage.dart';
 import '../services/authService.dart';
 
 class AuthNotifier extends StateNotifier<AuthResponse?> {
