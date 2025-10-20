@@ -12,7 +12,6 @@ class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       // ❌ USUŃ: leadingWidth: 150, - to powodowało asymetrię
       centerTitle: true, // ✅ DODAJ: wycentrowanie tytułu
-
       // ❌ ZAKOMENTOWANA SEKCJA EDIT PROFILE
       // leading: OpenContainer<bool>(
       //   transitionType: ContainerTransitionType.fade,

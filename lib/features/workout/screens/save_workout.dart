@@ -173,7 +173,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       builder:
           (context) => BodyPartInfoBottomSheet(
             title: 'Body Part count exercises',
-
             info: "weight",
           ),
     );
@@ -186,7 +185,6 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
       builder:
           (context) => BodyPartInfoBottomSheet(
             title: 'Body Part count reps',
-
             info: "reps",
           ),
     );
@@ -428,7 +426,6 @@ Future<void> _endWorkoutAfterSave() async {
   } catch (e) {
     print("❌ Błąd podczas kończenia treningu: $e");
     
-    //  FALLBACK - przynajmniej przejdź do planów
     if (context.mounted) {
       Navigator.of(context).pop();
     }

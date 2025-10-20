@@ -54,7 +54,7 @@ class BodyPartInfoBottomSheet extends ConsumerWidget {
               padding: EdgeInsets.all(8.0),
               child: Text(
                info == 'weight' ? 'Partie ciała i suma ciężarów' : 'Partie ciała i suma powtórzeń',
-               // 'Partie ciała i liczba ćwiczeń',
+               
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -73,7 +73,7 @@ class BodyPartInfoBottomSheet extends ConsumerWidget {
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: ListTile(
                     leading: Image.asset(
-                      'assets/muscles/${bodyPart.name}.png',
+                      '/bodyParts/${bodyPart.name}.png',
                       width: 40,
                       height: 40,
                     ),
