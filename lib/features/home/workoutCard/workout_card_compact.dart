@@ -179,7 +179,7 @@ void _deleteTrainingSession(int sessionId) {
 
   Widget _buildExercisesList() {
     return Container(
-      height: 80, // ✅ OGRANICZENIE WYSOKOŚCI
+      height: 80, 
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
@@ -188,9 +188,9 @@ void _deleteTrainingSession(int sessionId) {
           width: 1,
         ),
       ),
-      clipBehavior: Clip.hardEdge, //  TWARDKIE OBCIĘCIE
+      clipBehavior: Clip.hardEdge, 
       child: ListView.builder(
-        padding: EdgeInsets.zero, //  USUŃ DOMYŚLNY PADDING
+        padding: EdgeInsets.zero,
         shrinkWrap: true,
         itemCount: widget.trainingSession.exercises.take(2).length,
         itemBuilder: (context, index) {
