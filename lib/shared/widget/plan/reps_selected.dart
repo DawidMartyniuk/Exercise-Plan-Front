@@ -44,7 +44,7 @@ class RepsSelected extends ConsumerWidget {
           onTap: () {
             print("One Rep (4) selected"); // DEBUG
             ref.read(exerciseRepsTypeProvider(exerciseId).notifier).state = RepsType.single;
-            Navigator.of(context).pop();
+           Navigator.of(context).pop(RepsType.single);
           },
           child: Container(
             width: double.infinity,
@@ -73,15 +73,23 @@ class RepsSelected extends ConsumerWidget {
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  "One Rep (4)",
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color:  currentRepsType == RepsType.single
-                    ? Colors.green
-                    : Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Text(
+                "One Rep (4)",
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: currentRepsType == RepsType.single
+                  ? Colors.green
+                  : Theme.of(context).colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              if(currentRepsType == RepsType.single) ...[
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 20,
+                ),
+              ],
               ],
             ),
           ),
@@ -89,12 +97,12 @@ class RepsSelected extends ConsumerWidget {
         
         const SizedBox(height: 8),
         
-        // ✅ REPETITION INTERVAL - NIEWYBRANE (NORMALNE TŁO)
+        
         GestureDetector(
           onTap: () {
             print("Repetition interval (3 - 5) selected"); // DEBUG
             ref.read(exerciseRepsTypeProvider(exerciseId).notifier).state = RepsType.range;
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(RepsType.range);
           },
           child: Container(
             width: double.infinity,
@@ -123,14 +131,14 @@ class RepsSelected extends ConsumerWidget {
                   size: 24,
                 ),
                 const SizedBox(width: 12),
-                Text(
+               Text(
                   "Repetition interval (3 - 5)",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: currentRepsType == RepsType.range
-                  ? Colors.green.withAlpha(51)
-                  : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    ? Colors.green  // ✅ USUŃ .withAlpha(51) - zostaw tylko Colors.green
+                    : Theme.of(context).colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 if(currentRepsType == RepsType.range) ...[
                   const SizedBox(width: 8),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/features/exercise/screens/exercise_info.dart';
 import 'package:work_plan_front/features/plan_creation/widgets/build_sets_table.dart';
@@ -8,7 +9,7 @@ import 'package:work_plan_front/features/workout/components/exercise_ui/exercise
 import 'package:work_plan_front/features/plan_creation/helpers/selected_exercise_data_manager.dart';
 import 'package:work_plan_front/features/plan_creation/helpers/exercise_replacement_manager.dart';
 
-class SelectedCreationList extends StatefulWidget {
+class SelectedCreationList extends ConsumerStatefulWidget {
   final List<Exercise> exercises;
   final void Function(Exercise exercise) onDelete;
   final void Function(Map<String, List<Map<String, String>>> Function()) onGetTableData;
@@ -36,10 +37,10 @@ class SelectedCreationList extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<SelectedCreationList> createState() => SelectedCreationListState();
+  ConsumerState<SelectedCreationList> createState() => SelectedCreationListState();
 }
 
-class SelectedCreationListState extends State<SelectedCreationList> {
+class SelectedCreationListState extends ConsumerState<SelectedCreationList> {
     static double? globalPointerDy;
   static VoidCallback? globalAutoScrollCallback;
   static VoidCallback? globalStopAutoScrollCallback;
@@ -305,11 +306,11 @@ void resetDragging() {
   void didUpdateWidget(SelectedCreationList oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Aktualizuj listę ćwiczeń jeśli się zmieniła
+   
    if (widget.exercises.length != _reorderedExercises.length ||
       !widget.exercises.every((e) => _reorderedExercises.any((r) => r.id == e.id))) {
     
-    //  UŻYJ PostFrameCallback ZAMIAST setState
+  
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         setState(() {

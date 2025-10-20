@@ -8,14 +8,16 @@ import 'package:work_plan_front/shared/widget/plan/weight_selected.dart';
 import 'package:work_plan_front/provider/weight_type_provider.dart';
 import 'package:work_plan_front/model/weight_type.dart';
 
-class BuildSetsTable extends ConsumerWidget {
+class BuildSetsTable extends ConsumerStatefulWidget {
   final String exerciseId;
   final String exerciseName;
   final List<Map<String, String>> rows;
   final Map<String, List<TextEditingController>>? kgControllers;
-  final Map<String, List<TextEditingController>>? repMinControllers; // ✅ ZMIENIONE z repControllers
+  final Map<String, List<TextEditingController>>? repMinControllers;
   final Map<String, List<TextEditingController>>? repMaxControllers;
   final String repsType;
+  final Function(String exerciseId, int setIndex, String field, dynamic value)?
+  onUpdateRowValue;
 
   const BuildSetsTable({
     Key? key,
@@ -24,14 +26,22 @@ class BuildSetsTable extends ConsumerWidget {
     required this.rows,
     required this.repsType,
     this.kgControllers,
-    this.repMinControllers, //  ZMIENIONE
+    this.repMinControllers,
     this.repMaxControllers,
+    this.onUpdateRowValue,
   }) : super(key: key);
 
-  void _showWeightBottomSheet(BuildContext context, WidgetRef ref) {
-    //  POBIERZ AKTUALNĄ JEDNOSTKĘ DLA TEGO ĆWICZENIA
-    final oldWeightType = ref.read(exerciseWeightTypeProvider(exerciseId));
-    
+  @override
+  ConsumerState<BuildSetsTable> createState() => _BuildSetsTableState();
+}
+
+class _BuildSetsTableState extends ConsumerState<BuildSetsTable> {
+  void _showWeightBottomSheet(BuildContext context) {
+    // POBIERZ AKTUALNĄ JEDNOSTKĘ DLA TEGO ĆWICZENIA
+    final oldWeightType = ref.read(
+      exerciseWeightTypeProvider(widget.exerciseId),
+    );
+
     showModalBottomSheet<WeightType>(
       context: context,
       isScrollControlled: true,
@@ -44,22 +54,25 @@ class BuildSetsTable extends ConsumerWidget {
         minHeight: MediaQuery.of(context).size.height * 0.4,
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      //  PRZEKAŻ EXERCISE ID I NAZWĘ
-      builder: (context) => WeightSelected(
-        exerciseId: exerciseId,
-        exerciseName: exerciseName,
-      ),
+      // PRZEKAŻ EXERCISE ID I NAZWĘ
+      builder:
+          (context) => WeightSelected(
+            exerciseId: widget.exerciseId,
+            exerciseName: widget.exerciseName,
+          ),
     ).then((selectedWeightType) {
       if (selectedWeightType != null && selectedWeightType != oldWeightType) {
-        print("Converting weights for $exerciseName from $oldWeightType to $selectedWeightType");
+        print(
+          "Converting weights for ${widget.exerciseName} from $oldWeightType to $selectedWeightType",
+        );
         _convertWeightValues(selectedWeightType, oldWeightType);
       }
     });
   }
 
-  void _showRepsBottomSheet(BuildContext context, WidgetRef ref ) {
-    //  POBIERZ AKTUALNY RODZAJ POWTÓRZEŃ DLA TEGO ĆWICZENIA
-    final oldRepsType = ref.read(exerciseRepsTypeProvider(exerciseId));
+  void _showRepsBottomSheet(BuildContext context) {
+    // POBIERZ AKTUALNY RODZAJ POWTÓRZEŃ DLA TEGO ĆWICZENIA
+    final oldRepsType = ref.read(exerciseRepsTypeProvider(widget.exerciseId));
 
     showModalBottomSheet<RepsType>(
       context: context,
@@ -73,69 +86,123 @@ class BuildSetsTable extends ConsumerWidget {
         minHeight: MediaQuery.of(context).size.height * 0.4,
         maxHeight: MediaQuery.of(context).size.height * 0.6,
       ),
-      builder: (context) =>  RepsSelected(
-        exerciseId: exerciseId,
-        exerciseName: exerciseName),
+      builder:
+          (context) => RepsSelected(
+            exerciseId: widget.exerciseId,
+            exerciseName: widget.exerciseName,
+          ),
     ).then((selectedRepsType) {
       if (selectedRepsType != null && selectedRepsType != oldRepsType) {
-        print("Reps type changed for $exerciseName from $oldRepsType to $selectedRepsType");
-        _covertRepsValues(selectedRepsType, oldRepsType);
-   
+        print(
+          "Reps type changed for ${widget.exerciseName} from $oldRepsType to $selectedRepsType",
+        );
+
+        // ✅ SETSTATE WYWOŁUJE PRZEBUDOWANIE WIDGETU
+        setState(() {
+          _covertRepsValues(selectedRepsType, oldRepsType);
+        });
+
+        // ✅ AKTUALIZUJ DANE W PARENT WIDGET
+        if (widget.onUpdateRowValue != null) {
+          for (int i = 0; i < widget.rows.length; i++) {
+            widget.onUpdateRowValue!(
+              widget.exerciseId,
+              i,
+              "repsType",
+              selectedRepsType.toDbString(),
+            );
+          }
+        }
       }
     });
   }
 
   // KONWERSJA WARTOŚCI DLA TEGO KONKRETNEGO ĆWICZENIA
-  void _convertWeightValues(WeightType newWeightType, WeightType oldWeightType) {
-    if (kgControllers?[exerciseId] == null) return;
-    
-    print("🔄 Converting weights for exercise $exerciseId ($exerciseName):");
+  void _convertWeightValues(
+    WeightType newWeightType,
+    WeightType oldWeightType,
+  ) {
+    if (widget.kgControllers?[widget.exerciseId] == null) return;
+
+    print(
+      "🔄 Converting weights for exercise ${widget.exerciseId} (${widget.exerciseName}):",
+    );
     print("  From: $oldWeightType -> To: $newWeightType");
-    
-    for (int i = 0; i < kgControllers![exerciseId]!.length; i++) {
-      final controller = kgControllers![exerciseId]![i];
+
+    for (int i = 0; i < widget.kgControllers![widget.exerciseId]!.length; i++) {
+      final controller = widget.kgControllers![widget.exerciseId]![i];
       if (controller.text.isNotEmpty) {
         final currentValue = double.tryParse(controller.text) ?? 0.0;
         if (currentValue > 0) {
-          final convertedValue = oldWeightType.convertTo(currentValue, newWeightType);
+          final convertedValue = oldWeightType.convertTo(
+            currentValue,
+            newWeightType,
+          );
           controller.text = convertedValue.toStringAsFixed(1);
-          print("    Set ${i + 1}: $currentValue ${oldWeightType.displayName} -> $convertedValue ${newWeightType.displayName}");
+          print(
+            "    Set ${i + 1}: $currentValue ${oldWeightType.displayName} -> $convertedValue ${newWeightType.displayName}",
+          );
         }
       }
     }
-  }
-  void _covertRepsValues(RepsType newRepsType, RepsType oldRepsType){
-    if (repMinControllers?[exerciseId] == null) return;
 
-    print("🔄 Converting reps for exercise $exerciseId ($exerciseName):");
+    // ✅ WYMUSI PRZEBUDOWANIE WIDGETU Z NOWYMI WARTOŚCIAMI
+    setState(() {});
+  }
+
+  void _covertRepsValues(RepsType newRepsType, RepsType oldRepsType) {
+    if (widget.repMinControllers?[widget.exerciseId] == null ||
+        widget.repMaxControllers?[widget.exerciseId] == null)
+      return;
+
+    print(
+      "🔄 Converting reps for exercise ${widget.exerciseId} (${widget.exerciseName}):",
+    );
     print("  From: $oldRepsType -> To: $newRepsType");
 
-    for (int i=0; i < repMinControllers![exerciseId]!.length; i++ ){
-      final repController = repMinControllers![exerciseId]![i];
-      final repMaxController = repMaxControllers![exerciseId]![i];
-    
-    if(newRepsType == RepsType.range && oldRepsType == RepsType.single){
-      if(repController.text.isNotEmpty){
-        final currentValue = repController.text;
-        repMaxController.text = currentValue;
-            print("    Set ${i + 1}: $currentValue seconds → $currentValue-$currentValue reps");
-      }
-    } else if (newRepsType == RepsType.single && oldRepsType == RepsType.range){
-      if(repController.text.isNotEmpty ){
-        final miniValue = repController.text;
-        repMaxController?.text = "";
-        print("    Set ${i + 1}: $miniValue-$miniValue reps → $miniValue seconds");
+    for (
+      int i = 0;
+      i < widget.repMinControllers![widget.exerciseId]!.length;
+      i++
+    ) {
+      final repController = widget.repMinControllers![widget.exerciseId]![i];
+      final repMaxController = widget.repMaxControllers![widget.exerciseId]![i];
+
+      if (newRepsType == RepsType.range && oldRepsType == RepsType.single) {
+        if (repController.text.isNotEmpty) {
+          final currentValue = repController.text;
+          repMaxController.text = currentValue;
+          print(
+            "    Set ${i + 1}: $currentValue seconds → $currentValue-$currentValue reps",
+          );
+        }
+      } else if (newRepsType == RepsType.single &&
+          oldRepsType == RepsType.range) {
+        if (repController.text.isNotEmpty) {
+          final miniValue = repController.text;
+          repMaxController.text = "";
+          print(
+            "    Set ${i + 1}: $miniValue-${repMaxController.text} reps → $miniValue seconds",
+          );
+        }
       }
     }
-  }
-    
+
+    // ✅ WYMUSI PRZEBUDOWANIE WIDGETU Z NOWYMI WARTOŚCIAMI
+    // Nie trzeba wywołać setState() tutaj, bo już jest wywołane w _showRepsBottomSheet
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // POBIERZ JEDNOSTKĘ WAGI DLA TEGO KONKRETNEGO ĆWICZENIA
-    final currentWeightType = ref.watch(exerciseWeightTypeProvider(exerciseId));
-    
+    final currentWeightType = ref.watch(
+      exerciseWeightTypeProvider(widget.exerciseId),
+    );
+    // ✅ POBIERZ AKTUALNY TYP POWTÓRZEŃ Z PROVIDERA
+    final currentRepsType = ref.watch(
+      exerciseRepsTypeProvider(widget.exerciseId),
+    );
+
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
@@ -172,18 +239,24 @@ class BuildSetsTable extends ConsumerWidget {
                 Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      print("Weight header clicked for exercise: $exerciseId ($exerciseName)!");
-                      _showWeightBottomSheet(context, ref);
+                      print(
+                        "Weight header clicked for exercise: ${widget.exerciseId} (${widget.exerciseName})!",
+                      );
+                      _showWeightBottomSheet(context);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            // ✅ JEDNOSTKA SPECYFICZNA DLA TEGO ĆWICZENIA
                             "Weight (${currentWeightType.displayName})",
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -206,16 +279,21 @@ class BuildSetsTable extends ConsumerWidget {
                   child: GestureDetector(
                     onTap: () {
                       print("Reps header clicked!");
-                      _showRepsBottomSheet(context, ref);
+                      _showRepsBottomSheet(context);
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 4,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             "Reps",
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -238,17 +316,20 @@ class BuildSetsTable extends ConsumerWidget {
           ),
 
           // Wiersze tabeli
-          for (int i = 0; i < rows.length; i++)
+          for (int i = 0; i < widget.rows.length; i++)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               decoration: BoxDecoration(
-                border: i > 0
-                    ? Border(
-                        top: BorderSide(
-                          color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
-                        ),
-                      )
-                    : null,
+                border:
+                    i > 0
+                        ? Border(
+                          top: BorderSide(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withOpacity(0.2),
+                          ),
+                        )
+                        : null,
               ),
               child: Row(
                 children: [
@@ -268,23 +349,31 @@ class BuildSetsTable extends ConsumerWidget {
                   // ✅ POLE WAGI Z PLACEHOLDER JEDNOSTKI DLA TEGO ĆWICZENIA
                   Expanded(
                     child: TextField(
-                      controller: (kgControllers?[exerciseId] != null &&
-                                  i < kgControllers![exerciseId]!.length)
-                          ? kgControllers![exerciseId]![i]
-                          : null,
+                      controller:
+                          (widget.kgControllers?[widget.exerciseId] != null &&
+                                  i <
+                                      widget
+                                          .kgControllers![widget.exerciseId]!
+                                          .length)
+                              ? widget.kgControllers![widget.exerciseId]![i]
+                              : null,
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyMedium,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 4,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         isDense: true,
-                      
                         hintText: "0 ${currentWeightType.displayName}",
                         hintStyle: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.5),
                           fontSize: 12,
                         ),
                       ),
@@ -292,15 +381,16 @@ class BuildSetsTable extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
 
-                  //  POLE POWTÓRZEŃ
+                  // ✅ POLE POWTÓRZEŃ - UŻYJ AKTUALNEGO TYPU Z PROVIDERA
                   RepsField(
                     setIndex: i,
-                    exerciseId: exerciseId,
-                    repControllers: repMinControllers,
-                    repMaxControllers: repMaxControllers,
-                    repsType: repsType, // <-- przekazujesz globalny typ!
+                    exerciseId: widget.exerciseId,
+                    repControllers: widget.repMinControllers,
+                    repMaxControllers: widget.repMaxControllers,
+                    repsType:
+                        currentRepsType.toDbString(), // ✅ UŻYJ AKTUALNEGO TYPU
                     ref: ref,
-                  )
+                  ),
                 ],
               ),
             ),

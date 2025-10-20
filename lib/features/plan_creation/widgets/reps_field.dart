@@ -31,7 +31,7 @@ class RepsField extends StatelessWidget {
   final currentRepsType = repsType == "range" ? RepsType.range : RepsType.single;
   
     if (currentRepsType == RepsType.single) {
-      // ✅ POJEDYNCZE POLE DLA SECONDS
+      // POJEDYNCZE POLE DLA SECONDS
       return Expanded(
         child: TextField(
           controller: (repControllers?[exerciseId] != null &&
