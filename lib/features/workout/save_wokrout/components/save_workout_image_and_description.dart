@@ -69,7 +69,7 @@ class SaveWorkoutImageAndDescription extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Opis',
+                'Description',
                 style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
@@ -83,7 +83,7 @@ class SaveWorkoutImageAndDescription extends StatelessWidget {
                 textAlign: TextAlign.left,
                 maxLines: 5,
                 decoration:InputDecoration(
-                  hintText: "Tutaj możesz dodać szczegóły dotyczące treningu.",
+                  hintText: "Here you can add details about your training.",
                   hintStyle: TextStyle(
                     color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
                   ),

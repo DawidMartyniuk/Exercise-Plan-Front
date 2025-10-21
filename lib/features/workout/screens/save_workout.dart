@@ -474,7 +474,7 @@ Future<void> _endWorkoutAfterSave() async {
           ],
           centerTitle: true,
           title: Text(
-            'Zapisz trening',
+            'Save Workout',
             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           backgroundColor: Theme.of(context).colorScheme.surface,

@@ -1,0 +1,1 @@
+//TODO o jaka wartośc w sliderze ma się zwiekszac liczba

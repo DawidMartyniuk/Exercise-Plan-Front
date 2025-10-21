@@ -52,7 +52,7 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
       color: Theme.of(context).colorScheme.surface.withAlpha((0.9 * 255).toInt()),
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -106,9 +106,17 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
             //  TABELA ĆWICZEŃ
             Table(
               border: TableBorder.all(
-                color: Theme.of(context).colorScheme.outline.withAlpha(50),
+                color: Theme.of(context).colorScheme.outline.withAlpha(77),
                 width: 1,
+                style: BorderStyle.solid,
               ),
+
+               columnWidths: const {
+                      0: FlexColumnWidth(0.8), // ✅ SETS - najmniejsza (była 2)
+                      1: FlexColumnWidth(3), // ✅ WEIGHT - największa (była 2) 
+                      2: FlexColumnWidth(3), // ✅ REPS - największa (była 2)
+                      3: FlexColumnWidth(0.7), // ✅ CHECKBOX - mniejsza (była 1)
+                    },
               children: [
                 TableRow(
                   decoration: BoxDecoration(
@@ -122,12 +130,11 @@ class PlanSelectedCard extends ConsumerWidget with PlanHelpers {
                      Container(
                       color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                       padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Done',
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
-                        textAlign: TextAlign.center,
+                      child: Icon(
+                        Icons.check,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 20,
+                        
                       ),
                     ),
                   ],

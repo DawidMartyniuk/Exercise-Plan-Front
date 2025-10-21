@@ -44,6 +44,7 @@ class ExerciseTableHelpers {
     Function(ExerciseRow, String)? onToggleFailure,
     required WidgetRef ref,
     required String Function(String, int) getOriginalRange,
+    required String planId,
     bool isReadOnly = false,
   }) {
     final List<TableRow> rows = [];
@@ -62,6 +63,7 @@ class ExerciseTableHelpers {
               // ✅ WEIGHT COLUMN - TYLKO WorkoutWeightField
               Container(
                 child: WorkoutWeightField(
+                  planId: planId ,
                   row: exerciseRow,
                   exerciseNumber: exerciseRowData.exercise_number,
                   onWeightChanged: (value) => onKgChanged?.call(exerciseRow, value, exerciseRowData.exercise_number),

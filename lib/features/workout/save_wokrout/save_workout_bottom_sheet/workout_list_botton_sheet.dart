@@ -26,9 +26,16 @@ class WorkoutListBottonSheet extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Wykonywane ćwiczenia:",
-              style: Theme.of(context).textTheme.titleMedium,
+            Row(
+              //crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "The exercise was performed:",
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             ...performedExercises.map((ex) {
@@ -83,7 +90,7 @@ class WorkoutListBottonSheet extends ConsumerWidget {
                         .map(
                           (set) => ListTile(
                             title: Text(
-                              "Seria: Powtórzenia: ${set.colRepMin},  Kg: ${set.kg}",
+                              "Set:${set.step} Reps: ${set.colRepMin},  Kg: ${set.kg}",
                             ),
                             trailing:
                                 set.isChecked

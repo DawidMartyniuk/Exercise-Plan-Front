@@ -222,7 +222,7 @@ class _PlanWorksState extends ConsumerState<PlanWorks>
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.symmetric(horizontal: 7.0, vertical: 8.0),
               child: CustomScrollView(
                 controller: _scrollController,
                 slivers: [
@@ -331,7 +331,7 @@ class _PlanWorksState extends ConsumerState<PlanWorks>
       return PlanSelectedCard(
         exerciseId: firstRow.exercise_number,
         exerciseName: exerciseName,
-        headerCellTextStep: ExerciseTableHelpers.buildHeaderCell(context, "Step"),
+        headerCellTextStep: ExerciseTableHelpers.buildHeaderCell(context, "Set"),
         headerCellTextKg: ExerciseTableHelpers.buildHeaderCell(context, "Weight"),
         headerCellTextReps: ExerciseTableHelpers.buildHeaderCell(context, "Reps"),
         notes: firstRow.notes,
@@ -341,6 +341,7 @@ class _PlanWorksState extends ConsumerState<PlanWorks>
         setsCount: firstRow.data.length,
         onReplaceExercise: widget.isReadOnly ? null : () => _replaceExercise(firstRow.exercise_number),
         exerciseRows: ExerciseTableHelpers.buildExerciseTableRows(
+          planId: _workingPlan.id.toString(), 
           exerciseRows,
           context,
           onKgChanged: _onKgChanged,

@@ -13,6 +13,7 @@ class ExerciseRowWidget extends StatelessWidget {
   final VoidCallback? onFailureToggle;
   final String Function(String, int) getOriginalRange;
   final bool isReadOnly;
+   final String planId;
 
   const ExerciseRowWidget({
     Key? key,
@@ -23,6 +24,7 @@ class ExerciseRowWidget extends StatelessWidget {
     required this.onRepChanged,
     required this.onCheckedChanged,
     required this.getOriginalRange,
+    required this.planId,
     this.onFailureToggle,
     this.isReadOnly = false,
   }) : super(key: key);
@@ -83,52 +85,14 @@ class ExerciseRowWidget extends StatelessWidget {
           Expanded(
             flex: 2,
             child: WorkoutWeightField(
+              planId: planId, // ✅ DODAJ planId
               row: row,
               exerciseNumber: exerciseNumber,
               onWeightChanged: onKgChanged,
               isReadOnly: isReadOnly,
             ),
           ),
-          //  Expanded(
-          //   flex: 2,
-          //   child: Container(
-          //     padding: const EdgeInsets.all(8.0),
-          //     child: TextField(
-          //       keyboardType: TextInputType.number,
-          //       textAlign: TextAlign.center,
-          //       style: TextStyle(
-          //         color: Theme.of(context).colorScheme.onSurface,
-          //       ),
-          //       decoration: InputDecoration(
-          //         hintText: row.colKg.toString(),
-          //         border: InputBorder.none,
-          //         contentPadding: EdgeInsets.zero,
-          //       ),
-          //       onChanged: onKgChanged,
-          //     ),
-          //   ),
-          // ),
-
-          // Reps Input
-          // Expanded(
-          //   flex: 2,
-          //   child: Container(
-          //     padding: const EdgeInsets.all(8.0),
-          //     child: TextField(
-          //       keyboardType: TextInputType.number,
-          //       textAlign: TextAlign.center,
-          //       style: TextStyle(
-          //         color: Theme.of(context).colorScheme.onSurface,
-          //       ),
-          //       decoration: InputDecoration(
-          //         hintText: row.colRepMin.toString(),
-          //         border: InputBorder.none,
-          //         contentPadding: EdgeInsets.zero,
-          //       ),
-          //       onChanged: onRepChanged,
-          //     ),
-          //   ),
-          // ),
+          
           Expanded(
             flex: 2,
             child: WorkoutRepsField(

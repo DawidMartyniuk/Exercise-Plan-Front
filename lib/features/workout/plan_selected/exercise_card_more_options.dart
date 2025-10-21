@@ -6,7 +6,6 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
   //final ExerciseTable exercise;
   final VoidCallback? onDeleteCard;
   final VoidCallback? onReplace;
-  final VoidCallback? onDuplicateCard;
   final VoidCallback? onShowPlan;
   final VoidCallback? onInfoExercise;
 
@@ -14,7 +13,6 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
    // required this.exercise,
     this.onDeleteCard,
     this.onReplace,
-    this.onDuplicateCard,
     this.onShowPlan,
     this.onInfoExercise
     
@@ -43,15 +41,6 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
             child: _buildMenuItem(
               icon: Icons.swap_horiz,
               title: 'Replace',
-              context: context,
-              isDestructive: false,
-              ),
-            ),
-            PopupMenuItem(
-            value: 'duplicate',
-            child: _buildMenuItem(
-              icon: Icons.content_copy,
-              title: 'Duplicate',
               context: context,
               isDestructive: false,
               ),
@@ -103,9 +92,6 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
         break;
       case 'replace':
         if (onReplace != null) onReplace!();
-        break;
-      case 'duplicate':
-        if (onDuplicateCard != null) onDuplicateCard!();
         break;
       case 'infoExercise': 
       
