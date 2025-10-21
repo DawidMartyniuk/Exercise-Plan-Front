@@ -453,9 +453,7 @@ Future<void> _endWorkoutAfterSave() async {
       child: Scaffold(
         appBar: AppBar(
           actions: [
-  
             SizedBox(width: 3),
-      
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromARGB(255, 98, 204, 107),
@@ -484,11 +482,12 @@ Future<void> _endWorkoutAfterSave() async {
         body: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            child: SizedBox(
-               height: MediaQuery.of(context).size.height - 
-                 MediaQuery.of(context).padding.top - 
-                 kToolbarHeight - 
-                 32, // 16 padding top + 16 padding bottom
+            //child: 
+            // SizedBox(
+            //    height: MediaQuery.of(context).size.height - 
+            //      MediaQuery.of(context).padding.top - 
+            //      kToolbarHeight - 
+            //      32, 
               child: Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -496,67 +495,71 @@ Future<void> _endWorkoutAfterSave() async {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                   // mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SaveWorkoutHeader(
-                        controller: TitleController,
-                        hourFrom: hourFrom,
-                        minuteFrom: minuteFrom,
-                        onDateTap: _showDataPickerSheet,
-                        onTimeTap: _showTimeIntervalPickerSheet,
-                      ),
-                      CustomDivider(
-                        dashWidth: 12,
-                        dashSpace: 4,
-                        indent: 5,
-                        endIndent: 5,
-                        color: Colors.black,
-                      ),
-                      SaveWorkoutStatsRow(
-                        hoursSelected: hoursSelected,
-                        minutesSelected: minutesSelected,
-                        weightSelected: weightSelected,
-                        allReps: allReps,
-                        showTimePickerSheet: _showTimePickerSheet,
-                        showWeightInfoSheet: _showWeightInfoSheet,
-                        showBodyPartExercisePickerSheet:
-                            _showBodyPartExercisePickerSheet,
-                        showBodyPartRepsPickerSheet: _showBodyPartRepsPickerSheet,
-                        showRepsInfoSheet: _showRepsInfoSheet,
-                      ),
-                      CustomDivider(
-                        dashWidth: 12,
-                        dashSpace: 4,
-                        indent: 5,
-                        endIndent: 5,
-                        color: Colors.black,
-                      ),
-                     
-                      Expanded(
-                        child: SaveWorkoutImageAndDescription(
-                          selectedImage: _selectedImage,
-                          onImagePick: _tahePicture,
-                          descriptionController: descriptionController,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SaveWorkoutHeader(
+                          controller: TitleController,
+                          hourFrom: hourFrom,
+                          minuteFrom: minuteFrom,
+                          onDateTap: _showDataPickerSheet,
+                          onTimeTap: _showTimeIntervalPickerSheet,
                         ),
-                      ),
-                      CustomDivider(
-                        dashWidth: 12,
-                        dashSpace: 4,
-                        indent: 5,
-                        endIndent: 5,
-                        color: Colors.black,
-                      ),
-                      SaveWorkoutActionButtons(
-                        onWorkoutList: _showWrokoutListPickerSheet,
-                        
-                      ),
-                    ],
+                        CustomDivider(
+                          dashWidth: 12,
+                          dashSpace: 4,
+                          indent: 5,
+                          endIndent: 5,
+                          color: Colors.black,
+                        ),
+                        SaveWorkoutStatsRow(
+                          hoursSelected: hoursSelected,
+                          minutesSelected: minutesSelected,
+                          weightSelected: weightSelected,
+                          allReps: allReps,
+                          showTimePickerSheet: _showTimePickerSheet,
+                          showWeightInfoSheet: _showWeightInfoSheet,
+                          showBodyPartExercisePickerSheet:
+                              _showBodyPartExercisePickerSheet,
+                          showBodyPartRepsPickerSheet: _showBodyPartRepsPickerSheet,
+                          showRepsInfoSheet: _showRepsInfoSheet,
+                        ),
+                        CustomDivider(
+                          dashWidth: 12,
+                          dashSpace: 4,
+                          indent: 5,
+                          endIndent: 5,
+                          color: Colors.black,
+                        ),
+                       
+                        //Expanded(
+                          //child: 
+                          SaveWorkoutImageAndDescription(
+                            selectedImage: _selectedImage,
+                            onImagePick: _tahePicture,
+                            descriptionController: descriptionController,
+                          ),
+                       // ),
+                        CustomDivider(
+                          dashWidth: 12,
+                          dashSpace: 4,
+                          indent: 5,
+                          endIndent: 5,
+                          color: Colors.black,
+                        ),
+                        SaveWorkoutActionButtons(
+                          onWorkoutList: _showWrokoutListPickerSheet,
+                          
+                        ),
+                          const SizedBox(height: 32),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
+           // ),
           ),
         ),
       ),
