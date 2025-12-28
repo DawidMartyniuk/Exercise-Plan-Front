@@ -6,7 +6,12 @@ Flex Plan to frontend aplikacji do tworzenia i śledzenia planów treningowych n
 
 Screenshoty
 ----------
+Tworzenie planu
+---------------
 ![Plan creation](assets/docs/screenshot-plan-creation.png)
+
+Ćwiczenie z utwożony plane
+--------------------------
 
 ![Plan works](assets/docs/screenshot-plan-works.png)
 
