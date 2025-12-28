@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:animations/animations.dart';
-import 'package:work_plan_front/features/profile/screens/profile_user_edit.dart';
 
 class ProfileAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;

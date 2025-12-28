@@ -10,13 +10,13 @@ class ExerciseTable extends StatefulWidget {
   final TextEditingController notesController;
 
   const ExerciseTable({
-    Key? key,
+    super.key,
     required this.exerciseId,
     required this.exerciseName,
     required this.initialRows,
     required this.onRowsChanged,
     required this.notesController,
-  }) : super(key: key);
+  });
 
   @override
   State<ExerciseTable> createState() => _ExerciseTableState();

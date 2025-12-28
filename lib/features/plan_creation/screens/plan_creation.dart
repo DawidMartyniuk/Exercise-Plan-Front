@@ -297,7 +297,7 @@ class _StatePlanCreation extends ConsumerState<PlanCreation> {
   void _savePlanData(WidgetRef ref) async {
     print("💾 Starting plan save process...");
 
-      final currentTitleFromField = _planTitleFieldKey.currentState?.currentValue?.trim() ?? exerciseTableTitle.trim();
+      final currentTitleFromField = _planTitleFieldKey.currentState?.currentValue.trim() ?? exerciseTableTitle.trim();
       final finalTitle = currentTitleFromField.isNotEmpty ? currentTitleFromField : exerciseTableTitle.trim();
 
     if (!_isPlanReadToSave) {

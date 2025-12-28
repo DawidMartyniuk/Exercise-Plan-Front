@@ -13,12 +13,12 @@ class PlanItemWidget extends ConsumerWidget {
   final Function(ExerciseTable, BuildContext, int) onDeletePlan;
 
   const PlanItemWidget({
-    Key? key,
+    super.key,
     required this.plan,
     required this.allExercises,
     required this.onStartWorkout,
     required this.onDeletePlan,
-  }) : super(key: key);
+  });
 
   List<Exercise> _getFilteredExercise(ExerciseTable plan, List<Exercise> allExercises) {
     final planExerciseIds = plan.rows.map((row) => row.exercise_number).toSet();

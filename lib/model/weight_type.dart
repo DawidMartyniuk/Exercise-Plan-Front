@@ -57,7 +57,7 @@ enum WeightType {
 
   //  Formatowanie wartości z jednostką
   String formatWeight(double weight, {int decimals = 1}) {
-    return '${weight.toStringAsFixed(decimals)} ${displayName}';
+    return '${weight.toStringAsFixed(decimals)} $displayName';
   }
 }
 

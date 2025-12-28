@@ -55,7 +55,7 @@ class PasswordField extends StatelessWidget {
               : Colors.grey,
         ),
         // ✅ TUTAJ JEST PROBLEM - ZAWSZE DODAJE GWIAZDKĘ JEŚLI isRequired = true
-        labelText: isRequired ? "$labelText" : labelText,
+        labelText: isRequired ? labelText : labelText,
         suffixIcon: IconButton(
           onPressed: isEnabled ? togglePasswordVisibility : null,
           icon: Icon(
@@ -90,7 +90,7 @@ class PasswordField extends StatelessWidget {
         }
 
         if (value!.length < 6) {
-          return '${labelText} must be at least 6 characters long';
+          return '$labelText must be at least 6 characters long';
         }
 
         if (isNewPassword) {
@@ -99,18 +99,18 @@ class PasswordField extends StatelessWidget {
           final hasDigit = value.contains(RegExp(r'\d'));
 
           if (!hasUpperCase) {
-            return '${labelText} must contain at least one uppercase letter';
+            return '$labelText must contain at least one uppercase letter';
           }
           if (!hasLowerCase) {
-            return '${labelText} must contain at least one lowercase letter';
+            return '$labelText must contain at least one lowercase letter';
           }
           if (!hasDigit) {
-            return '${labelText} must contain at least one number';
+            return '$labelText must contain at least one number';
           }
         } else {
           final containsUpperCase = value.contains(RegExp(r'[A-Z]'));
           if (!containsUpperCase) {
-            return '${labelText} must contain at least one uppercase letter';
+            return '$labelText must contain at least one uppercase letter';
           }
         }
 

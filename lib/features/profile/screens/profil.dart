@@ -12,6 +12,8 @@ import 'package:work_plan_front/features/profile/screens/profile_user_edit.dart'
 import 'package:work_plan_front/features/profile/widget/profile_user_panel.dart';
 
 class ProfilScreen extends ConsumerStatefulWidget {
+  const ProfilScreen({super.key});
+
   @override
   ConsumerState<ConsumerStatefulWidget> createState() {
     return _ProfilScreenState();

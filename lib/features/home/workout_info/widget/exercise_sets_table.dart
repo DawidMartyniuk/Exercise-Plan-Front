@@ -7,11 +7,11 @@ class ExerciseSetsTable extends StatelessWidget {
   final bool isExpanded;
 
   const ExerciseSetsTable({
-    Key? key,
+    super.key,
     required this.exercise,
     this.exerciseName,
     this.isExpanded = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +67,7 @@ class ExerciseSetsTable extends StatelessWidget {
                 final index = entry.key;
                 final set = entry.value;
                 return _buildSetRow(context, index + 1, set);
-              }).toList(),
+              }),
             ],
           ),
           

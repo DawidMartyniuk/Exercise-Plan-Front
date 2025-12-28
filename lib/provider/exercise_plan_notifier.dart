@@ -210,7 +210,7 @@ class ExercisePlanNotifier extends StateNotifier<List<ExerciseTable>> {
             rep_type: _parseRepsType(exerciseRepTypes[exerciseId] ?? "single"),
           ));
 
-          print("  ✅ Created updated data for exercise $exerciseId with ${exerciseRowData} sets");
+          print("  ✅ Created updated data for exercise $exerciseId with $exerciseRowData sets");
         }
       } else {
         for (final entry in tableData.entries) {

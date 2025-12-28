@@ -16,7 +16,7 @@ class BodyPartSelected extends StatefulWidget {
 class _BodyPartSelectedState extends State<BodyPartSelected> {
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 400,
       child: Column(
         children: [

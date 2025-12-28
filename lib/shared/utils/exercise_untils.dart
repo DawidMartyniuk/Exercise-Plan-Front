@@ -57,12 +57,10 @@ List<PerformedExercise> getPerformedExercises(Currentworkout? currentWorkout) {
       });
       
       // ✅ FALLBACK - jeśli nie znajdzie po nazwie, spróbuj po exercise_number jako string
-      if (exercise == null) {
-        exercise = currentExercises.firstWhereOrNull((ex) {
+      exercise ??= currentExercises.firstWhereOrNull((ex) {
           print('FALLBACK: Porównuję ex.exerciseId: "${ex.exerciseId}" z rowData.exercise_number: "${rowData.exercise_number}"');
           return ex.exerciseId == rowData.exercise_number;
         });
-      }
       
       print('exercise znaleziony: ${exercise?.name}');
       

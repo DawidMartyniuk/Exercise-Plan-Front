@@ -9,7 +9,7 @@ class ExerciseCardMoreOptions extends ConsumerWidget {
   final VoidCallback? onShowPlan;
   final VoidCallback? onInfoExercise;
 
-  ExerciseCardMoreOptions({
+  const ExerciseCardMoreOptions({super.key, 
    // required this.exercise,
     this.onDeleteCard,
     this.onReplace,

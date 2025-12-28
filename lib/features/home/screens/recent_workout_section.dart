@@ -23,14 +23,11 @@ class _RecentWorkoutsSectionState extends ConsumerState<RecentWorkoutsSection> {
       try {
         // Sprawdź czy dane już są załadowane zanim wywołasz fetch
         final exercisePlans = ref.read(exercisePlanProvider);
-        if (exercisePlans == null || exercisePlans.isEmpty) {
+        if (exercisePlans.isEmpty) {
           await ref.read(exercisePlanProvider.notifier).fetchExercisePlans();
         }
 
         final exercises = ref.read(exerciseProvider);
-        if (exercises == null ) {
-          await ref.read(exerciseProvider.notifier).fetchExercises();
-        }
 
         final trainingSessions = ref.read(trainingSessionAsyncProvider).maybeWhen(
           data: (sessions) => sessions,

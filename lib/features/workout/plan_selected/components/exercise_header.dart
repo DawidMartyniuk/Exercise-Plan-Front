@@ -6,11 +6,11 @@ class ExerciseHeader extends StatelessWidget {
   final Widget headerCellTextReps;
 
   const ExerciseHeader({
-    Key? key,
+    super.key,
     required this.headerCellTextStep,
     required this.headerCellTextKg,
     required this.headerCellTextReps,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

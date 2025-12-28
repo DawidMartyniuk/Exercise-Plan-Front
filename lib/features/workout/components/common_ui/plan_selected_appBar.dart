@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/provider/current_workout_plan_provider.dart';
-import 'package:work_plan_front/shared/utils/workout_utils.dart';
-import 'package:work_plan_front/features/workout/screens/plan_works.dart';
 
 class PlanSelectedAppBar extends ConsumerWidget {
   final VoidCallback? onBack;

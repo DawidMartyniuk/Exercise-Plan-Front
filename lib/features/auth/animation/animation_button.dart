@@ -16,14 +16,14 @@ class AnimatedButton extends StatelessWidget {
   final double runSpacing;
 
   const AnimatedButton({
-    Key? key,
+    super.key,
     required this.buttons,
     this.delayMs = 1400,
     this.animationType = ButtonAnimationType.scale,
     this.alignment = WrapAlignment.center,
     this.spacing = 20,
     this.runSpacing = 10,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

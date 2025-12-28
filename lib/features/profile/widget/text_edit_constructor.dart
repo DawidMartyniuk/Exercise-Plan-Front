@@ -4,7 +4,7 @@ class TextEditConstructor extends StatelessWidget {
   final String title;
   final TextEditingController controller;
 
-  TextEditConstructor({
+  const TextEditConstructor({super.key, 
     required this.title,
     required this.controller,
   });

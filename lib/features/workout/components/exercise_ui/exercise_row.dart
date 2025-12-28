@@ -16,7 +16,7 @@ class ExerciseRowWidget extends StatelessWidget {
    final String planId;
 
   const ExerciseRowWidget({
-    Key? key,
+    super.key,
     required this.row,
     required this.stepNumber,
     required this.exerciseNumber,
@@ -27,7 +27,7 @@ class ExerciseRowWidget extends StatelessWidget {
     required this.planId,
     this.onFailureToggle,
     this.isReadOnly = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -20,7 +20,7 @@ class ExerciseInfoScreen extends ConsumerStatefulWidget {
 class _ExerciseInfoScreenState extends ConsumerState<ExerciseInfoScreen> 
 with SingleTickerProviderStateMixin {
    TabController? _tabController;
-     bool _isFavorite = false;
+     final bool _isFavorite = false;
   
 
   @override
@@ -47,7 +47,7 @@ with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final exercise = widget.exercise;
     final favoriteIds = ref.watch(favoriteExerciseProvider);
-    final _isFavorite = favoriteIds.contains(exercise.exerciseId);
+    final isFavorite = favoriteIds.contains(exercise.exerciseId);
     return Scaffold(
       appBar: AppBar(
         title: Text(exercise.name),
@@ -56,16 +56,16 @@ with SingleTickerProviderStateMixin {
           icon: AnimatedContainer(
             duration: Duration(milliseconds: 200),
             child: Icon(
-              _isFavorite ? Icons.favorite : Icons.favorite_border,
+              isFavorite ? Icons.favorite : Icons.favorite_border,
               color:
-                  _isFavorite
+                  isFavorite
                       ? Colors.red
                       : Theme.of(context).colorScheme.primary,
               size: 24,
             ),
           ),
           onPressed: _onFavoritePressed,
-          tooltip: _isFavorite ? 'Remove from favorites' : 'Add to favorites',
+          tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
         ),
         ],
         bottom: TabBar(

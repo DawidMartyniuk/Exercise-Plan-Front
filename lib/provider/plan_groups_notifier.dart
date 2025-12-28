@@ -124,7 +124,7 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
 
           if (originalCount != updatedPlans.length) {
             print(
-              "📤 Usunięto plan z grupy '${group.name}' (${originalCount} -> ${updatedPlans.length})",
+              "📤 Usunięto plan z grupy '${group.name}' ($originalCount -> ${updatedPlans.length})",
             );
           }
 
@@ -156,7 +156,7 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
 
           if (originalCount != updatedPlans.length) {
             print(
-              "📤 Usunięto plan z grupy '${group.name}' (${originalCount} -> ${updatedPlans.length})",
+              "📤 Usunięto plan z grupy '${group.name}' ($originalCount -> ${updatedPlans.length})",
             );
           }
 
@@ -210,24 +210,22 @@ class PlanGroupsNotifier extends StateNotifier<List<PlanGroup>> {
   void initializeWithPlans(List<ExerciseTable> plans) {
     print("🔄 Inicjalizacja grup z ${plans.length} planami");
 
-    if(plans != null ){
-      final backendPlansId = plans.map((p)=> p.id).toSet();
-      state = state.map((g) {
-        final originalCount = g.plans.length;
-        final validPlans = g.plans.where((plan) =>
-            backendPlansId.contains(plan.id)).toList();
+    final backendPlansId = plans.map((p)=> p.id).toSet();
+    state = state.map((g) {
+      final originalCount = g.plans.length;
+      final validPlans = g.plans.where((plan) =>
+          backendPlansId.contains(plan.id)).toList();
 
-        // if (originalCount != validPlans.length) {
-        //   print(
-        //     "📤 Usunięto plany z grupy '${g.name}' (${originalCount} -> ${validPlans.length})",
-        //   );
-        // }
+      // if (originalCount != validPlans.length) {
+      //   print(
+      //     "📤 Usunięto plany z grupy '${g.name}' (${originalCount} -> ${validPlans.length})",
+      //   );
+      // }
 
-        return g.copyWith(plans: validPlans);
-      }).toList();
+      return g.copyWith(plans: validPlans);
+    }).toList();
 
-    }
-       // DODAJ NOWE PLANY
+         // DODAJ NOWE PLANY
     final allExistingPlanIds = state.expand((group) => group.plans).map((p) => p.id).toSet();
     final newPlans = plans.where((plan) => !allExistingPlanIds.contains(plan.id)).toList();
 

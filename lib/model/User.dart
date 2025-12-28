@@ -85,18 +85,18 @@ class User {
   //  DODAJ NOWĄ METODĘ - merge tylko niepustych pól
   User mergeWith(User updatedUser) {
     return User(
-      id: this.id, 
+      id: id, 
     
-      name: updatedUser.name.isNotEmpty ? updatedUser.name : this.name,
-      email: updatedUser.email.isNotEmpty ? updatedUser.email : this.email,
+      name: updatedUser.name.isNotEmpty ? updatedUser.name : name,
+      email: updatedUser.email.isNotEmpty ? updatedUser.email : email,
       avatar: (updatedUser.avatar != null && updatedUser.avatar!.isNotEmpty) 
           ? updatedUser.avatar 
-          : this.avatar,
-      description: updatedUser.description ?? this.description,
-      weight: updatedUser.weight ?? this.weight,
+          : avatar,
+      description: updatedUser.description ?? description,
+      weight: updatedUser.weight ?? weight,
       preferredWeightUnit: updatedUser.preferredWeightUnit, 
-      createdAt: updatedUser.createdAt.isNotEmpty ? updatedUser.createdAt : this.createdAt,
-      updatedAt: updatedUser.updatedAt.isNotEmpty ? updatedUser.updatedAt : this.updatedAt,
+      createdAt: updatedUser.createdAt.isNotEmpty ? updatedUser.createdAt : createdAt,
+      updatedAt: updatedUser.updatedAt.isNotEmpty ? updatedUser.updatedAt : updatedAt,
     );
   }
 

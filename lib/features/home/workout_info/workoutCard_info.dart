@@ -11,22 +11,13 @@ class WorkoutCardInfo extends ConsumerWidget with WorkoutCardHelpers {
   final TrainingSession trainingSession;
 
   const WorkoutCardInfo({
-    Key? key,
+    super.key,
     required this.trainingSession,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // ✅ DODAJ DEFENSIVE PROGRAMMING
-    if (trainingSession == null) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Workout Details')),
-        body: Center(
-          child: Text('No workout data available'),
-        ),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Workout Details'),

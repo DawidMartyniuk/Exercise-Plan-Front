@@ -7,10 +7,10 @@ class PlanStats extends StatelessWidget with PlanHelpers {
   final bool isCompact;
 
   const PlanStats({
-    Key? key,
+    super.key,
     required this.plan,
     this.isCompact = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -60,7 +60,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
     final isRunning = timeValue > 0;
     final curentWorkout = ref.watch(currentWorkoutPlanProvider);
     
-   void _endWorkout(BuildContext context) {
+   void endWorkout(BuildContext context) {
   print("🛑 Kończymy trening z TabsScreen");
   
   // ✅ UŻYJ GLOBALNEJ METODY
@@ -106,7 +106,7 @@ class _TabsScreenState extends ConsumerState<TabsScreen> {
               onBack: () {
                 backWorkout();
               },
-              onEnd: () => _endWorkout(context),
+              onEnd: () => endWorkout(context),
             ),
           BottomNavigationBar(
             selectedLabelStyle: TextStyle(),

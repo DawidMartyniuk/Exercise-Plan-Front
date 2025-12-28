@@ -44,7 +44,7 @@ mixin WorkoutCardHelpers {
   String getUserName(WidgetRef ref) {
     try {
       final authResponse = ref.watch(authProviderLogin);
-      return authResponse?.user?.name ?? 'User';
+      return authResponse?.user.name ?? 'User';
     } catch (e) {
       print("❌ Error getting user name: $e");
       return 'User';

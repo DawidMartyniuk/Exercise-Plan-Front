@@ -8,11 +8,11 @@ class ExerciseListItem extends StatefulWidget {
   final String? exerciseImageUrl;
 
   const ExerciseListItem({
-    Key? key,
+    super.key,
     required this.exercise,
     this.exerciseName,
     this.exerciseImageUrl,
-  }) : super(key: key);
+  });
 
   @override
   State<ExerciseListItem> createState() => _ExerciseListItemState();

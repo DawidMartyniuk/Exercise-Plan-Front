@@ -19,14 +19,14 @@ class AnimatedField extends StatelessWidget {
   final Curve? curve;
 
   const AnimatedField({
-    Key? key,
+    super.key,
     required this.child,
     this.delayMs = 800,
     this.animationType = AnimationType.slideLeft,
     this.slideDistance = 50,
     this.duration,
     this.curve,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

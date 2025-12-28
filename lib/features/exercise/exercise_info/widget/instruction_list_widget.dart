@@ -25,7 +25,7 @@ class InstructionListWidget extends StatelessWidget {
             stepNumber: index + 1,
             instruction: instruction,
           );
-        }).toList(),
+        }),
       ],
     );
   }

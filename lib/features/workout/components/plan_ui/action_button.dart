@@ -13,7 +13,7 @@ class ActionButton extends StatelessWidget {
   final ExerciseTable plan; // ZASTĄP DYNAMIC ODPOWIEDNIM MODELEM
   // Removed BuildContext context; context is available in build()
 
-  ActionButton({
+  const ActionButton({super.key, 
     required this.isReadOnly,
     required this.isWorkoutMode,
     required this.exercises,

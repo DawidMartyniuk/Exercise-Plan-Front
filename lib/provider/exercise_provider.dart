@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/services/exerciseService.dart';
-import 'package:work_plan_front/theme/app_constants.dart';
 import 'package:work_plan_front/core/auth/token_storage.dart' as TokenStorage;
 
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<Exercise>>> {

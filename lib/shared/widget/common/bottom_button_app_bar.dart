@@ -9,14 +9,14 @@ class BottomButtonAppBar extends StatelessWidget {
   final IconData endIcon;
 
   const BottomButtonAppBar({
-    Key? key,
+    super.key,
     required this.onBack,
     required this.onEnd,
     this.backLabel = 'Back',
     this.endLabel = 'End',
     this.backIcon = Icons.arrow_back,
     this.endIcon = Icons.stop_circle_outlined,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

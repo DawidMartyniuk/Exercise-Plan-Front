@@ -13,11 +13,7 @@ final colorScheme = const ColorScheme.dark(
   onPrimary: Colors.white,           // Tekst na primary
   onSecondary: Colors.white,         // Tekst na secondary  
   onSurface: Colors.white,           // Tekst na surface
-  onSurfaceVariant: Color(0xFF1C1B1B), // Ciemny tekst na jasnych elementach
-  
-  // Dodatkowe kolory
-  background: Color(0xFF1C1B1B),     // Tło aplikacji
-  onBackground: Colors.white,        // Tekst na tle
+  onSurfaceVariant: Color(0xFF1C1B1B),        // Tekst na tle
   outline: Color(0xFF4C2F1F),       // Obramowania
 );
 

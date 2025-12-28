@@ -12,14 +12,14 @@ class ExerciseRowBuilder extends StatefulWidget {
   final Function(String, String) onNotesChanged;
 
   const ExerciseRowBuilder({
-    Key? key,
+    super.key,
     required this.exercise,
     required this.exerciseData,
     required this.onRemove,
     required this.onShowInfo,
     required this.onRowsChanged,
     required this.onNotesChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<ExerciseRowBuilder> createState() => _ExerciseRowBuilderState();

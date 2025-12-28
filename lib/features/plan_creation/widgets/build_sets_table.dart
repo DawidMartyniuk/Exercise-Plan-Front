@@ -20,7 +20,7 @@ class BuildSetsTable extends ConsumerStatefulWidget {
   onUpdateRowValue;
 
   const BuildSetsTable({
-    Key? key,
+    super.key,
     required this.exerciseId,
     required this.exerciseName,
     required this.rows,
@@ -29,7 +29,7 @@ class BuildSetsTable extends ConsumerStatefulWidget {
     this.repMinControllers,
     this.repMaxControllers,
     this.onUpdateRowValue,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<BuildSetsTable> createState() => _BuildSetsTableState();
@@ -152,8 +152,9 @@ class _BuildSetsTableState extends ConsumerState<BuildSetsTable> {
 
   void _covertRepsValues(RepsType newRepsType, RepsType oldRepsType) {
     if (widget.repMinControllers?[widget.exerciseId] == null ||
-        widget.repMaxControllers?[widget.exerciseId] == null)
+        widget.repMaxControllers?[widget.exerciseId] == null) {
       return;
+    }
 
     print(
       "🔄 Converting reps for exercise ${widget.exerciseId} (${widget.exerciseName}):",

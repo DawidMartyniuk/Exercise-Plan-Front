@@ -9,11 +9,11 @@ class ExerciseImage extends ConsumerWidget with PlanHelpers {
   final bool showBorder;
 
   const ExerciseImage({
-    Key? key,
+    super.key,
     required this.exerciseId,
     this.size = 50,
     this.showBorder = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

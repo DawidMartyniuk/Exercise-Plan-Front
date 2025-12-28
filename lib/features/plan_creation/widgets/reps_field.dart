@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/reps_type.dart';
-import 'package:work_plan_front/provider/reps_type_provider.dart';
 
   //   final Map<String, List<TextEditingController>>? repControllers;
   //  final Map<String, List<TextEditingController>>? repMaxControllers;

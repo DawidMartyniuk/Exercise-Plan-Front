@@ -7,12 +7,12 @@ class PlanTitleField extends StatefulWidget {
   final String? editPlanName;
 
   const PlanTitleField({
-    Key? key,
+    super.key,
     required this.initialValue,
     required this.onChanged,
     required this.isEditMode,
     this.editPlanName,
-  }) : super(key: key);
+  });
 
   @override
   PlanTitleFieldState createState() => PlanTitleFieldState();

@@ -16,7 +16,7 @@ class ProfileUserPanel extends ConsumerWidget {
   });
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
+    return SizedBox(
                 height: 100,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,

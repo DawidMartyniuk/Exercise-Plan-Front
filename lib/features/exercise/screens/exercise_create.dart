@@ -253,7 +253,7 @@ Future<void> _pickImage() async {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> _buildInstructionFields() {
+    List<Widget> buildInstructionFields() {
       return List.generate(_instructionControllers.length, (index) {
         final text = _instructionControllers[index].text;
         final endsWithDot = text.trim().endsWith(".");
@@ -468,7 +468,7 @@ Future<void> _pickImage() async {
                   ],
                 ),
               ),
-              ..._buildInstructionFields(),
+              ...buildInstructionFields(),
             ],
           ),
         ),

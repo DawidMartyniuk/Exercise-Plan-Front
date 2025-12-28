@@ -38,7 +38,7 @@ class ExercisesScreen extends ConsumerStatefulWidget {
 class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   BodyPart? selectedBodyPart;
   String _searchQuery = '';
-  bool _isFavorite = false;
+  final bool _isFavorite = false;
   bool _showOnlyFavorites = false;
 
 @override
@@ -346,6 +346,11 @@ void initState() {
                       Expanded(
                         child: TextButton(
                           onPressed: _openSelectBodyPart,
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                          ),
                           child: Text(
                             selectedBodyPart == null
                                 ? 'Body part'
@@ -357,17 +362,17 @@ void initState() {
                               fontSize: 16,
                             ),
                           ),
-                          style: TextButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextButton(
                           onPressed: () {},
+                          style: TextButton.styleFrom(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+                          ),
                           child: Text(
                             'Target',
                             style: Theme.of(
@@ -376,11 +381,6 @@ void initState() {
                               color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 16,
                             ),
-                          ),
-                          style: TextButton.styleFrom(
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
                           ),
                         ),
                       ),

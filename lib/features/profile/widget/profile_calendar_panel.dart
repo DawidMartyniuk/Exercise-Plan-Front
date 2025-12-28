@@ -230,7 +230,7 @@ class _ProfileCalenderState extends ConsumerState<ProfileCalenderPanel> {
                               ? Colors.white
                               : ((isToday != null && isToday)
                                   ? Theme.of(context).colorScheme.primary
-                                  : textStyle?.color),
+                                  : textStyle.color),
                             fontWeight: hasTraining 
                               ? FontWeight.bold 
                               : FontWeight.normal,
@@ -246,7 +246,7 @@ class _ProfileCalenderState extends ConsumerState<ProfileCalenderPanel> {
                     _selectedDates = dates;
                   });
                   if (dates.isNotEmpty) {
-                    final selectedDate = dates.first!;
+                    final selectedDate = dates.first;
                     print("tap");
                     _handleDayTapped(selectedDate, trainingSessions);
                     Future.delayed(Duration.zero, () {

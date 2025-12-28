@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/provider/favorite_exercise_notifer.dart';
 import 'package:work_plan_front/features/exercise/screens/exercise_info.dart';
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:work_plan_front/shared/utils/image_untils.dart';
 
 class ExerciseList extends ConsumerStatefulWidget {

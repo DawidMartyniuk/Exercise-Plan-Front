@@ -8,9 +8,9 @@ class ExerciseListView extends ConsumerWidget with WorkoutCardHelpers {
   final TrainingSession trainingSession;
 
   const ExerciseListView({
-    Key? key,
+    super.key,
     required this.trainingSession,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

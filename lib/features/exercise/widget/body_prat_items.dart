@@ -38,7 +38,7 @@ class _SecondaryMusclesSelectorState extends State<SecondaryMusclesSelector> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       height: 400,
       child: Column(
         children: [

@@ -60,7 +60,7 @@ class userExerciseService {
       if (key == 'gif_url') return; // nie wysyłaj gif_url
       if (value is List) {
         for (var v in value) {
-          request.fields['${key}[]'] = v.toString();
+          request.fields['$key[]'] = v.toString();
         }
       } else {
         request.fields[key] = value.toString();

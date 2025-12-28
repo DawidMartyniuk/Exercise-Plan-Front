@@ -75,16 +75,6 @@ class SelectedExerciseListHelpers {
     
     try {
       final lastRow = rows.last;
-      if (lastRow == null) {
-        print("  ⚠️ Last row is null, creating default set");
-        return {
-          "colStep": setNumber.toString(),
-          "colKg": "0",
-          "colRepMin": "0",
-          "colRepMax": "0",
-          "repsType": "single",
-        };
-      }
       
       final newSet = {
         "colStep": setNumber.toString(),
@@ -112,10 +102,8 @@ class SelectedExerciseListHelpers {
   static void updateSetNumbers(List<Map<String, String>> rows) {
     try {
       for (int i = 0; i < rows.length; i++) {
-        if (rows[i] != null) {
-          rows[i]["colStep"] = (i + 1).toString();
-        }
-      }
+        rows[i]["colStep"] = (i + 1).toString();
+            }
     } catch (e) {
       print("❌ Error updating set numbers: $e");
     }

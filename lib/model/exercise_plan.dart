@@ -45,8 +45,8 @@ class ExerciseTable {
   }
   ExerciseTable copyWithRows(List<ExerciseRowsData> newRows) {
     return ExerciseTable(
-      id: this.id,
-      exercise_table: this.exercise_table,
+      id: id,
+      exercise_table: exercise_table,
       rows: newRows,
     );
   }
@@ -108,11 +108,11 @@ class ExerciseRowsData {
   
   ExerciseRowsData copyWithData(List<ExerciseRow> newData) {
     return ExerciseRowsData(
-      exercise_number: this.exercise_number,
-      exercise_name: this.exercise_name,
-      rep_type: this.rep_type,
+      exercise_number: exercise_number,
+      exercise_name: exercise_name,
+      rep_type: rep_type,
       data: newData,
-      notes: this.notes,
+      notes: notes,
     );
   }
   

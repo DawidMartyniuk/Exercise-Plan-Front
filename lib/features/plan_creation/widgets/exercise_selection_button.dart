@@ -6,11 +6,11 @@ class ExerciseSelectionButton extends StatelessWidget {
   final String? customText;
 
   const ExerciseSelectionButton({
-    Key? key,
+    super.key,
     required this.onPressed,
     this.isLoading = false,
     this.customText,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

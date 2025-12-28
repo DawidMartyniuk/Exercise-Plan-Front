@@ -356,11 +356,11 @@ class _SaveWorkoutState extends ConsumerState<SaveWorkout> {
   print('🔍 Wysyłam JSON: ${jsonEncode(json)}');
   print('🔍 exercise_table_name w JSON: "${json['exercise_table_name']}"');
 
-  final TrainingSessionService _trainingService = TrainingSessionService();
+  final TrainingSessionService trainingService = TrainingSessionService();
 
   try {
      //final success = await ApiService.saveCompletedWorkout(workoutData);
-    final status = await _trainingService.saveTrainingSession(trainingSession);
+    final status = await trainingService.saveTrainingSession(trainingSession);
     
     if (status == 200 || status == 201) {
       ref.read(trainingSessionAsyncProvider.notifier).addSession(trainingSession);

@@ -21,14 +21,14 @@ class PlanGroupWidget extends ConsumerStatefulWidget {
   static VoidCallback? globalStopAutoScrollCallback;
 
   const PlanGroupWidget({
-    Key? key,
+    super.key,
     required this.group,
     required this.allExercises,
     required this.onStartWorkout,
     required this.onDeletePlan,
     required this.mainScrollController,
     required this.onCreateNewPlan,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<PlanGroupWidget> createState() => _PlanGroupWidgetState();
@@ -514,16 +514,15 @@ void _stopAutoScroll() {
                       );
                     },
                   ),
-                  if (widget.onCreateNewPlan != null)
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(
-                        8,
-                        widget.group.plans.isEmpty ? 0 : 16,
-                        8,
-                        8,
-                      ),
-                      child: _buildCreateNewPlanButton(context),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      8,
+                      widget.group.plans.isEmpty ? 0 : 16,
+                      8,
+                      8,
                     ),
+                    child: _buildCreateNewPlanButton(context),
+                  ),
                 ],
               ),
             ),

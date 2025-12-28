@@ -45,7 +45,7 @@ class SaveWorkoutStatsRow extends StatelessWidget {
               GestureDetector(
                 onTap: showTimePickerSheet,
                 child: Text(
-                  ' ${hoursSelected} h ${minutesSelected} min',
+                  ' $hoursSelected h $minutesSelected min',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -71,7 +71,7 @@ class SaveWorkoutStatsRow extends StatelessWidget {
               GestureDetector(
                 onTap: showWeightInfoSheet,
                 child: Text(
-                  '${weightSelected} kg',
+                  '$weightSelected kg',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -98,7 +98,7 @@ class SaveWorkoutStatsRow extends StatelessWidget {
               GestureDetector(
                 onTap: showRepsInfoSheet,
                 child: Text(
-                  '${allReps} ',
+                  '$allReps ',
                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                     color: Theme.of(context).colorScheme.onSurface,
                   ),

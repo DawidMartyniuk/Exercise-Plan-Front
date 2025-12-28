@@ -23,7 +23,7 @@ class SelectedCreationList extends ConsumerStatefulWidget {
 
   final ScrollController mainScrollController;
   const SelectedCreationList({
-    Key? key,
+    super.key,
     required this.exercises,
     required this.onDelete,
     required this.onGetTableData,
@@ -34,7 +34,7 @@ class SelectedCreationList extends ConsumerStatefulWidget {
    
     required this.mainScrollController,
 
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<SelectedCreationList> createState() => SelectedCreationListState();
@@ -237,7 +237,7 @@ void resetDragging() {
     });
     
     // Wywołaj callback z załadowanymi danymi
-    widget.onGetTableData?.call(() => _dataManager.exerciseRows.map(
+    widget.onGetTableData.call(() => _dataManager.exerciseRows.map(
       (key, value) => MapEntry(key, value["rows"] as List<Map<String, String>>),
     ));
     

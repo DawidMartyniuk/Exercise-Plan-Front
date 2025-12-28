@@ -5,10 +5,10 @@ class NotesField extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   const NotesField({
-    Key? key,
+    super.key,
     required this.notes,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

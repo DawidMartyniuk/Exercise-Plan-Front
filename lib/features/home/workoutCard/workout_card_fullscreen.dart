@@ -39,7 +39,7 @@ class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
             if (allSessionsForDate != null && allSessionsForDate!.length > 1)
               ...allSessionsForDate!.map((session) => 
                 _buildSessionCard(session, context, ref)
-              ).toList()
+              )
             else
               _buildSessionCard(trainingSession, context, ref),
           ],
@@ -144,7 +144,7 @@ class WorkoutCardFullscreen extends ConsumerWidget with WorkoutCardHelpers {
                   title: Text("${exercise.sets.length} sets"),
                   subtitle: Text(getExerciseName(exercise.exerciseId, ref) ?? "Exercise"),
                 ),
-              ).toList(),
+              ),
             ],
           ),
         ),

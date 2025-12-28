@@ -8,9 +8,9 @@ class WorkoutInfoSummary extends ConsumerWidget with WorkoutCardHelpers {
   final TrainingSession trainingSession;
 
   const WorkoutInfoSummary({
-    Key? key,
+    super.key,
     required this.trainingSession,
-  }) : super(key: key);
+  });
 
   String _formatReadableDateTime(DateTime date) {
     final formatter = DateFormat('dd MMMM yyyy, HH:mm');

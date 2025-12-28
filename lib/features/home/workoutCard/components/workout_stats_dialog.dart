@@ -143,8 +143,8 @@ class WorkoutStatsDialog extends StatelessWidget with WorkoutCardHelpers {
       children: [
         _buildInfoRow("Total Sets", "$totalSets"),
         _buildInfoRow("Total Exercises", "$totalExercises"),
-        _buildInfoRow("Avg Sets per Exercise", "${(totalSets / totalExercises).toStringAsFixed(1)}"),
-        _buildInfoRow("Sets per Minute", "${(totalSets / (trainingSession.duration / 60)).toStringAsFixed(1)}"),
+        _buildInfoRow("Avg Sets per Exercise", (totalSets / totalExercises).toStringAsFixed(1)),
+        _buildInfoRow("Sets per Minute", (totalSets / (trainingSession.duration / 60)).toStringAsFixed(1)),
       ],
     );
   }
@@ -158,8 +158,8 @@ class WorkoutStatsDialog extends StatelessWidget with WorkoutCardHelpers {
       children: [
         _buildInfoRow("Total Reps", "$totalReps"),
         _buildInfoRow("Total Sets", "$totalSets"),
-        _buildInfoRow("Avg Reps per Set", "${(totalReps / totalSets).toStringAsFixed(1)}"),
-        _buildInfoRow("Reps per Minute", "${(totalReps / (trainingSession.duration / 60)).toStringAsFixed(1)}"),
+        _buildInfoRow("Avg Reps per Set", (totalReps / totalSets).toStringAsFixed(1)),
+        _buildInfoRow("Reps per Minute", (totalReps / (trainingSession.duration / 60)).toStringAsFixed(1)),
       ],
     );
   }

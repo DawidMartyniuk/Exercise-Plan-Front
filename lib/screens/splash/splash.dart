@@ -22,7 +22,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   bool _isInitialized = false;
   String _loadingText = 'Initializing...';
   int _currentStep = 0;
-  int _totalSteps = 6;
+  final int _totalSteps = 6;
 
   @override
   void initState() {
@@ -216,7 +216,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                   // ✅ LOADING SECTION Z POSTĘPEM
                   Column(
                     children: [
-                      Container(
+                      SizedBox(
                         width: 32,
                         height: 32,
                         child: CircularProgressIndicator(
@@ -257,7 +257,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       SizedBox(height: 24),
                       
                       // ✅ PASEK POSTĘPU
-                      Container(
+                      SizedBox(
                         width: MediaQuery.of(context).size.width * 0.6,
                         height: 4,
                         child: LinearProgressIndicator(

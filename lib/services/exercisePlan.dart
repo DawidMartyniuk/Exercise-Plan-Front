@@ -2,9 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:flutter/foundation.dart';
-// import 'dart:io' show Platform;
 import 'package:work_plan_front/core/auth/token_storage.dart';
-import 'package:hive/hive.dart';
 import 'package:work_plan_front/services/exercise_plan_local_service.dart';
  //TODO wynieś to do osobnej klasy
 class ExercisePlanService {
@@ -12,7 +10,7 @@ class ExercisePlanService {
     if (kIsWeb) {
       return "http://127.0.0.1:8000/api";
     } else {
-      return "http://10.0.2.2:8000/api"; // ✅ USUŃ Platform.isAndroid
+      return "http://10.0.2.2:8000/api";
     }
   }();
   final String _exerciseUrl = "/plan";

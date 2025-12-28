@@ -7,11 +7,11 @@ class ListItemExerciseCreate extends StatelessWidget {
   final String selectedItem;
 
   const ListItemExerciseCreate({
-    Key? key,
+    super.key,
     required this.openModelaToSelectedParet,
     required this.rowTitle,
     required this.selectedItem,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,12 +8,12 @@ class ExerciseCard extends StatelessWidget {
   final Widget? trailing;
 
   const ExerciseCard({
-    Key? key,
+    super.key,
     required this.exercise,
     this.onRemove,
     this.onInfo,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

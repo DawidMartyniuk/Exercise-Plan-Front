@@ -208,6 +208,7 @@ class AuthService {
     //   return LoginResult(authResponse: null, statusCode: response.statusCode);
     // }
   }
+    return null;
 }
 
   Future<AuthResponse?> register(

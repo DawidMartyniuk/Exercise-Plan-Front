@@ -1,6 +1,5 @@
 import 'package:work_plan_front/model/weight_type.dart';
 import 'package:hive/hive.dart';
-import 'exercise.dart';
 
 part 'training_session.g.dart';
 

@@ -41,12 +41,12 @@ class BodyPartInfoBottomSheet extends ConsumerWidget {
     }
   }
   return bodyPartsInfo;
-};
+}
 
     
 
     return SingleChildScrollView(
-      child: Container(
+      child: SizedBox(
         height: 400,
         child: Column(
           children: [

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:work_plan_front/model/current_workout.dart';
 import 'package:work_plan_front/model/exercise.dart';
 import 'package:work_plan_front/model/exercise_plan.dart';
 import 'package:work_plan_front/provider/exercise_plan_notifier.dart';
@@ -401,35 +400,35 @@ Future<void> _startWorkout(
         controller: _mainScrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
         children: [
-          Text(
-            "Start Now",
-            textAlign: TextAlign.left,
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: TextButton.icon(
-              onPressed: () {},
-              icon: Icon(Icons.add),
-              style: TextButton.styleFrom(
-                backgroundColor: Theme.of(
-                  context,
-                ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                ),
-              ),
-              label: Text(
-                "Start Empty Workout",
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ),
+          // Text(
+          //   "Start Now",
+          //   textAlign: TextAlign.left,
+          //   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+          //     color: Theme.of(context).colorScheme.onSurface,
+          //   ),
+          // ),
+          // SizedBox(height: 20),
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: TextButton.icon(
+          //     onPressed: () {},
+          //     icon: Icon(Icons.add),
+          //     style: TextButton.styleFrom(
+          //       backgroundColor: Theme.of(
+          //         context,
+          //       ).colorScheme.primary.withAlpha((0.2 * 255).toInt()),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(25.0),
+          //       ),
+          //     ),
+          //     label: Text(
+          //       "Start Empty Workout",
+          //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+          //         color: Theme.of(context).colorScheme.onSurface,
+          //       ),
+          //     ),
+          //   ),
+          // ),
           SizedBox(height: 20),
           Text(
             "Create plan",
