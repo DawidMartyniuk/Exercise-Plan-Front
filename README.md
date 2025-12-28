@@ -88,7 +88,7 @@ Autor
 Projekt: Praca inżynierska — frontend aplikacji Exercise Plan  
 Masz pytania lub potrzebujesz wyjaśnień — dodaj issue lub PR.
 
+## License & Contact
+- License: MIT
+- Kontakt: [dawidmartyniuk1@gmail.com]
 
-Licencja
---------
-(Tutaj dodaj rodzaj licencji, np. MIT)
