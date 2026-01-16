@@ -16,7 +16,7 @@ class AuthService {
       return "http://10.0.2.2:8000/api"; // dla mobile (Android/iOS)
     }
   }();
-  
+
   final String _loginUrl = "/login";
   final String _registerUrl = "/register";
   final String _logoutUrl = "/logout";
@@ -203,44 +203,69 @@ class AuthService {
         print("❌ StackTrace: $stackTrace");
         return LoginResult(authResponse: null, statusCode: 500);
       }
-    // } else {
-    //   print('❌ Błąd logowania: ${response.statusCode}');
-    //   return LoginResult(authResponse: null, statusCode: response.statusCode);
-    // }
-  }
+      // } else {
+      //   print('❌ Błąd logowania: ${response.statusCode}');
+      //   return LoginResult(authResponse: null, statusCode: response.statusCode);
+      // }
+    }
     return null;
-}
+  }
 
-  Future<AuthResponse?> register(
+  // zmieniono sygnaturę na Future<dynamic> żeby obsłużyć zarówno AuthResponse jak i raw body
+  Future<dynamic> register(
     String name,
     String email,
     String password,
     String repeadPassword,
   ) async {
-    final response = await http.post(
-      Uri.parse("$_baseUrl$_registerUrl"),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'name': name,
-        'email': email,
-        'password': password,
-        'password_confirmation': repeadPassword,
-      }),
-    );
+    try {
+      final response = await http
+          .post(
+            Uri.parse("$_baseUrl$_registerUrl"),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'name': name,
+              'email': email,
+              'password': password,
+              'password_confirmation': repeadPassword,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      print(response.body);
-      final responseBody = json.decode(response.body);
-      if (responseBody.containsKey('token') &&
-          responseBody.containsKey('user')) {
-        return AuthResponse.fromJson(responseBody);
+      final responseBody =
+          response.body.isNotEmpty ? json.decode(response.body) : null;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Jeśli backend zwróci token + user -> zmapuj do AuthResponse
+        if (responseBody is Map &&
+            responseBody.containsKey('token') &&
+            responseBody.containsKey('user')) {
+          final Map<String, dynamic> responseMap =
+              Map<String, dynamic>.from(responseBody);
+          return AuthResponse.fromJson(responseMap);
+        }
+
+        // Jeśli backend zwróci tylko obiekt user (201 Created) -> traktujemy to jako sukces
+        // Zwracamy raw body (nie-null), aby caller mógł rozpoznać sukces bez tokena
+        print(
+          '⚠️ Rejestracja zakończona sukcesem bez tokena, body: $responseBody',
+        );
+        return responseBody;
       } else {
-        print("Brak tokenu lub użytkownika w odpowiedzi");
-        return null;
+        try {
+          final err = responseBody;
+          throw Exception(
+            'Rejestracja nie powiodła się: ${err.toString()} (status ${response.statusCode})',
+          );
+        } catch (_) {
+          throw Exception(
+            'Rejestracja nie powiodła się: status ${response.statusCode}',
+          );
+        }
       }
-    } else {
-      print('Błąd logowania: ${response.statusCode}');
-      return null;
+    } catch (e) {
+      print("❌ Błąd rejestracji: $e");
+      rethrow;
     }
   }
 }

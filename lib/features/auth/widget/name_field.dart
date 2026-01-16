@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 class NameField extends StatelessWidget {
   final TextEditingController nameController;
   final bool isEnabled;
+  final Key? fieldKey;
 
   const NameField({
     super.key,
     required this.nameController,
     this.isEnabled = true,
+    this.fieldKey,
+  
   });
 
   @override
@@ -15,6 +18,7 @@ class NameField extends StatelessWidget {
     return TextFormField(
       controller: nameController,
       keyboardType: TextInputType.name,
+      key: fieldKey,
       enabled: isEnabled,
       decoration: InputDecoration(
         border: OutlineInputBorder(

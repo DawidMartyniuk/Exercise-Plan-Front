@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class EmailField extends StatelessWidget {
   final TextEditingController emailController;
   final bool isEnabled;
+  final Key? fieldKey;
 
-  const EmailField(
-    {super.key,
-     required this.emailController,
-     this.isEnabled = true
-     });
+  const EmailField({
+    super.key,
+    required this.emailController,
+    this.isEnabled = true,
+    this.fieldKey,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: emailController,
-      keyboardType: TextInputType.emailAddress,
+      keyboardType: kIsWeb ? TextInputType.text : TextInputType.emailAddress,
+      key: fieldKey,
       enabled: isEnabled,
       decoration: InputDecoration(
         border: OutlineInputBorder(

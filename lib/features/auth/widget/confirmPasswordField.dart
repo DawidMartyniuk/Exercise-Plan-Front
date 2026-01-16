@@ -7,6 +7,7 @@ class ConfirmPasswordField extends StatelessWidget {
   final bool isEnabled;
   final bool isPasswordVisible;
   final VoidCallback togglePasswordVisibility;
+  final Key? fieldKey;
 
   const ConfirmPasswordField({
     super.key,
@@ -15,6 +16,7 @@ class ConfirmPasswordField extends StatelessWidget {
     required this.togglePasswordVisibility,
     this.isEnabled = true,
     this.isPasswordVisible = false,
+    this.fieldKey,
   });
 
   @override
@@ -25,7 +27,8 @@ class ConfirmPasswordField extends StatelessWidget {
       isEnabled: isEnabled,
       isPasswordVisible: isPasswordVisible,
       labelText: "Confirm Password",
-      confirmPassword: originalPasswordController.text, 
+      confirmController: originalPasswordController,
+      fieldKey: fieldKey,
       isRequired: true,
     );
   }

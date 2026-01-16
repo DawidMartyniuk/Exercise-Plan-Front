@@ -189,7 +189,7 @@ class _ResetPasswordPageState extends ConsumerState<ResetPasswordPage> {
                         isEnabled: !_isLoading,
                         isPasswordVisible: _isConfirmPasswordVisible,
                         labelText: "Confirm Password",
-                        confirmPassword: _passwordController.text, // ✅ PORÓWNANIE
+                        confirmController: _passwordController,
                         togglePasswordVisibility: () {
                           setState(() {
                             _isConfirmPasswordVisible = !_isConfirmPasswordVisible;

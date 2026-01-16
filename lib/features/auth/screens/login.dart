@@ -158,6 +158,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         animationType: AnimationType.scaleIn,
                         delayMs: 800,
                         child: EmailField(
+                          fieldKey: const Key('login_email'),
                           emailController: _emailController,
                           isEnabled: !_isLoading,
                         ),
@@ -170,6 +171,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         animationType: AnimationType.scaleIn,
                         delayMs: 1000,
                         child: PasswordField(
+                          fieldKey: const Key('login_password'),
                           passwordController: _passwordController,
                           isPasswordVisible: _isPasswordVisible,
                           isEnabled: !_isLoading,
@@ -213,6 +215,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         animationType: ButtonAnimationType.bounce,
                         buttons: [
                           ElevatedButton(
+                            key: const Key('login_login_account'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.primary,
                               foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -246,6 +249,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           
                           ElevatedButton(
+                            key: const Key('open_register'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).colorScheme.secondary,
                               foregroundColor: Theme.of(context).colorScheme.onSecondary,

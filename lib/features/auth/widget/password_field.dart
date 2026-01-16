@@ -7,8 +7,9 @@ class PasswordField extends StatelessWidget {
   final VoidCallback togglePasswordVisibility;
   final String labelText;
   final bool isNewPassword;
-  final String? confirmPassword;
+  final TextEditingController? confirmController;
   final bool isRequired;
+  final Key? fieldKey;
 
   const PasswordField({
     super.key,
@@ -18,21 +19,21 @@ class PasswordField extends StatelessWidget {
     this.isPasswordVisible = false,
     this.labelText = "Password",
     this.isNewPassword = false,
-    this.confirmPassword, 
-    this.isRequired = true, // ✅ DOMYŚLNIE TRUE - STĄD GWIAZDKI
+    this.confirmController,
+    this.isRequired = true,
+    this.fieldKey,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       keyboardType: TextInputType.visiblePassword,
+      key: fieldKey,
       controller: passwordController,
       enabled: isEnabled,
       decoration: InputDecoration(
         border: OutlineInputBorder(
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.outline,
-          ),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(
@@ -47,12 +48,11 @@ class PasswordField extends StatelessWidget {
           ),
         ),
         prefixIcon: Icon(
-          labelText.toLowerCase().contains('confirm') 
-              ? Icons.lock_outline 
+          labelText.toLowerCase().contains('confirm')
+              ? Icons.lock_outline
               : Icons.lock,
-          color: isEnabled
-              ? Theme.of(context).colorScheme.onSurface
-              : Colors.grey,
+          color:
+              isEnabled ? Theme.of(context).colorScheme.onSurface : Colors.grey,
         ),
         // ✅ TUTAJ JEST PROBLEM - ZAWSZE DODAJE GWIAZDKĘ JEŚLI isRequired = true
         labelText: isRequired ? labelText : labelText,
@@ -60,25 +60,25 @@ class PasswordField extends StatelessWidget {
           onPressed: isEnabled ? togglePasswordVisibility : null,
           icon: Icon(
             isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-            color: isEnabled
-                ? Theme.of(context).colorScheme.onSurface
-                : Colors.grey,
+            color:
+                isEnabled
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Colors.grey,
           ),
         ),
         labelStyle: TextStyle(
-          color: isEnabled
-              ? Theme.of(context).colorScheme.onSurface
-              : Colors.grey,
+          color:
+              isEnabled ? Theme.of(context).colorScheme.onSurface : Colors.grey,
         ),
         filled: true,
-        fillColor: isEnabled
-            ? Theme.of(context).colorScheme.surface
-            : Colors.grey.withAlpha(50),
+        fillColor:
+            isEnabled
+                ? Theme.of(context).colorScheme.surface
+                : Colors.grey.withAlpha(50),
       ),
       style: TextStyle(
-        color: isEnabled
-            ? Theme.of(context).colorScheme.onSurface
-            : Colors.grey,
+        color:
+            isEnabled ? Theme.of(context).colorScheme.onSurface : Colors.grey,
       ),
       validator: (value) {
         if (isRequired && (value == null || value.isEmpty)) {
@@ -114,7 +114,7 @@ class PasswordField extends StatelessWidget {
           }
         }
 
-        if (confirmPassword != null && value != confirmPassword) {
+        if (confirmController != null && value != confirmController!.text) {
           return 'Passwords do not match';
         }
 
